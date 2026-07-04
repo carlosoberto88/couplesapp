@@ -1,0 +1,116 @@
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+import { redirect } from "next/navigation";
+
+import { auth } from "@clerk/nextjs/server";
+
+import { createClient } from "@/lib/supabase/server";
+import { getListTypeMeta } from "@/lib/list-types";
+import { buildMemberColorMap } from "@/lib/member-colors";
+import type { Item, List, ListMember, Profile } from "@/lib/types";
+import { ItemList } from "@/components/item-list";
+import { AppBar } from "@/components/app-bar";
+import { MemberAvatar, initialsFor } from "@/components/member-avatar";
+import { InvitePanel } from "@/components/invite-panel";
+
+type MemberWithProfile = ListMember & {
+  profiles: Pick<Profile, "id" | "email" | "display_name"> | null;
+};
+
+export default async function ListDetailPage({
+  params,
+}: {
+  params: Promise<{ listId: string }>;
+}) {
+  const { listId } = await params;
+
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/login");
+  }
+
+  const supabase = await createClient();
+
+  const [{ data: list }, { data: items }, { data: members }] =
+    await Promise.all([
+      supabase.from("lists").select("*").eq("id", listId).maybeSingle(),
+      supabase
+        .from("items")
+        .select("*")
+        .eq("list_id", listId)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("list_members")
+        .select("list_id, user_id, role, created_at, profiles(id, email, display_name)")
+        .eq("list_id", listId),
+    ]);
+
+  if (!list) {
+    redirect("/no-access");
+  }
+
+  const typedList = list as List;
+  const meta = getListTypeMeta(typedList.type);
+  const typedMembers = (members ?? []) as unknown as MemberWithProfile[];
+  const colorMap = buildMemberColorMap(typedMembers);
+
+  return (
+    <>
+      <AppBar />
+      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 px-4 pb-8 pt-4">
+        <Link
+          href="/lists"
+          className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronLeft className="size-4" />
+          Lists
+        </Link>
+
+        <div className="flex items-center gap-3">
+          <span
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-xl"
+            aria-hidden
+          >
+            {meta.icon}
+          </span>
+          <div className="flex flex-1 flex-col gap-0.5">
+            <h1 className="font-display text-lg font-semibold text-foreground">
+              {typedList.name}
+            </h1>
+            <span className="text-xs text-muted-foreground">{meta.label}</span>
+          </div>
+          {typedMembers.length > 0 && (
+            <div
+              className="flex shrink-0 -space-x-2"
+              aria-label={`${typedMembers.length} ${typedMembers.length === 1 ? "member" : "members"}`}
+            >
+              {typedMembers.map((member) => {
+                const color = colorMap.get(member.user_id);
+                if (!color) return null;
+                const name = member.profiles?.display_name || member.profiles?.email || "?";
+                return (
+                  <MemberAvatar
+                    key={member.user_id}
+                    initials={initialsFor(member.profiles)}
+                    color={color}
+                    title={name}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <InvitePanel listId={typedList.id} listName={typedList.name} />
+
+        <ItemList
+          listId={typedList.id}
+          currentUserId={userId}
+          initialItems={(items ?? []) as Item[]}
+          members={typedMembers}
+        />
+      </main>
+    </>
+  );
+}
