@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { Input } from "@/components/ui/input";
 
@@ -9,6 +10,7 @@ type AddItemFormProps = {
 };
 
 export function AddItemForm({ onAdd }: AddItemFormProps) {
+  const t = useTranslations("items");
   const [name, setName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -19,7 +21,6 @@ export function AddItemForm({ onAdd }: AddItemFormProps) {
 
     onAdd(trimmed);
     setName("");
-    // Keep focus for rapid entry — never disable the input while in flight.
     inputRef.current?.focus();
   }
 
@@ -29,9 +30,9 @@ export function AddItemForm({ onAdd }: AddItemFormProps) {
         ref={inputRef}
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Add an item…"
+        placeholder={t("addPlaceholder")}
         autoFocus
-        aria-label="Add an item"
+        aria-label={t("addAriaLabel")}
         className="h-11 rounded-full border-border bg-card px-4 text-sm focus-visible:border-primary focus-visible:ring-primary/30"
       />
     </form>

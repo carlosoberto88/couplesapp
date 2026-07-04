@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, X } from "lucide-react";
 
 import type { Item } from "@/lib/types";
@@ -18,12 +19,6 @@ type ItemRowProps = {
   onUpdateNote: (item: Item, note: string | null) => void;
 };
 
-/**
- * Single item row — the "signature" of the app: a small dot in the
- * adder's color, and (when checked) a checkbox filled with the
- * checker's color, so who-added-what and who-checked-it-off both
- * read at a glance.
- */
 export function ItemRow({
   item,
   adderColor,
@@ -32,6 +27,7 @@ export function ItemRow({
   onRemove,
   onUpdateNote,
 }: ItemRowProps) {
+  const t = useTranslations("items");
   const [editingNote, setEditingNote] = useState(false);
   const [noteValue, setNoteValue] = useState(item.note ?? "");
   const checked = item.checked_at !== null;
@@ -53,7 +49,7 @@ export function ItemRow({
     >
       <span
         aria-hidden
-        title="Added by"
+        title={t("addedBy")}
         className="mt-1.5 size-2 shrink-0 rounded-full"
         style={{ backgroundColor: adderColor.color }}
       />
@@ -87,7 +83,7 @@ export function ItemRow({
               }
             }}
             onClick={(e) => e.stopPropagation()}
-            placeholder="Add a note…"
+            placeholder={t("addNotePlaceholder")}
             className="border-b border-input bg-transparent text-xs text-foreground outline-none"
           />
         ) : (
@@ -103,7 +99,7 @@ export function ItemRow({
               !item.note && "text-muted-foreground/50",
             )}
           >
-            {item.note ?? "Add note"}
+            {item.note ?? t("addNote")}
           </button>
         )}
       </div>
@@ -115,7 +111,7 @@ export function ItemRow({
           e.stopPropagation();
           onRemove(item);
         }}
-        aria-label={`Remove ${item.name}`}
+        aria-label={t("removeItem", { name: item.name })}
       >
         <X />
       </Button>

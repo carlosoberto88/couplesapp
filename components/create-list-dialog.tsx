@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
-import { LIST_TYPES, type ListTypeKey } from "@/lib/list-types";
+import { LIST_TYPE_KEYS, getListTypeIcon, type ListTypeKey } from "@/lib/list-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,10 @@ import { cn } from "@/lib/utils";
 export function CreateListDialog() {
   const router = useRouter();
   const supabase = useSupabaseClient();
+  const t = useTranslations("createList");
+  const tListTypes = useTranslations("listTypes");
+  const tCommon = useTranslations("common");
+
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState<ListTypeKey>("shopping");
@@ -46,7 +51,7 @@ export function CreateListDialog() {
     setSubmitting(false);
 
     if (error || !data) {
-      toast.error(error?.message ?? "Could not create list");
+      toast.error(error?.message ?? t("error"));
       return;
     }
 
@@ -64,24 +69,20 @@ export function CreateListDialog() {
       }}
     >
       <DialogTrigger render={<Button size="lg" className="h-11 rounded-xl px-4" />}>
-        New list
+        {t("trigger")}
       </DialogTrigger>
       <DialogContent className="rounded-2xl bg-card">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg">
-            Create a list
-          </DialogTitle>
-          <DialogDescription>
-            Give it a name and pick a type to help you find it later.
-          </DialogDescription>
+          <DialogTitle className="font-display text-lg">{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="list-name">Name</Label>
+            <Label htmlFor="list-name">{tCommon("name")}</Label>
             <Input
               id="list-name"
               className="h-11 rounded-xl"
-              placeholder="Weekly groceries"
+              placeholder={t("namePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
@@ -89,27 +90,25 @@ export function CreateListDialog() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Type</Label>
+            <Label>{t("typeLabel")}</Label>
             <div className="grid grid-cols-3 gap-2">
-              {(Object.entries(LIST_TYPES) as [ListTypeKey, (typeof LIST_TYPES)[ListTypeKey]][]).map(
-                ([key, meta]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setType(key)}
-                    aria-pressed={type === key}
-                    className={cn(
-                      "flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl border-2 px-2 py-2.5 text-xs font-medium transition-colors",
-                      type === key
-                        ? "border-primary bg-duo-coral-tint text-primary"
-                        : "border-border bg-background text-muted-foreground hover:bg-muted",
-                    )}
-                  >
-                    <span className="text-xl leading-none">{meta.icon}</span>
-                    {meta.label}
-                  </button>
-                ),
-              )}
+              {LIST_TYPE_KEYS.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setType(key)}
+                  aria-pressed={type === key}
+                  className={cn(
+                    "flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl border-2 px-2 py-2.5 text-xs font-medium transition-colors",
+                    type === key
+                      ? "border-primary bg-duo-coral-tint text-primary"
+                      : "border-border bg-background text-muted-foreground hover:bg-muted",
+                  )}
+                >
+                  <span className="text-xl leading-none">{getListTypeIcon(key)}</span>
+                  {tListTypes(key)}
+                </button>
+              ))}
             </div>
           </div>
           <DialogFooter>
@@ -119,7 +118,7 @@ export function CreateListDialog() {
               className="h-11 w-full rounded-xl px-5 sm:w-auto"
               disabled={submitting || !name.trim()}
             >
-              {submitting ? "Creating…" : "Create list"}
+              {submitting ? t("creating") : t("submit")}
             </Button>
           </DialogFooter>
         </form>

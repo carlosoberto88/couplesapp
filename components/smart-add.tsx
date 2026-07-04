@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -31,9 +32,11 @@ type SmartAddProps = {
 
 type Stage = "compose" | "review";
 
-const PARSE_ERROR_MESSAGE = "Couldn't make sense of that — try again?";
-
 export function SmartAdd({ listId, onAdd }: SmartAddProps) {
+  const t = useTranslations("smartAdd");
+  const tItems = useTranslations("items");
+  const tCommon = useTranslations("common");
+
   const [open, setOpen] = useState(false);
   const [stage, setStage] = useState<Stage>("compose");
   const [text, setText] = useState("");
@@ -71,7 +74,7 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
       const data = await res.json().catch(() => null);
 
       if (!res.ok || !data) {
-        setError(data?.error ?? PARSE_ERROR_MESSAGE);
+        setError(data?.error ?? t("parseError"));
         setParsing(false);
         return;
       }
@@ -88,7 +91,7 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
       setStage("review");
       setParsing(false);
     } catch {
-      setError(PARSE_ERROR_MESSAGE);
+      setError(t("parseError"));
       setParsing(false);
     }
   }
@@ -116,7 +119,7 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
       onAdd(candidate.name.trim(), note.length > 0 ? note : null);
     }
 
-    toast.success(`Added ${toAdd.length} ${toAdd.length === 1 ? "item" : "items"}`);
+    toast.success(t("addedToast", { count: toAdd.length }));
     handleOpenChange(false);
   }
 
@@ -129,7 +132,7 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
             variant="secondary"
             size="icon-lg"
             className="h-11 w-11 shrink-0 rounded-full bg-duo-coral-tint text-duo-coral hover:bg-duo-coral-tint/70"
-            aria-label="Smart add from pasted text"
+            aria-label={t("triggerLabel")}
           />
         }
       >
@@ -138,11 +141,9 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Smart add</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            {stage === "compose"
-              ? "Paste a recipe or a list of things you need — we'll pull out the items."
-              : "Review what we found. Uncheck anything you don't need, or tweak the details."}
+            {stage === "compose" ? t("composeDescription") : t("reviewDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -152,7 +153,7 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
               value={text}
               onChange={(e) => setText(e.target.value)}
               disabled={parsing}
-              placeholder="Paste text here…"
+              placeholder={t("pastePlaceholder")}
               rows={6}
               autoFocus
               className="w-full resize-none rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -162,7 +163,7 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
               <div className="flex items-center justify-between gap-2 rounded-2xl bg-duo-coral-tint px-3 py-2.5 text-sm text-foreground">
                 <span>{error}</span>
                 <Button type="button" variant="secondary" size="sm" onClick={handleParse}>
-                  Retry
+                  {tCommon("retry")}
                 </Button>
               </div>
             )}
@@ -175,7 +176,7 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
                 className="bg-duo-teal text-white hover:bg-duo-teal/90"
               >
                 {parsing && <Loader2 className="animate-spin" />}
-                Parse
+                {t("parse")}
               </Button>
             </DialogFooter>
           </div>
@@ -183,7 +184,7 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
           <div className="flex flex-col gap-3">
             {candidates.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-                Didn&apos;t find anything in there — try pasting something else.
+                {t("emptyResults")}
               </p>
             ) : (
               <ul className="flex max-h-72 flex-col gap-2 overflow-y-auto">
@@ -198,7 +199,11 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
                     <button
                       type="button"
                       onClick={() => toggleCandidate(candidate.id)}
-                      aria-label={candidate.checked ? `Exclude ${candidate.name}` : `Include ${candidate.name}`}
+                      aria-label={
+                        candidate.checked
+                          ? t("excludeItem", { name: candidate.name })
+                          : t("includeItem", { name: candidate.name })
+                      }
                       aria-pressed={candidate.checked}
                       className={cn(
                         "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors",
@@ -212,13 +217,13 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
                       <Input
                         value={candidate.name}
                         onChange={(e) => updateCandidateName(candidate.id, e.target.value)}
-                        placeholder="Item name"
+                        placeholder={t("itemNamePlaceholder")}
                         className="h-8 border-none bg-transparent px-0 text-sm focus-visible:ring-0"
                       />
                       <Input
                         value={candidate.note}
                         onChange={(e) => updateCandidateNote(candidate.id, e.target.value)}
-                        placeholder="Add a note…"
+                        placeholder={tItems("addNotePlaceholder")}
                         className="h-6 border-none bg-transparent px-0 text-xs text-muted-foreground focus-visible:ring-0"
                       />
                     </div>
@@ -229,7 +234,7 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
 
             <DialogFooter className="sm:justify-between">
               <Button type="button" variant="ghost" onClick={() => setStage("compose")}>
-                Back
+                {t("back")}
               </Button>
               <Button
                 type="button"
@@ -237,7 +242,7 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
                 disabled={checkedCandidates.length === 0}
                 className="bg-duo-teal text-white hover:bg-duo-teal/90"
               >
-                Add {checkedCandidates.length} {checkedCandidates.length === 1 ? "item" : "items"}
+                {t("addItems", { count: checkedCandidates.length })}
               </Button>
             </DialogFooter>
           </div>

@@ -1,17 +1,24 @@
 // scripts/auth-test.ts
 //
-// Headless auth smoke test against a live Supabase project.
-// Covers the email+password auth flow (magic link removed, email
-// confirmation OFF) plus invite reconciliation on the sign-in path.
+// Headless auth/first-login smoke test against a live Supabase project,
+// authenticated as a throwaway Clerk identity (Clerk owns signup/sign-in
+// now — there is no Supabase-native signUp/signInWithPassword path left in
+// this app, so this script exercises the equivalent Clerk-era flows: a
+// brand-new Clerk user's FIRST session token, used (via its own RLS-scoped
+// client, not service role) to replicate app/lists/layout.tsx's lazy
+// profiles upsert + accept_pending_invites reconciliation — plus Clerk
+// password verification as the closest headless equivalent to the old
+// "wrong password fails" check.
 //
-// - Anon-key client is used for all user actions (signUp,
-//   signInWithPassword, rpc calls) — assertions go through real auth, not
-//   the service role.
-// - Service-role client is used only for setup (seeding the inviting
-//   user's list) and teardown/verification (deleting the throwaway user,
-//   checking profiles/list_members/list_invites rows directly).
+// - Anon-key client with a Clerk accessToken callback is used for all
+//   user-facing actions (profiles upsert, rpc calls) — assertions go
+//   through real RLS, not the service role.
+// - Service-role client + @clerk/backend are used only for setup (seeding
+//   user A's list to invite the throwaway user into) and
+//   teardown/verification (deleting the throwaway Clerk user + DB rows,
+//   checking list_members/list_invites rows directly).
 //
-// Usage: npm run test:auth
+// Usage: pnpm test:auth
 // Exits non-zero if any assertion fails.
 
 import { config } from "dotenv";
@@ -19,7 +26,9 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   TEST_USER_A_EMAIL,
   TEST_USER_PASSWORD,
+  setupTestUser,
 } from "./seed-test-users";
+import { ensureClerkUser, getClerkClient, makeTokenMinter, decodeJwtPayload } from "./clerk-test-helpers";
 
 // dotenv/config only loads .env by default; this project's real env values
 // live in .env.local (per Task 1 of the implementation plan).
@@ -55,19 +64,14 @@ function getEnv() {
   return { url, anonKey, serviceRoleKey };
 }
 
-function newAnonClient(url: string, anonKey: string) {
+function buildClerkClient(
+  url: string,
+  anonKey: string,
+  mintOrRefresh: () => Promise<string>,
+): SupabaseClient {
   return createClient(url, anonKey, {
-    auth: { autoRefreshToken: false, persistSession: true },
+    accessToken: async () => (await mintOrRefresh()) ?? null,
   });
-}
-
-async function signInFixedUser(url: string, anonKey: string, email: string, password: string) {
-  const client = newAnonClient(url, anonKey);
-  const { data, error } = await client.auth.signInWithPassword({ email, password });
-  if (error || !data.user) {
-    throw new Error(`Sign-in failed for ${email}: ${error?.message ?? "no user returned"}`);
-  }
-  return { client, userId: data.user.id };
 }
 
 async function main() {
@@ -75,6 +79,7 @@ async function main() {
   const serviceClient = createClient(url, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+  const clerk = getClerkClient();
 
   const throwawayEmail = `auth-test-${crypto.randomUUID()}@example.com`;
   const throwawayPassword = "Auth-Test-Password-1!";
@@ -83,75 +88,88 @@ async function main() {
   let listId: string | null = null;
 
   try {
-    // ---------- 1. Signup creates a usable session + profile ----------
-    console.log("\n--- Assertion 1: signup creates a usable session + profile ---");
-    const signUpClient = newAnonClient(url, anonKey);
-    const { data: signUpData, error: signUpErr } = await signUpClient.auth.signUp({
-      email: throwawayEmail,
-      password: throwawayPassword,
-    });
-    assert("signUp succeeds", !signUpErr && !!signUpData.user, signUpErr?.message);
-    throwawayUserId = signUpData.user?.id ?? null;
+    // ---------- 1. Brand-new Clerk identity mints a valid session token ----------
+    console.log("\n--- Assertion 1: brand-new Clerk identity mints a valid session token ---");
+    throwawayUserId = await ensureClerkUser(clerk, throwawayEmail, throwawayPassword);
+    assert("Clerk user created for throwaway email", !!throwawayUserId, throwawayUserId);
+
+    const mintOrRefresh = makeTokenMinter(clerk, throwawayUserId);
+    const firstToken = await mintOrRefresh();
+    const claims = decodeJwtPayload(firstToken);
+    assert("Minted token carries role:authenticated", claims.role === "authenticated", claims.role);
     assert(
-      "signUp returns a session immediately (email confirmation is OFF)",
-      !!signUpData.session,
-      signUpData.session,
+      "Minted token carries email claim matching the new user",
+      typeof claims.email === "string" && claims.email.toLowerCase() === throwawayEmail.toLowerCase(),
+      claims.email,
+    );
+    assert("Minted token sub matches the new Clerk user id", claims.sub === throwawayUserId, claims.sub);
+
+    const throwawayClient = buildClerkClient(url, anonKey, mintOrRefresh);
+
+    // No profiles row exists yet — nothing has upserted it. Confirms this is
+    // genuinely a first-login scenario, not reusing a pre-seeded fixture.
+    const { data: profileBefore } = await serviceClient
+      .from("profiles")
+      .select("id")
+      .eq("id", throwawayUserId)
+      .maybeSingle();
+    assert(
+      "No profiles row exists yet for the brand-new user (true first login)",
+      !profileBefore,
+      profileBefore,
     );
 
-    if (throwawayUserId) {
-      const { data: profileRow, error: profileErr } = await serviceClient
-        .from("profiles")
-        .select("*")
-        .eq("id", throwawayUserId)
-        .maybeSingle();
-      assert(
-        "profiles row exists for new user (handle_new_user trigger)",
-        !profileErr && !!profileRow,
-        profileErr?.message ?? profileRow,
-      );
-    } else {
-      fail("profiles row check skipped — no user id from signUp");
-    }
-
-    // ---------- 2. Sign in works ----------
-    console.log("\n--- Assertion 2: sign in works ---");
-    await signUpClient.auth.signOut();
-
-    const signInClient = newAnonClient(url, anonKey);
-    const { data: signInData, error: signInErr } = await signInClient.auth.signInWithPassword({
-      email: throwawayEmail,
-      password: throwawayPassword,
-    });
+    // ---------- 2. First-login lazy profile upsert (app/lists/layout.tsx path) ----------
+    console.log("\n--- Assertion 2: first-login lazy profile upsert succeeds under RLS ---");
+    const { error: upsertErr } = await throwawayClient
+      .from("profiles")
+      .upsert({ id: throwawayUserId, email: throwawayEmail.toLowerCase() }, { onConflict: "id" });
     assert(
-      "signInWithPassword with correct credentials returns a session",
-      !signInErr && !!signInData.session,
-      signInErr?.message,
+      "Throwaway user can upsert their own profiles row (own token, not service role)",
+      !upsertErr,
+      upsertErr?.message,
     );
 
-    // ---------- 3. Wrong password fails ----------
-    console.log("\n--- Assertion 3: wrong password fails ---");
-    const wrongPasswordClient = newAnonClient(url, anonKey);
-    const { data: wrongPasswordData, error: wrongPasswordErr } =
-      await wrongPasswordClient.auth.signInWithPassword({
-        email: throwawayEmail,
+    const { data: profileAfter, error: profileErr } = await serviceClient
+      .from("profiles")
+      .select("*")
+      .eq("id", throwawayUserId)
+      .maybeSingle();
+    assert(
+      "profiles row now exists for the new user (lazy upsert, no DB trigger)",
+      !profileErr && !!profileAfter,
+      profileErr?.message ?? profileAfter,
+    );
+
+    // ---------- 3. Password verification (Clerk-era equivalent of sign-in checks) ----------
+    console.log("\n--- Assertion 3: Clerk password verification ---");
+    const correctVerify = await clerk.users.verifyPassword({
+      userId: throwawayUserId,
+      password: throwawayPassword,
+    });
+    assert("Correct password verifies successfully", correctVerify.verified === true, correctVerify);
+
+    // verifyPassword's success type is always `{ verified: true }` — a wrong
+    // password rejects by throwing rather than returning `verified: false`.
+    let wrongPasswordRejected = false;
+    let wrongPasswordDetails: unknown;
+    try {
+      await clerk.users.verifyPassword({
+        userId: throwawayUserId,
         password: "definitely-the-wrong-password",
       });
-    assert(
-      "signInWithPassword with wrong password returns an error",
-      !!wrongPasswordErr,
-      "expected an auth error",
-    );
-    assert(
-      "signInWithPassword with wrong password returns no session",
-      !wrongPasswordData.session,
-      wrongPasswordData.session,
-    );
+    } catch (err) {
+      wrongPasswordRejected = true;
+      wrongPasswordDetails = (err as Error).message;
+    }
+    assert("Wrong password fails verification", wrongPasswordRejected, wrongPasswordDetails);
 
-    // ---------- 4. Invite reconciliation on sign-in path ----------
-    console.log("\n--- Assertion 4: invite reconciliation on sign-in path ---");
-    const a = await signInFixedUser(url, anonKey, TEST_USER_A_EMAIL, TEST_USER_PASSWORD);
+    // ---------- 4. Invite reconciliation on first-login path ----------
+    console.log("\n--- Assertion 4: invite reconciliation on first-login path ---");
+    const a = await setupTestUser(TEST_USER_A_EMAIL, TEST_USER_PASSWORD);
+    const clientA = buildClerkClient(url, anonKey, a.mintOrRefresh);
 
-    const { data: createdId, error: createListErr } = await a.client.rpc("create_list", {
+    const { data: createdId, error: createListErr } = await clientA.rpc("create_list", {
       p_name: "Auth Test List",
       p_type: "shopping",
     });
@@ -160,18 +178,18 @@ async function main() {
 
     if (listId) {
       // Uppercase on purpose — verifies lower() matching in accept_pending_invites.
-      const { error: inviteErr } = await a.client.from("list_invites").insert({
+      const { error: inviteErr } = await clientA.from("list_invites").insert({
         list_id: listId,
         email: throwawayEmail.toUpperCase(),
         invited_by: a.userId,
       });
       assert("A can invite the throwaway user (uppercase email)", !inviteErr, inviteErr?.message);
 
-      const { data: acceptCount, error: acceptErr } = await signInClient.rpc(
+      const { data: acceptCount, error: acceptErr } = await throwawayClient.rpc(
         "accept_pending_invites",
       );
       assert(
-        "Signed-in throwaway user's accept_pending_invites returns >= 1",
+        "First-login throwaway user's accept_pending_invites returns >= 1",
         !acceptErr && typeof acceptCount === "number" && acceptCount >= 1,
         acceptErr?.message ?? acceptCount,
       );
@@ -196,7 +214,7 @@ async function main() {
         .maybeSingle();
       assert("Invite status is accepted", inviteRow?.status === "accepted", inviteRow);
 
-      const { data: secondAcceptCount, error: secondAcceptErr } = await signInClient.rpc(
+      const { data: secondAcceptCount, error: secondAcceptErr } = await throwawayClient.rpc(
         "accept_pending_invites",
       );
       assert(
@@ -207,10 +225,6 @@ async function main() {
     } else {
       fail("Assertion 4 invite steps skipped — no listId from create_list");
     }
-
-    await a.client.auth.signOut();
-    await signInClient.auth.signOut();
-    await wrongPasswordClient.auth.signOut();
   } finally {
     console.log("\nCleanup...");
     if (listId) {
@@ -218,8 +232,15 @@ async function main() {
       if (error) console.log(`  (cleanup warning: list delete: ${error.message})`);
     }
     if (throwawayUserId) {
-      const { error } = await serviceClient.auth.admin.deleteUser(throwawayUserId);
-      if (error) console.log(`  (cleanup warning: user delete: ${error.message})`);
+      // profiles row cascades away with the Clerk user delete's DB-side
+      // counterpart below (no DB FK to Clerk itself — delete the profiles
+      // row directly via service role since there is no auth.users trigger
+      // to rely on under the Clerk re-key).
+      const { error } = await serviceClient.from("profiles").delete().eq("id", throwawayUserId);
+      if (error) console.log(`  (cleanup warning: profiles delete: ${error.message})`);
+      await clerk.users.deleteUser(throwawayUserId).catch((err) => {
+        console.log(`  (cleanup warning: Clerk deleteUser: ${(err as Error).message})`);
+      });
     }
   }
 

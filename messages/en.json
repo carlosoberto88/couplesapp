@@ -1,0 +1,150 @@
+{
+  "metadata": {
+    "title": "Couples",
+    "description": "Shared lists for couples"
+  },
+  "common": {
+    "appName": "Couples",
+    "retry": "Retry",
+    "undo": "Undo",
+    "name": "Name",
+    "unknown": "Unknown",
+    "close": "Close"
+  },
+  "auth": {
+    "tagline": "One home for the lists you keep together."
+  },
+  "noAccess": {
+    "title": "You don't have access to this list",
+    "description": "This list doesn't exist, or you're not a member of it. Ask the owner to invite you if you think this is a mistake.",
+    "backToLists": "Back to your lists"
+  },
+  "lists": {
+    "filterLabel": "Filter lists",
+    "active": "Active",
+    "archived": "Archived",
+    "emptyActiveTitle": "No lists yet",
+    "emptyActiveDescription": "Create your first list to start sharing with your person.",
+    "emptyArchivedTitle": "Nothing archived yet",
+    "emptyArchivedDescription": "Lists you archive together will show up here.",
+    "memberCount": "{count, plural, one {# member} other {# members}}"
+  },
+  "listDetail": {
+    "backToLists": "Lists",
+    "memberCount": "{count, plural, one {# member} other {# members}}"
+  },
+  "listTypes": {
+    "shopping": "Shopping",
+    "todo": "To-do",
+    "other": "Other",
+    "fallback": "List"
+  },
+  "createList": {
+    "trigger": "New list",
+    "title": "Create a list",
+    "description": "Give it a name and pick a type to help you find it later.",
+    "namePlaceholder": "Weekly groceries",
+    "typeLabel": "Type",
+    "creating": "Creating…",
+    "submit": "Create list",
+    "error": "Could not create list"
+  },
+  "listSettings": {
+    "menuLabel": "List settings",
+    "rename": "Rename",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "delete": "Delete",
+    "renameTitle": "Rename list",
+    "renameDescription": "Choose a new name for this list.",
+    "saving": "Saving…",
+    "save": "Save",
+    "deleteTitle": "Delete \"{name}\"?",
+    "deleteDescription": "This permanently deletes the list and all of its items. This cannot be undone.",
+    "deleting": "Deleting…",
+    "deleteConfirm": "Delete list",
+    "archivedToast": "List archived",
+    "unarchivedToast": "List unarchived",
+    "deletedToast": "List deleted"
+  },
+  "invite": {
+    "panelTitle": "People on {listName}",
+    "membersHeading": "Members",
+    "ownerBadge": "Owner",
+    "memberBadge": "Member",
+    "removeMemberLabel": "Remove {name}",
+    "emailPlaceholder": "their@email.com",
+    "sending": "Sending…",
+    "submit": "Invite",
+    "copyLinkHint": "They already have an account — send them this link to join.",
+    "copyLink": "Copy link",
+    "copied": "Copied",
+    "waitingHeading": "Waiting to join",
+    "pendingBadge": "Pending",
+    "cancelInviteLabel": "Cancel invite for {email}",
+    "alreadyMember": "{email} is already on this list",
+    "emailSent": "Invitation email sent to {email}",
+    "copyLinkToast": "{email} already has an account — copy this link and send it to them",
+    "emailFailed": "Couldn't send the email — share this link instead",
+    "sendError": "Could not send invite",
+    "linkCopied": "Link copied",
+    "removedMember": "Removed {name}",
+    "cancelledInvite": "Cancelled invite for {email}",
+    "removeMemberTitle": "Remove {name}?",
+    "removeMemberDescription": "They will lose access to this list immediately.",
+    "cancelInviteTitle": "Cancel invite for {email}?",
+    "cancelInviteDescription": "They will no longer be able to join using this invitation.",
+    "removing": "Removing…",
+    "removeMemberConfirm": "Remove member",
+    "cancelInviteConfirm": "Cancel invite"
+  },
+  "items": {
+    "addPlaceholder": "Add an item…",
+    "addAriaLabel": "Add an item",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "clearChecked": "Clear checked",
+    "empty": "No items yet — add your first item above.",
+    "allDone": "All done 🎉",
+    "clearCheckedPrompt": "Clear checked?",
+    "addedBy": "Added by",
+    "addNote": "Add note",
+    "addNotePlaceholder": "Add a note…",
+    "removeItem": "Remove {name}",
+    "saveError": "Couldn't save — tap to retry",
+    "saveNoteError": "Couldn't save note — tap to retry",
+    "removeError": "Couldn't remove — tap to retry",
+    "undoError": "Couldn't undo — tap to retry",
+    "clearCheckedError": "Couldn't clear checked items — tap to retry",
+    "removedItem": "Removed \"{name}\"",
+    "addedByOther": "\"{name}\" added by {user}",
+    "addedOther": "\"{name}\" added"
+  },
+  "smartAdd": {
+    "triggerLabel": "Smart add from pasted text",
+    "title": "Smart add",
+    "composeDescription": "Paste a recipe or a list of things you need — we'll pull out the items.",
+    "reviewDescription": "Review what we found. Uncheck anything you don't need, or tweak the details.",
+    "pastePlaceholder": "Paste text here…",
+    "parseError": "Couldn't make sense of that — try again?",
+    "parse": "Parse",
+    "emptyResults": "Didn't find anything in there — try pasting something else.",
+    "excludeItem": "Exclude {name}",
+    "includeItem": "Include {name}",
+    "itemNamePlaceholder": "Item name",
+    "back": "Back",
+    "addItems": "Add {count, plural, one {# item} other {# items}}",
+    "addedToast": "Added {count, plural, one {# item} other {# items}}"
+  },
+  "api": {
+    "notAuthenticated": "Not authenticated",
+    "listIdEmailRequired": "listId and email are required",
+    "invalidEmail": "That doesn't look like a valid email address",
+    "missingEmailClaim": "Clerk session token is missing the `email` claim — add it in Clerk Dashboard → Sessions → Customize session token",
+    "cantInviteSelf": "You can't invite yourself",
+    "noListAccess": "You don't have access to this list",
+    "createInviteError": "Could not create invite",
+    "listIdTextRequired": "listId and text are required",
+    "textTooLong": "That's a lot of text — try a smaller chunk",
+    "parseFailed": "Couldn't make sense of that text — try rephrasing or pasting less at once"
+  }
+}

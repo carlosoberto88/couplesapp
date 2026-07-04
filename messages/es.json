@@ -1,0 +1,150 @@
+{
+  "metadata": {
+    "title": "Couples",
+    "description": "Listas compartidas para parejas"
+  },
+  "common": {
+    "appName": "Couples",
+    "retry": "Reintentar",
+    "undo": "Deshacer",
+    "name": "Nombre",
+    "unknown": "Desconocido",
+    "close": "Cerrar"
+  },
+  "auth": {
+    "tagline": "Un solo lugar para las listas que comparten."
+  },
+  "noAccess": {
+    "title": "No tienes acceso a esta lista",
+    "description": "Esta lista no existe o no eres miembro. Pide al dueño que te invite si crees que es un error.",
+    "backToLists": "Volver a tus listas"
+  },
+  "lists": {
+    "filterLabel": "Filtrar listas",
+    "active": "Activas",
+    "archived": "Archivadas",
+    "emptyActiveTitle": "Aún no hay listas",
+    "emptyActiveDescription": "Crea tu primera lista para empezar a compartir con tu persona.",
+    "emptyArchivedTitle": "Nada archivado aún",
+    "emptyArchivedDescription": "Las listas que archiven juntos aparecerán aquí.",
+    "memberCount": "{count, plural, one {# miembro} other {# miembros}}"
+  },
+  "listDetail": {
+    "backToLists": "Listas",
+    "memberCount": "{count, plural, one {# miembro} other {# miembros}}"
+  },
+  "listTypes": {
+    "shopping": "Compras",
+    "todo": "Pendientes",
+    "other": "Otra",
+    "fallback": "Lista"
+  },
+  "createList": {
+    "trigger": "Nueva lista",
+    "title": "Crear una lista",
+    "description": "Ponle un nombre y elige un tipo para encontrarla después.",
+    "namePlaceholder": "Compras semanales",
+    "typeLabel": "Tipo",
+    "creating": "Creando…",
+    "submit": "Crear lista",
+    "error": "No se pudo crear la lista"
+  },
+  "listSettings": {
+    "menuLabel": "Ajustes de la lista",
+    "rename": "Renombrar",
+    "archive": "Archivar",
+    "unarchive": "Desarchivar",
+    "delete": "Eliminar",
+    "renameTitle": "Renombrar lista",
+    "renameDescription": "Elige un nuevo nombre para esta lista.",
+    "saving": "Guardando…",
+    "save": "Guardar",
+    "deleteTitle": "¿Eliminar \"{name}\"?",
+    "deleteDescription": "Esto elimina la lista y todos sus ítems de forma permanente. No se puede deshacer.",
+    "deleting": "Eliminando…",
+    "deleteConfirm": "Eliminar lista",
+    "archivedToast": "Lista archivada",
+    "unarchivedToast": "Lista desarchivada",
+    "deletedToast": "Lista eliminada"
+  },
+  "invite": {
+    "panelTitle": "Personas en {listName}",
+    "membersHeading": "Miembros",
+    "ownerBadge": "Dueño",
+    "memberBadge": "Miembro",
+    "removeMemberLabel": "Quitar a {name}",
+    "emailPlaceholder": "su@email.com",
+    "sending": "Enviando…",
+    "submit": "Invitar",
+    "copyLinkHint": "Ya tiene cuenta — envíale este enlace para unirse.",
+    "copyLink": "Copiar enlace",
+    "copied": "Copiado",
+    "waitingHeading": "Esperando unirse",
+    "pendingBadge": "Pendiente",
+    "cancelInviteLabel": "Cancelar invitación para {email}",
+    "alreadyMember": "{email} ya está en esta lista",
+    "emailSent": "Invitación enviada a {email}",
+    "copyLinkToast": "{email} ya tiene cuenta — copia este enlace y envíaselo",
+    "emailFailed": "No se pudo enviar el correo — comparte este enlace",
+    "sendError": "No se pudo enviar la invitación",
+    "linkCopied": "Enlace copiado",
+    "removedMember": "Se quitó a {name}",
+    "cancelledInvite": "Invitación cancelada para {email}",
+    "removeMemberTitle": "¿Quitar a {name}?",
+    "removeMemberDescription": "Perderá acceso a esta lista de inmediato.",
+    "cancelInviteTitle": "¿Cancelar invitación para {email}?",
+    "cancelInviteDescription": "Ya no podrá unirse con esta invitación.",
+    "removing": "Quitando…",
+    "removeMemberConfirm": "Quitar miembro",
+    "cancelInviteConfirm": "Cancelar invitación"
+  },
+  "items": {
+    "addPlaceholder": "Agregar un ítem…",
+    "addAriaLabel": "Agregar un ítem",
+    "itemCount": "{count, plural, one {# ítem} other {# ítems}}",
+    "clearChecked": "Limpiar marcados",
+    "empty": "Aún no hay ítems — agrega el primero arriba.",
+    "allDone": "Todo listo 🎉",
+    "clearCheckedPrompt": "¿Limpiar marcados?",
+    "addedBy": "Agregado por",
+    "addNote": "Agregar nota",
+    "addNotePlaceholder": "Agregar una nota…",
+    "removeItem": "Quitar {name}",
+    "saveError": "No se pudo guardar — toca para reintentar",
+    "saveNoteError": "No se pudo guardar la nota — toca para reintentar",
+    "removeError": "No se pudo quitar — toca para reintentar",
+    "undoError": "No se pudo deshacer — toca para reintentar",
+    "clearCheckedError": "No se pudieron limpiar los marcados — toca para reintentar",
+    "removedItem": "Se quitó \"{name}\"",
+    "addedByOther": "\"{name}\" agregado por {user}",
+    "addedOther": "\"{name}\" agregado"
+  },
+  "smartAdd": {
+    "triggerLabel": "Agregar inteligente desde texto pegado",
+    "title": "Agregar inteligente",
+    "composeDescription": "Pega una receta o una lista de cosas que necesitas — sacaremos los ítems.",
+    "reviewDescription": "Revisa lo que encontramos. Desmarca lo que no necesites o ajusta los detalles.",
+    "pastePlaceholder": "Pega el texto aquí…",
+    "parseError": "No pudimos entender eso — ¿intentar de nuevo?",
+    "parse": "Analizar",
+    "emptyResults": "No encontramos nada — prueba pegando otra cosa.",
+    "excludeItem": "Excluir {name}",
+    "includeItem": "Incluir {name}",
+    "itemNamePlaceholder": "Nombre del ítem",
+    "back": "Atrás",
+    "addItems": "Agregar {count, plural, one {# ítem} other {# ítems}}",
+    "addedToast": "Se agregaron {count, plural, one {# ítem} other {# ítems}}"
+  },
+  "api": {
+    "notAuthenticated": "No autenticado",
+    "listIdEmailRequired": "listId y email son obligatorios",
+    "invalidEmail": "Eso no parece un correo válido",
+    "missingEmailClaim": "El token de sesión de Clerk no incluye el claim `email` — agrégalo en Clerk Dashboard → Sessions → Customize session token",
+    "cantInviteSelf": "No puedes invitarte a ti mismo",
+    "noListAccess": "No tienes acceso a esta lista",
+    "createInviteError": "No se pudo crear la invitación",
+    "listIdTextRequired": "listId y text son obligatorios",
+    "textTooLong": "Es mucho texto — prueba con un fragmento más pequeño",
+    "parseFailed": "No pudimos entender ese texto — prueba reformular o pegar menos de una vez"
+  }
+}

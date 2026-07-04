@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { auth } from "@clerk/nextjs/server";
 
@@ -30,6 +31,9 @@ export default async function ListDetailPage({
     redirect("/login");
   }
 
+  const t = await getTranslations("listDetail");
+  const tListTypes = await getTranslations("listTypes");
+
   const supabase = await createClient();
 
   const [{ data: list }, { data: items }, { data: members }] =
@@ -51,7 +55,7 @@ export default async function ListDetailPage({
   }
 
   const typedList = list as List;
-  const meta = getListTypeMeta(typedList.type);
+  const meta = getListTypeMeta(typedList.type, (key) => tListTypes(key));
   const typedMembers = (members ?? []) as unknown as MemberWithProfile[];
   const colorMap = buildMemberColorMap(typedMembers);
 
@@ -64,7 +68,7 @@ export default async function ListDetailPage({
           className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="size-4" />
-          Lists
+          {t("backToLists")}
         </Link>
 
         <div className="flex items-center gap-3">
@@ -83,7 +87,7 @@ export default async function ListDetailPage({
           {typedMembers.length > 0 && (
             <div
               className="flex shrink-0 -space-x-2"
-              aria-label={`${typedMembers.length} ${typedMembers.length === 1 ? "member" : "members"}`}
+              aria-label={t("memberCount", { count: typedMembers.length })}
             >
               {typedMembers.map((member) => {
                 const color = colorMap.get(member.user_id);
@@ -102,7 +106,13 @@ export default async function ListDetailPage({
           )}
         </div>
 
-        <InvitePanel listId={typedList.id} listName={typedList.name} />
+        <InvitePanel
+          listId={typedList.id}
+          listName={typedList.name}
+          ownerId={typedList.owner_id}
+          currentUserId={userId}
+          members={typedMembers}
+        />
 
         <ItemList
           listId={typedList.id}

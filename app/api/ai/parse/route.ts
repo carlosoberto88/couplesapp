@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateObject } from "ai";
 import { auth } from "@clerk/nextjs/server";
 
+import { getApiTranslator } from "@/lib/api-translator";
 import { createClient } from "@/lib/supabase/server";
 import { aiModel } from "@/lib/ai/model";
 import { parseResultSchema } from "@/lib/ai/schemas";
@@ -9,10 +10,11 @@ import { parseResultSchema } from "@/lib/ai/schemas";
 const MAX_TEXT_LENGTH = 4000;
 
 export async function POST(request: NextRequest) {
+  const t = await getApiTranslator(request);
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    return NextResponse.json({ error: t("api.notAuthenticated") }, { status: 401 });
   }
 
   const supabase = await createClient();
@@ -23,19 +25,18 @@ export async function POST(request: NextRequest) {
 
   if (!listId || !text) {
     return NextResponse.json(
-      { error: "listId and text are required" },
+      { error: t("api.listIdTextRequired") },
       { status: 400 },
     );
   }
 
   if (text.length > MAX_TEXT_LENGTH) {
     return NextResponse.json(
-      { error: "That's a lot of text — try a smaller chunk" },
+      { error: t("api.textTooLong") },
       { status: 400 },
     );
   }
 
-  // RLS ensures this only returns a row if the caller is a member of the list.
   const { data: list } = await supabase
     .from("lists")
     .select("id")
@@ -44,12 +45,11 @@ export async function POST(request: NextRequest) {
 
   if (!list) {
     return NextResponse.json(
-      { error: "You don't have access to this list" },
+      { error: t("api.noListAccess") },
       { status: 403 },
     );
   }
 
-  // User-scoped, RLS-protected — only names on this list, for dedupe context.
   const { data: existingItems } = await supabase
     .from("items")
     .select("name")
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ items: object.items });
   } catch {
     return NextResponse.json(
-      { error: "Couldn't make sense of that text — try rephrasing or pasting less at once" },
+      { error: t("api.parseFailed") },
       { status: 502 },
     );
   }

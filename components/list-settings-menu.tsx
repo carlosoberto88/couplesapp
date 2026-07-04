@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { MoreVertical, Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-react";
 
@@ -32,6 +33,9 @@ type ListSettingsMenuProps = {
 export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
   const router = useRouter();
   const supabase = useSupabaseClient();
+  const t = useTranslations("listSettings");
+  const tCommon = useTranslations("common");
+
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [name, setName] = useState(list.name);
@@ -71,7 +75,7 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
       toast.error(error.message);
       return;
     }
-    toast.success(isArchived ? "List unarchived" : "List archived");
+    toast.success(isArchived ? t("unarchivedToast") : t("archivedToast"));
     router.refresh();
   }
 
@@ -85,7 +89,7 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
       return;
     }
     setDeleteOpen(false);
-    toast.success("List deleted");
+    toast.success(t("deletedToast"));
     router.refresh();
   }
 
@@ -97,7 +101,7 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
           onClick={(e) => e.stopPropagation()}
         >
           <MoreVertical />
-          <span className="sr-only">List settings</span>
+          <span className="sr-only">{t("menuLabel")}</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="rounded-xl">
           <DropdownMenuItem
@@ -108,7 +112,7 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
             }}
           >
             <Pencil />
-            Rename
+            {t("rename")}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={(e) => {
@@ -117,7 +121,7 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
             }}
           >
             {isArchived ? <ArchiveRestore /> : <Archive />}
-            {isArchived ? "Unarchive" : "Archive"}
+            {isArchived ? t("unarchive") : t("archive")}
           </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
@@ -127,7 +131,7 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
             }}
           >
             <Trash2 />
-            Delete
+            {t("delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -135,14 +139,12 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
       <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
         <DialogContent className="rounded-2xl bg-card">
           <DialogHeader>
-            <DialogTitle className="font-display text-lg">
-              Rename list
-            </DialogTitle>
-            <DialogDescription>Choose a new name for this list.</DialogDescription>
+            <DialogTitle className="font-display text-lg">{t("renameTitle")}</DialogTitle>
+            <DialogDescription>{t("renameDescription")}</DialogDescription>
           </DialogHeader>
           <form className="flex flex-col gap-4" onSubmit={handleRename}>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor={`rename-${list.id}`}>Name</Label>
+              <Label htmlFor={`rename-${list.id}`}>{tCommon("name")}</Label>
               <Input
                 id={`rename-${list.id}`}
                 className="h-11 rounded-xl"
@@ -158,7 +160,7 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
                 className="h-11 rounded-xl"
                 disabled={pending || !name.trim()}
               >
-                {pending ? "Saving…" : "Save"}
+                {pending ? t("saving") : t("save")}
               </Button>
             </DialogFooter>
           </form>
@@ -169,12 +171,9 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
         <DialogContent className="rounded-2xl bg-card">
           <DialogHeader>
             <DialogTitle className="font-display text-lg">
-              Delete &ldquo;{list.name}&rdquo;?
+              {t("deleteTitle", { name: list.name })}
             </DialogTitle>
-            <DialogDescription>
-              This permanently deletes the list and all of its items. This
-              cannot be undone.
-            </DialogDescription>
+            <DialogDescription>{t("deleteDescription")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
@@ -183,7 +182,7 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
               disabled={pending}
               onClick={handleDelete}
             >
-              {pending ? "Deleting…" : "Delete list"}
+              {pending ? t("deleting") : t("deleteConfirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

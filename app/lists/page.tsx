@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { auth } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
@@ -25,6 +26,8 @@ export default async function ListsPage({
   const showArchived = filter === "archived";
 
   const { userId } = await auth();
+  const t = await getTranslations("lists");
+  const tListTypes = await getTranslations("listTypes");
 
   const supabase = await createClient();
 
@@ -48,7 +51,7 @@ export default async function ListsPage({
         <div
           className="inline-flex w-fit items-center gap-1 rounded-full bg-muted p-1 text-sm"
           role="group"
-          aria-label="Filter lists"
+          aria-label={t("filterLabel")}
         >
           <Link href="/lists" prefetch={false}>
             <span
@@ -59,7 +62,7 @@ export default async function ListsPage({
                   : "bg-duo-coral-tint text-primary",
               )}
             >
-              Active
+              {t("active")}
             </span>
           </Link>
           <Link href="/lists?filter=archived" prefetch={false}>
@@ -71,7 +74,7 @@ export default async function ListsPage({
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
-              Archived
+              {t("archived")}
             </span>
           </Link>
         </div>
@@ -79,18 +82,18 @@ export default async function ListsPage({
         {visibleLists.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border p-10 text-center">
             <p className="font-display text-base font-semibold text-foreground">
-              {showArchived ? "Nothing archived yet" : "No lists yet"}
+              {showArchived ? t("emptyArchivedTitle") : t("emptyActiveTitle")}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {showArchived
-                ? "Lists you archive together will show up here."
-                : "Create your first list to start sharing with your person."}
+                ? t("emptyArchivedDescription")
+                : t("emptyActiveDescription")}
             </p>
           </div>
         ) : (
           <ul className="flex flex-col gap-3">
             {visibleLists.map((list) => {
-              const meta = getListTypeMeta(list.type);
+              const meta = getListTypeMeta(list.type, (key) => tListTypes(key));
               const memberCount = list.list_members?.[0]?.count ?? 0;
               const isOwner = list.owner_id === userId;
               const dotCount = Math.min(memberCount, 3);
@@ -121,7 +124,7 @@ export default async function ListsPage({
                         {memberCount > 0 && (
                           <div
                             className="flex shrink-0 items-center gap-1"
-                            aria-label={`${memberCount} ${memberCount === 1 ? "member" : "members"}`}
+                            aria-label={t("memberCount", { count: memberCount })}
                           >
                             <div className="flex -space-x-1.5">
                               {Array.from({ length: dotCount }).map((_, i) => (

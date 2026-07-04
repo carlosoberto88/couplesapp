@@ -1,12 +1,16 @@
 // scripts/rls-test.ts
 //
-// RLS + invite-reconciliation smoke test against a live Supabase project.
-// Two anon-key clients signed in with password as user A and user B
-// exercise the policies from supabase/migrations/0001_init.sql; a
-// service-role client is used only for setup/teardown (never for
-// assertions — assertions must go through RLS).
+// RLS + invite-reconciliation smoke test against a live Supabase project,
+// authenticated as real Clerk identities (Supabase third-party auth via
+// Clerk session tokens — no Supabase-native signInWithPassword/GoTrue
+// involved). Two per-user Supabase clients (A, B) built with an
+// `accessToken` callback that mints/re-mints short-lived (~60s) Clerk
+// session tokens exercise the policies from
+// supabase/migrations/0003_clerk_identity_reset.sql; a service-role client
+// is used only for setup/teardown/verification (never for assertions —
+// assertions must go through RLS).
 //
-// Usage: npm run test:rls
+// Usage: pnpm test:rls
 // Exits non-zero if any assertion fails.
 
 import { config } from "dotenv";
@@ -15,6 +19,7 @@ import {
   TEST_USER_A_EMAIL,
   TEST_USER_B_EMAIL,
   TEST_USER_PASSWORD,
+  setupTestUser,
 } from "./seed-test-users";
 
 // dotenv/config only loads .env by default; this project's real env values
@@ -51,15 +56,14 @@ function getEnv() {
   return { url, anonKey, serviceRoleKey };
 }
 
-async function signIn(url: string, anonKey: string, email: string, password: string) {
-  const client = createClient(url, anonKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
+function buildClerkClient(
+  url: string,
+  anonKey: string,
+  mintOrRefresh: () => Promise<string>,
+): SupabaseClient {
+  return createClient(url, anonKey, {
+    accessToken: async () => (await mintOrRefresh()) ?? null,
   });
-  const { data, error } = await client.auth.signInWithPassword({ email, password });
-  if (error || !data.user) {
-    throw new Error(`Sign-in failed for ${email}: ${error?.message ?? "no user returned"}`);
-  }
-  return { client, userId: data.user.id };
 }
 
 // Idempotent teardown: remove any lists owned by the test users (cascades
@@ -79,11 +83,11 @@ async function main() {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  console.log("Signing in test users...");
-  const a = await signIn(url, anonKey, TEST_USER_A_EMAIL, TEST_USER_PASSWORD);
-  const b = await signIn(url, anonKey, TEST_USER_B_EMAIL, TEST_USER_PASSWORD);
-  const clientA = a.client;
-  const clientB = b.client;
+  console.log("Setting up Clerk test users (A, B)...");
+  const a = await setupTestUser(TEST_USER_A_EMAIL, TEST_USER_PASSWORD);
+  const b = await setupTestUser(TEST_USER_B_EMAIL, TEST_USER_PASSWORD);
+  const clientA = buildClerkClient(url, anonKey, a.mintOrRefresh);
+  const clientB = buildClerkClient(url, anonKey, b.mintOrRefresh);
   const userAId = a.userId;
   const userBId = b.userId;
 
@@ -94,6 +98,36 @@ async function main() {
   let itemId: string | null = null;
 
   try {
+    // ---------- 0. profiles row: own sub yes, mismatched id no ----------
+    console.log("\n--- Assertion 0: profiles upsert scoped to own Clerk sub ---");
+    {
+      const { error: ownUpsertErr } = await clientA
+        .from("profiles")
+        .upsert({ id: userAId, email: TEST_USER_A_EMAIL }, { onConflict: "id" });
+      assert("A can upsert their own profiles row (own sub)", !ownUpsertErr, ownUpsertErr?.message);
+
+      const { data: mismatchedRow, error: mismatchedErr } = await clientA
+        .from("profiles")
+        .upsert({ id: userBId, email: "spoofed@example.com" }, { onConflict: "id" })
+        .select();
+      assert(
+        "A cannot upsert a profiles row under B's id (mismatched sub)",
+        !!mismatchedErr || (mismatchedRow ?? []).length === 0,
+        mismatchedErr?.message ?? mismatchedRow,
+      );
+
+      const { data: bProfileAfter } = await serviceClient
+        .from("profiles")
+        .select("email")
+        .eq("id", userBId)
+        .maybeSingle();
+      assert(
+        "B's profiles row was not overwritten by A's spoof attempt",
+        bProfileAfter?.email === TEST_USER_B_EMAIL,
+        bProfileAfter,
+      );
+    }
+
     // ---------- 1. Member can CRUD ----------
     console.log("\n--- Assertion 1: member can CRUD ---");
     {
@@ -339,8 +373,64 @@ async function main() {
       fail("Assertion 4 skipped — no listId from Assertion 1");
     }
 
-    // ---------- 5. Owner-only actions ----------
-    console.log("\n--- Assertion 5: owner-only actions ---");
+    // ---------- 5. Member removal + invite revoke ----------
+    console.log("\n--- Assertion 5: member removal + invite revoke ---");
+    if (listId) {
+      const { data: revokedByB } = await clientB
+        .from("list_invites")
+        .update({ status: "revoked" })
+        .eq("list_id", listId)
+        .eq("email", "someone-else@example.com")
+        .eq("status", "pending")
+        .select();
+      assert(
+        "Member B cannot revoke a pending invite",
+        (revokedByB ?? []).length === 0,
+        revokedByB,
+      );
+
+      const { data: revokedByA, error: revokeErr } = await clientA
+        .from("list_invites")
+        .update({ status: "revoked" })
+        .eq("list_id", listId)
+        .eq("email", "someone-else@example.com")
+        .eq("status", "pending")
+        .select()
+        .maybeSingle();
+      assert(
+        "Owner A can revoke a pending invite",
+        !revokeErr && revokedByA?.status === "revoked",
+        revokeErr?.message ?? revokedByA,
+      );
+
+      const { data: removedByA, error: removeErr } = await clientA
+        .from("list_members")
+        .delete()
+        .eq("list_id", listId)
+        .eq("user_id", userBId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Owner A can remove member B",
+        !removeErr && removedByA?.user_id === userBId,
+        removeErr?.message ?? removedByA,
+      );
+
+      const { data: listSeenByBAfterRemoval } = await clientB
+        .from("lists")
+        .select("*")
+        .eq("id", listId);
+      assert(
+        "B loses list access after removal",
+        (listSeenByBAfterRemoval ?? []).length === 0,
+        listSeenByBAfterRemoval,
+      );
+    } else {
+      fail("Assertion 5 skipped — no listId from Assertion 1");
+    }
+
+    // ---------- 6. Owner-only list actions ----------
+    console.log("\n--- Assertion 6: owner-only list actions ---");
     if (listId) {
       const { data: renamedByB } = await clientB
         .from("lists")
@@ -406,13 +496,16 @@ async function main() {
         listId = null; // already deleted, avoid double-cleanup
       }
     } else {
-      fail("Assertion 5 skipped — no listId from Assertion 1");
+      fail("Assertion 6 skipped — no listId from Assertion 1");
     }
   } finally {
+    // NOTE: only lists/rows are cleaned up here — the two Clerk test
+    // identities (TEST_USER_A_EMAIL/TEST_USER_B_EMAIL) are left in place so
+    // seed-test-users.ts stays idempotent across repeated
+    // `pnpm seed:test && pnpm test:rls && pnpm test:auth` runs, matching the
+    // pre-Clerk harness's behavior of never deleting the fixed test users.
     console.log("\nPost-run cleanup (idempotent)...");
     await cleanup(serviceClient, [userAId, userBId]);
-    await clientA.auth.signOut();
-    await clientB.auth.signOut();
   }
 
   console.log(`\n${failures === 0 ? "ALL ASSERTIONS PASSED" : `${failures} ASSERTION(S) FAILED`}`);

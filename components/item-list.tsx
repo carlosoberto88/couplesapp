@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
@@ -61,6 +62,8 @@ type ItemListProps = {
 
 export function ItemList({ listId, currentUserId, initialItems, members }: ItemListProps) {
   const supabase = useSupabaseClient();
+  const t = useTranslations("items");
+  const tCommon = useTranslations("common");
   const [items, setItems] = useState<Item[]>(initialItems);
 
   const colorMap = useMemo(() => buildMemberColorMap(members), [members]);
@@ -122,13 +125,13 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
 
         if (error) {
           setItems((prev) => removeRow(prev, newItem.id));
-          toast.error("Couldn't save — tap to retry", {
-            action: { label: "Retry", onClick: () => handleAddRef.current(name, note) },
+          toast.error(t("saveError"), {
+            action: { label: tCommon("retry"), onClick: () => handleAddRef.current(name, note) },
           });
         }
       })();
     },
-    [listId, currentUserId, supabase],
+    [listId, currentUserId, supabase, t, tCommon],
   );
 
   const handleToggleChecked = useCallback(
@@ -148,13 +151,13 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
 
         if (error) {
           setItems((prev) => upsertRow(prev, item));
-          toast.error("Couldn't save — tap to retry", {
-            action: { label: "Retry", onClick: () => handleToggleCheckedRef.current(item) },
+          toast.error(t("saveError"), {
+            action: { label: tCommon("retry"), onClick: () => handleToggleCheckedRef.current(item) },
           });
         }
       })();
     },
-    [currentUserId, supabase],
+    [currentUserId, supabase, t, tCommon],
   );
 
   const handleUpdateNote = useCallback((item: Item, note: string | null) => {
@@ -166,12 +169,12 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
 
       if (error) {
         setItems((prev) => upsertRow(prev, item));
-        toast.error("Couldn't save note — tap to retry", {
-          action: { label: "Retry", onClick: () => handleUpdateNoteRef.current(item, note) },
+        toast.error(t("saveNoteError"), {
+          action: { label: tCommon("retry"), onClick: () => handleUpdateNoteRef.current(item, note) },
         });
       }
     })();
-  }, [supabase]);
+  }, [supabase, t, tCommon]);
 
   const handleUndoRemove = useCallback((item: Item, toastId: string | number) => {
     setItems((prev) => upsertRow(prev, item));
@@ -190,15 +193,15 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
 
       if (error) {
         setItems((prev) => removeRow(prev, item.id));
-        toast.error("Couldn't undo — tap to retry", {
-          action: { label: "Retry", onClick: () => handleUndoRemoveRef.current(item, toastId) },
+        toast.error(t("undoError"), {
+          action: { label: tCommon("retry"), onClick: () => handleUndoRemoveRef.current(item, toastId) },
         });
         return;
       }
 
       toast.dismiss(toastId);
     })();
-  }, [supabase]);
+  }, [supabase, t, tCommon]);
 
   const handleRemove = useCallback((item: Item) => {
     setItems((prev) => removeRow(prev, item.id));
@@ -208,21 +211,21 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
 
       if (error) {
         setItems((prev) => upsertRow(prev, item));
-        toast.error("Couldn't remove — tap to retry", {
-          action: { label: "Retry", onClick: () => handleRemoveRef.current(item) },
+        toast.error(t("removeError"), {
+          action: { label: tCommon("retry"), onClick: () => handleRemoveRef.current(item) },
         });
         return;
       }
 
-      const toastId = toast(`Removed "${item.name}"`, {
+      const toastId = toast(t("removedItem", { name: item.name }), {
         duration: UNDO_GRACE_MS,
         action: {
-          label: "Undo",
+          label: tCommon("undo"),
           onClick: () => handleUndoRemoveRef.current(item, toastId),
         },
       });
     })();
-  }, [supabase]);
+  }, [supabase, t, tCommon]);
 
   const handleClearChecked = useCallback(() => {
     const checkedItems = items.filter((item) => item.checked_at !== null);
@@ -239,12 +242,12 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
 
       if (error) {
         setItems((prev) => [...prev, ...checkedItems]);
-        toast.error("Couldn't clear checked items — tap to retry", {
-          action: { label: "Retry", onClick: () => handleClearCheckedRef.current() },
+        toast.error(t("clearCheckedError"), {
+          action: { label: tCommon("retry"), onClick: () => handleClearCheckedRef.current() },
         });
       }
     })();
-  }, [items, listId, supabase]);
+  }, [items, listId, supabase, t, tCommon]);
 
   // Keep the retry refs pointed at the latest handler versions. Assigning
   // ref.current during render is disallowed by the compiler, so this happens
@@ -272,9 +275,13 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
   const handleOtherUserAdd = useCallback(
     (row: Item) => {
       const adderName = nameFor(row.created_by);
-      toast(adderName ? `"${row.name}" added by ${adderName}` : `"${row.name}" added`);
+      toast(
+        adderName
+          ? t("addedByOther", { name: row.name, user: adderName })
+          : t("addedOther", { name: row.name }),
+      );
     },
-    [nameFor],
+    [nameFor, t],
   );
 
   // Full replace on focus/reconnect — server wins (v1: no special-casing of
@@ -314,26 +321,26 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
 
       <div className="flex items-center justify-between px-1">
         <span className="text-xs text-muted-foreground">
-          {sortedItems.length} {sortedItems.length === 1 ? "item" : "items"}
+          {t("itemCount", { count: sortedItems.length })}
         </span>
         {hasChecked && (
           <Button variant="ghost" size="sm" onClick={handleClearChecked} className="text-muted-foreground hover:text-destructive">
-            Clear checked
+            {t("clearChecked")}
           </Button>
         )}
       </div>
 
       {sortedItems.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-          No items yet — add your first item above.
+          {t("empty")}
         </p>
       ) : (
         <>
           {allChecked && (
             <div className="flex items-center justify-between gap-2 rounded-2xl bg-duo-gold-tint px-3 py-2.5 text-sm text-foreground">
-              <span>All done 🎉</span>
+              <span>{t("allDone")}</span>
               <Button variant="secondary" size="sm" onClick={handleClearChecked}>
-                Clear checked?
+                {t("clearCheckedPrompt")}
               </Button>
             </div>
           )}

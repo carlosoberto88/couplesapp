@@ -3,15 +3,17 @@ import { createClient as createServerClient } from "@supabase/supabase-js";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 
+import { getApiTranslator } from "@/lib/api-translator";
 import { createClient } from "@/lib/supabase/server";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: NextRequest) {
+  const t = await getApiTranslator(request);
   const { userId, sessionClaims } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    return NextResponse.json({ error: t("api.notAuthenticated") }, { status: 401 });
   }
 
   const supabase = await createClient();
@@ -22,7 +24,7 @@ export async function POST(request: NextRequest) {
 
   if (!listId || !rawEmail) {
     return NextResponse.json(
-      { error: "listId and email are required" },
+      { error: t("api.listIdEmailRequired") },
       { status: 400 },
     );
   }
@@ -31,29 +33,25 @@ export async function POST(request: NextRequest) {
 
   if (!EMAIL_RE.test(email)) {
     return NextResponse.json(
-      { error: "That doesn't look like a valid email address" },
+      { error: t("api.invalidEmail") },
       { status: 400 },
     );
   }
 
   if (!sessionClaims?.email) {
     return NextResponse.json(
-      {
-        error:
-          "Clerk session token is missing the `email` claim — add it in Clerk Dashboard → Sessions → Customize session token",
-      },
+      { error: t("api.missingEmailClaim") },
       { status: 500 },
     );
   }
 
   if (email === sessionClaims.email.toLowerCase()) {
     return NextResponse.json(
-      { error: "You can't invite yourself" },
+      { error: t("api.cantInviteSelf") },
       { status: 400 },
     );
   }
 
-  // RLS ensures this only returns a row if the caller is a member of the list.
   const { data: list } = await supabase
     .from("lists")
     .select("id, name")
@@ -62,12 +60,11 @@ export async function POST(request: NextRequest) {
 
   if (!list) {
     return NextResponse.json(
-      { error: "You don't have access to this list" },
+      { error: t("api.noListAccess") },
       { status: 403 },
     );
   }
 
-  // Service-role client — created here only, never imported into client code.
   const admin = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -111,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     if (insertError || !newInvite) {
       return NextResponse.json(
-        { error: "Could not create invite" },
+        { error: t("api.createInviteError") },
         { status: 500 },
       );
     }
