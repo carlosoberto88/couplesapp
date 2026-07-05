@@ -16,7 +16,7 @@ export const clerkAppearance = {
     colorBackground: "#FBF7F2",
     fontFamily: "var(--font-inter)",
     fontFamilyButtons: "var(--font-inter)",
-    borderRadius: "9999px",
+    borderRadius: "1rem",
   },
   elements: {
     card: "rounded-2xl border border-border shadow-none",
@@ -25,5 +25,12 @@ export const clerkAppearance = {
     socialButtonsBlockButton: "rounded-full",
     formFieldInput: "rounded-xl",
     footerActionLink: "text-primary hover:text-primary",
+    userButtonAvatarBox: "rounded-full",
+    userButtonTrigger: "rounded-full",
+    userButtonPopoverCard:
+      "rounded-xl border border-border shadow-md overflow-hidden",
+    userButtonPopoverMain: "rounded-xl bg-popover",
+    userButtonPopoverFooter: "rounded-b-xl bg-popover",
+    userButtonPopoverActionButton: "rounded-lg hover:bg-accent",
   },
 };
