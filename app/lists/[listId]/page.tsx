@@ -83,7 +83,7 @@ export default async function ListDetailPage({
       <AppBar>
         <AppBarActions />
       </AppBar>
-      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 px-4 pb-safe pt-4">
+      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 px-4 pt-4">
         <Link
           href="/lists"
           className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"

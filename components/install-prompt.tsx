@@ -46,7 +46,7 @@ export function InstallPrompt() {
   }
 
   return (
-    <div className="border-b border-border bg-duo-coral-tint/40 px-4 py-3 safe-area-top">
+    <div className="border-b border-border bg-duo-coral-tint/40 px-4 py-3 pt-safe">
       <div className="mx-auto flex w-full max-w-[640px] items-start gap-3">
         <Download className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
         <div className="flex-1">

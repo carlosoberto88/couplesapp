@@ -443,7 +443,7 @@ export function ShoppingItemList({
   const detailImages = detailItem ? imagesByItemId.get(detailItem.id) ?? [] : [];
 
   return (
-    <div className="flex flex-1 flex-col gap-3 pb-24 md:pb-0">
+    <div className="flex flex-1 flex-col gap-3 pb-sticky-add-bar md:pb-0">
       <PartnerPresence
         listId={listId}
         currentUserId={currentUserId}
