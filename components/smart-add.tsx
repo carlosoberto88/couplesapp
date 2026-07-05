@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Check, Loader2, Sparkles } from "lucide-react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,12 +26,12 @@ type Candidate = {
 
 type SmartAddProps = {
   listId: string;
-  onAdd: (name: string, note?: string | null) => void;
+  onAddBulk: (items: { name: string; note: string | null }[]) => void;
 };
 
 type Stage = "compose" | "review";
 
-export function SmartAdd({ listId, onAdd }: SmartAddProps) {
+export function SmartAdd({ listId, onAddBulk }: SmartAddProps) {
   const t = useTranslations("smartAdd");
   const tItems = useTranslations("items");
   const tCommon = useTranslations("common");
@@ -114,12 +113,13 @@ export function SmartAdd({ listId, onAdd }: SmartAddProps) {
     const toAdd = checkedCandidates;
     if (toAdd.length === 0) return;
 
-    for (const candidate of toAdd) {
-      const note = candidate.note.trim();
-      onAdd(candidate.name.trim(), note.length > 0 ? note : null);
-    }
+    onAddBulk(
+      toAdd.map((candidate) => ({
+        name: candidate.name.trim(),
+        note: candidate.note.trim().length > 0 ? candidate.note.trim() : null,
+      })),
+    );
 
-    toast.success(t("addedToast", { count: toAdd.length }));
     handleOpenChange(false);
   }
 

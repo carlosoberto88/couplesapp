@@ -7,17 +7,19 @@ import { toast } from "sonner";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Item, ItemImage, ListMember, Profile } from "@/lib/types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
-import { buildNewItem, insertItemWithImages } from "@/lib/persist-item";
+import { buildNewItem, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
 import { useItemImages } from "@/lib/use-item-images";
 import { deleteItemImages } from "@/lib/upload-item-image";
 import { Button } from "@/components/ui/button";
-import { RichAddItemForm, type RichAddInput } from "@/components/rich-add-item-form";
+import type { RichAddInput } from "@/components/rich-add-item-form";
+import { BulkAddItemsDialog } from "@/components/bulk-add-items-dialog";
 import { SmartAdd } from "@/components/smart-add";
 import { UsualItems } from "@/components/usual-items";
 import { useRealtimeItems } from "@/lib/use-realtime-items";
 import { ItemRow } from "@/components/item-row";
 import { ItemDetailDialog } from "@/components/item-detail-dialog";
 import { sortItems, upsertRow, removeRow } from "@/lib/item-list-utils";
+import { createOtherUserAddToastDebouncer } from "@/lib/debounce-toasts";
 
 const UNDO_GRACE_MS = 5000;
 
@@ -46,6 +48,7 @@ export function ShoppingItemList({
 }: ShoppingItemListProps) {
   const supabase = useSupabaseClient();
   const t = useTranslations("items");
+  const tBulk = useTranslations("bulkAdd");
   const tCommon = useTranslations("common");
   const [items, setItems] = useState<Item[]>(initialItems);
   const [adding, setAdding] = useState(false);
@@ -135,6 +138,82 @@ export function ShoppingItemList({
       });
     },
     [handleRichAdd],
+  );
+
+  const handleBulkAdd = useCallback(
+    (inputs: RichAddInput[]) => {
+      const validInputs = inputs.filter((input) => input.name.trim().length > 0);
+      if (validInputs.length === 0) return;
+
+      const newItems = validInputs.map((input) => buildNewItem(listId, currentUserId, input));
+      setItems((prev) => {
+        let next = prev;
+        for (const item of newItems) next = upsertRow(next, item);
+        return next;
+      });
+      setAdding(true);
+
+      void (async () => {
+        const { items: savedItems, error } = await insertItemsBulk(
+          supabase,
+          listId,
+          currentUserId,
+          validInputs,
+          newItems,
+        );
+
+        setAdding(false);
+
+        if (error) {
+          setItems((prev) => {
+            let next = prev;
+            for (const item of newItems) next = removeRow(next, item.id);
+            return next;
+          });
+          const message =
+            error === "invalidType"
+              ? t("imageInvalidType")
+              : error === "tooLarge"
+                ? t("imageTooLarge")
+                : t("saveError");
+          toast.error(message);
+          return;
+        }
+
+        if (savedItems) {
+          setItems((prev) => {
+            let next = prev;
+            for (const item of savedItems) next = upsertRow(next, item);
+            return next;
+          });
+        }
+
+        toast.success(tBulk("addedToast", { count: validInputs.length }));
+
+        const itemIds = (savedItems ?? newItems).map((item) => item.id);
+        if (validInputs.some((input) => input.files.length > 0)) {
+          await refetchImages(items.map((i) => i.id).concat(itemIds));
+        }
+      })();
+    },
+    [listId, currentUserId, supabase, t, tBulk, refetchImages, items],
+  );
+
+  const handleSmartAddBulk = useCallback(
+    (simpleItems: { name: string; note: string | null }[]) => {
+      handleBulkAdd(
+        simpleItems.map((item) => ({
+          name: item.name,
+          note: item.note,
+          url: null,
+          files: [],
+          price: null,
+          currency: "USD",
+          priority: null,
+        })),
+      );
+    },
+    [handleBulkAdd],
   );
 
   const handleToggleChecked = useCallback(
@@ -273,6 +352,26 @@ export function ShoppingItemList({
     })();
   }, [listId, supabase, refetchImages]);
 
+  const otherUserAddToastRef = useRef(
+    createOtherUserAddToastDebouncer(
+      (message) => toast(message),
+      (userId) => nameFor(userId),
+      (name, user) => (user ? t("addedByOther", { name, user }) : t("addedOther", { name })),
+      (count, user) =>
+        user ? t("addedByOtherBulk", { count, user }) : t("addedOtherBulk", { count }),
+    ),
+  );
+
+  useEffect(() => {
+    otherUserAddToastRef.current = createOtherUserAddToastDebouncer(
+      (message) => toast(message),
+      (userId) => nameFor(userId),
+      (name, user) => (user ? t("addedByOther", { name, user }) : t("addedOther", { name })),
+      (count, user) =>
+        user ? t("addedByOtherBulk", { count, user }) : t("addedOtherBulk", { count }),
+    );
+  }, [nameFor, t]);
+
   useRealtimeItems(listId, currentUserId, {
     onUpsert: (row) => {
       setItems((prev) => upsertRow(prev, row));
@@ -283,12 +382,7 @@ export function ShoppingItemList({
       setDetailItem((current) => (current?.id === id ? null : current));
     },
     onOtherUserAdd: (row) => {
-      const adderName = nameFor(row.created_by);
-      toast(
-        adderName
-          ? t("addedByOther", { name: row.name, user: adderName })
-          : t("addedOther", { name: row.name }),
-      );
+      otherUserAddToastRef.current(row.created_by, row.name);
     },
     onOtherUserCheck: (row, checked) => {
       const checkerName = nameFor(row.checked_by);
@@ -312,9 +406,9 @@ export function ShoppingItemList({
   return (
     <div className="flex flex-1 flex-col gap-3">
       <UsualItems listId={listId} currentItemNames={currentItemNames} onAdd={handleQuickAdd} />
-      <RichAddItemForm listType={listType} onAdd={handleRichAdd} pending={adding} />
+      <BulkAddItemsDialog listType={listType} onAdd={handleBulkAdd} pending={adding} />
       <div className="flex justify-end">
-        <SmartAdd listId={listId} onAdd={handleQuickAdd} />
+        <SmartAdd listId={listId} onAddBulk={handleSmartAddBulk} />
       </div>
 
       <div className="flex items-center justify-between px-1">

@@ -4,6 +4,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 
 import { getApiTranslator } from "@/lib/api-translator";
+import { sendPushToUserIds } from "@/lib/send-push";
 import { createClient } from "@/lib/supabase/server";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -127,8 +128,28 @@ export async function POST(request: NextRequest) {
   });
 
   if (existingUsers.length > 0) {
+    const inviteeUserId = existingUsers[0].id;
+
+    const { data: inviterProfile } = await admin
+      .from("profiles")
+      .select("display_name, email")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const inviterName =
+      inviterProfile?.display_name?.trim() ||
+      inviterProfile?.email ||
+      sessionClaims.email;
+
+    const { sent } = await sendPushToUserIds({
+      userIds: [inviteeUserId],
+      title: "Couples",
+      body: `${inviterName} invited you to join ${list.name}`,
+      url: `/lists/${listId}`,
+    });
+
     return NextResponse.json({
-      status: "invited_copy_link",
+      status: sent > 0 ? "invited_push_sent" : "invited_copy_link",
       invite_id: inviteId,
       inviteUrl,
     });
@@ -155,6 +176,39 @@ export async function POST(request: NextRequest) {
       }
 
       if (code === "form_identifier_exists") {
+        const { data: raceUsers } = await client.users.getUserList({
+          emailAddress: [email],
+        });
+        const inviteeUserId = raceUsers[0]?.id;
+
+        if (inviteeUserId) {
+          const { data: inviterProfile } = await admin
+            .from("profiles")
+            .select("display_name, email")
+            .eq("id", userId)
+            .maybeSingle();
+
+          const inviterName =
+            inviterProfile?.display_name?.trim() ||
+            inviterProfile?.email ||
+            sessionClaims.email;
+
+          const { sent } = await sendPushToUserIds({
+            userIds: [inviteeUserId],
+            title: "Couples",
+            body: `${inviterName} invited you to join ${list.name}`,
+            url: `/lists/${listId}`,
+          });
+
+          if (sent > 0) {
+            return NextResponse.json({
+              status: "invited_push_sent",
+              invite_id: inviteId,
+              inviteUrl,
+            });
+          }
+        }
+
         return NextResponse.json({
           status: "invited_copy_link",
           invite_id: inviteId,

@@ -86,6 +86,7 @@
     "alreadyMember": "{email} is already on this list",
     "emailSent": "Invitation email sent to {email}",
     "copyLinkToast": "{email} already has an account — copy this link and send it to them",
+    "pushSent": "Notification sent to {email}",
     "emailFailed": "Couldn't send the email — share this link instead",
     "sendError": "Could not send invite",
     "linkCopied": "Link copied",
@@ -122,6 +123,8 @@
     "checkedByOther": "\"{name}\" checked off by {user}",
     "uncheckedByOther": "\"{name}\" unchecked by {user}",
     "removedByOther": "\"{name}\" was removed",
+    "addedByOtherBulk": "{count, plural, one {# item} other {# items}} added by {user}",
+    "addedOtherBulk": "{count, plural, one {# item} other {# items}} added",
     "optionalDetails": "Add optional details",
     "urlPlaceholder": "Link (optional)",
     "descriptionPlaceholder": "Description (optional)",
@@ -190,6 +193,16 @@
     "checkOff": "Check off",
     "uncheck": "Uncheck"
   },
+  "bulkAdd": {
+    "trigger": "Add items",
+    "title": "Add items",
+    "description": "Add one or more items at once. Your partner gets a single notification.",
+    "addRow": "Add row",
+    "removeRow": "Remove row",
+    "itemNameAria": "Item name",
+    "submit": "Add {count, plural, one {# item} other {# items}}",
+    "addedToast": "Added {count, plural, one {# item} other {# items}}"
+  },
   "smartAdd": {
     "triggerLabel": "Smart add from pasted text",
     "title": "Smart add",
@@ -220,6 +233,8 @@
     "cantInviteSelf": "You can't invite yourself",
     "noListAccess": "You don't have access to this list",
     "createInviteError": "Could not create invite",
+    "invalidBulkItems": "Invalid items — check names and try again",
+    "bulkInsertError": "Could not add items — try again",
     "listIdTextRequired": "listId and text are required",
     "textTooLong": "That's a lot of text — try a smaller chunk",
     "parseFailed": "Couldn't make sense of that text — try rephrasing or pasting less at once"

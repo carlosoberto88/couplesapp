@@ -75,7 +75,7 @@ Add the output to `.env.local` and Vercel environment variables:
 pnpm db:push
 ```
 
-This creates the `push_subscriptions` table (migration `0006`).
+This creates the `push_subscriptions` table (migration `0006`) and adds `items.skip_push` (migration `0008`) so bulk adds can send one aggregated notification instead of one per row.
 
 ### 3. Configure Supabase webhook
 
@@ -89,6 +89,10 @@ In **Supabase Dashboard → Database → Webhooks → Create**:
 ### 4. Enable on device
 
 In production, the app prompts to enable notifications after install. iOS requires **Add to Home Screen** for web push.
+
+**Bulk item adds:** Use **Add items** (or Smart Add) to insert multiple rows at once. The app calls `POST /api/items/bulk`, sets `skip_push` on each row, and sends a single aggregated push (e.g. `5 items added to Groceries`).
+
+**List invites:** When inviting someone who already has an account, the app sends a push notification if they have opted in. New users still receive a Clerk invitation email. If push is unavailable, the inviter can copy the invite link as a fallback.
 
 ## Deploy on Vercel
 

@@ -4,6 +4,16 @@ import type { Item } from "@/lib/types";
 import type { RichAddInput } from "@/components/rich-add-item-form";
 import { uploadItemImages } from "@/lib/upload-item-image";
 
+type BulkInsertPayload = {
+  id: string;
+  name: string;
+  note: string | null;
+  url: string | null;
+  price: number | null;
+  currency: string | null;
+  priority: Item["priority"];
+};
+
 export function buildNewItem(listId: string, userId: string, input: RichAddInput): Item {
   return {
     id: crypto.randomUUID(),
@@ -59,4 +69,54 @@ export async function insertItemWithImages(
   if (uploadError) return { error: uploadError };
 
   return {};
+}
+
+export async function insertItemsBulk(
+  supabase: SupabaseClient,
+  listId: string,
+  userId: string,
+  inputs: RichAddInput[],
+  optimisticItems: Item[],
+): Promise<{ items?: Item[]; error?: string }> {
+  const payload: BulkInsertPayload[] = optimisticItems.map((item, index) => ({
+    id: item.id,
+    name: inputs[index].name,
+    note: inputs[index].note,
+    url: inputs[index].url,
+    price: inputs[index].price,
+    currency: inputs[index].currency,
+    priority: inputs[index].priority,
+  }));
+
+  const res = await fetch("/api/items/bulk", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ listId, items: payload }),
+  });
+
+  const data = (await res.json().catch(() => null)) as { items?: Item[]; error?: string } | null;
+
+  if (!res.ok || !data?.items) {
+    return { error: data?.error ?? "bulk_insert_failed" };
+  }
+
+  const savedItems = data.items;
+
+  for (let i = 0; i < inputs.length; i++) {
+    const files = inputs[i].files;
+    if (files.length === 0) continue;
+
+    const itemId = savedItems[i]?.id ?? optimisticItems[i].id;
+    const { error: uploadError } = await uploadItemImages(
+      supabase,
+      listId,
+      itemId,
+      userId,
+      files,
+    );
+
+    if (uploadError) return { error: uploadError };
+  }
+
+  return { items: savedItems };
 }

@@ -25,6 +25,7 @@ type InviteResponse = {
   status?:
     | "invited_email_sent"
     | "invited_copy_link"
+    | "invited_push_sent"
     | "already_member"
     | "email_failed";
   inviteUrl?: string;
@@ -135,6 +136,19 @@ export function InvitePanel({
         toast.info(t("copyLinkToast", { email: trimmed }));
         setInviteUrl(data.inviteUrl ?? null);
         setCopyLinkHint(true);
+        setEmail("");
+        setPendingInvites((prev) =>
+          prev.some((i) => i.email === trimmed)
+            ? prev
+            : [...prev, { id: `optimistic-${trimmed}`, email: trimmed }],
+        );
+        return;
+      }
+
+      if (res.ok && data.status === "invited_push_sent") {
+        toast.success(t("pushSent", { email: trimmed }));
+        setInviteUrl(data.inviteUrl ?? null);
+        setCopyLinkHint(false);
         setEmail("");
         setPendingInvites((prev) =>
           prev.some((i) => i.email === trimmed)

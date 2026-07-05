@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@supabase/supabase-js";
 
-import { configureWebPush, webpush } from "@/lib/web-push";
+import { formatItemsAddedBody } from "@/lib/format-item-push-body";
+import { sendPushToUserIds } from "@/lib/send-push";
+import { configureWebPush } from "@/lib/web-push";
 
 type WebhookPayload = {
   type?: string;
@@ -12,6 +14,7 @@ type WebhookPayload = {
     list_id?: string;
     name?: string;
     created_by?: string;
+    skip_push?: boolean;
   };
 };
 
@@ -41,6 +44,10 @@ export async function POST(request: NextRequest) {
   }
 
   const record = payload.record;
+  if (record?.skip_push === true) {
+    return NextResponse.json({ ok: true, skipped: true });
+  }
+
   const listId = record?.list_id;
   const itemName = record?.name;
   const createdBy = record?.created_by;
@@ -74,48 +81,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, sent: 0 });
   }
 
-  const { data: subscriptions } = await admin
-    .from("push_subscriptions")
-    .select("endpoint, p256dh, auth")
-    .in("user_id", recipientIds);
-
   const listName = list?.name ?? "List";
   const isWishlist = list?.type === "wishlist";
-  const notificationPayload = JSON.stringify({
+  const body = formatItemsAddedBody([itemName], listName, isWishlist);
+
+  const { sent } = await sendPushToUserIds({
+    userIds: recipientIds,
     title: "Couples",
-    body: isWishlist
-      ? `"${itemName}" added to wishlist ${listName}`
-      : `"${itemName}" added to ${listName}`,
+    body,
     url: `/lists/${listId}`,
   });
-
-  let sent = 0;
-  const staleEndpoints: string[] = [];
-
-  for (const sub of subscriptions ?? []) {
-    try {
-      await webpush.sendNotification(
-        {
-          endpoint: sub.endpoint,
-          keys: { p256dh: sub.p256dh, auth: sub.auth },
-        },
-        notificationPayload,
-      );
-      sent++;
-    } catch (err: unknown) {
-      const statusCode =
-        err && typeof err === "object" && "statusCode" in err
-          ? (err as { statusCode: number }).statusCode
-          : null;
-      if (statusCode === 404 || statusCode === 410) {
-        staleEndpoints.push(sub.endpoint);
-      }
-    }
-  }
-
-  if (staleEndpoints.length > 0) {
-    await admin.from("push_subscriptions").delete().in("endpoint", staleEndpoints);
-  }
 
   return NextResponse.json({ ok: true, sent });
 }

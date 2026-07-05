@@ -86,6 +86,7 @@
     "alreadyMember": "{email} ya está en esta lista",
     "emailSent": "Invitación enviada a {email}",
     "copyLinkToast": "{email} ya tiene cuenta — copia este enlace y envíaselo",
+    "pushSent": "Notificación enviada a {email}",
     "emailFailed": "No se pudo enviar el correo — comparte este enlace",
     "sendError": "No se pudo enviar la invitación",
     "linkCopied": "Enlace copiado",
@@ -122,6 +123,8 @@
     "checkedByOther": "\"{name}\" marcado por {user}",
     "uncheckedByOther": "\"{name}\" desmarcado por {user}",
     "removedByOther": "Se quitó \"{name}\"",
+    "addedByOtherBulk": "{count, plural, one {# ítem} other {# ítems}} agregados por {user}",
+    "addedOtherBulk": "{count, plural, one {# ítem} other {# ítems}} agregados",
     "optionalDetails": "Agregar detalles opcionales",
     "urlPlaceholder": "Enlace (opcional)",
     "descriptionPlaceholder": "Descripción (opcional)",
@@ -177,6 +180,8 @@
     "reservedByOther": "\"{name}\" fue reservado",
     "purchasedByOther": "\"{name}\" fue marcado como comprado",
     "removedByOther": "Se quitó \"{name}\"",
+    "addedByOtherBulk": "{count, plural, one {# regalo} other {# regalos}} agregados por {user}",
+    "addedOtherBulk": "{count, plural, one {# regalo} other {# regalos}} agregados",
     "viewDetails": "Ver detalles",
     "hasPhotos": "Fotos"
   },
@@ -189,6 +194,16 @@
     "checkedOff": "Marcado",
     "checkOff": "Marcar",
     "uncheck": "Desmarcar"
+  },
+  "bulkAdd": {
+    "trigger": "Agregar ítems",
+    "title": "Agregar ítems",
+    "description": "Agrega uno o más ítems a la vez. Tu pareja recibe una sola notificación.",
+    "addRow": "Agregar fila",
+    "removeRow": "Quitar fila",
+    "itemNameAria": "Nombre del ítem",
+    "submit": "Agregar {count, plural, one {# ítem} other {# ítems}}",
+    "addedToast": "Se agregaron {count, plural, one {# ítem} other {# ítems}}"
   },
   "smartAdd": {
     "triggerLabel": "Agregar inteligente desde texto pegado",
@@ -220,6 +235,8 @@
     "cantInviteSelf": "No puedes invitarte a ti mismo",
     "noListAccess": "No tienes acceso a esta lista",
     "createInviteError": "No se pudo crear la invitación",
+    "invalidBulkItems": "Ítems inválidos — revisa los nombres e intenta de nuevo",
+    "bulkInsertError": "No se pudieron agregar los ítems — intenta de nuevo",
     "listIdTextRequired": "listId y text son obligatorios",
     "textTooLong": "Es mucho texto — prueba con un fragmento más pequeño",
     "parseFailed": "No pudimos entender ese texto — prueba reformular o pegar menos de una vez"

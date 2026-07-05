@@ -7,13 +7,15 @@ import { toast } from "sonner";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Item, ItemImage, ListMember, Profile } from "@/lib/types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
-import { buildNewItem, insertItemWithImages } from "@/lib/persist-item";
+import { buildNewItem, insertItemsBulk } from "@/lib/persist-item";
 import { useItemImages } from "@/lib/use-item-images";
 import { upsertRow, removeRow } from "@/lib/item-list-utils";
 import { deleteItemImages } from "@/lib/upload-item-image";
 import { sortWishlistItems } from "@/lib/wishlist-utils";
 import { useRealtimeItems } from "@/lib/use-realtime-items";
-import { RichAddItemForm, type RichAddInput } from "@/components/rich-add-item-form";
+import { createOtherUserAddToastDebouncer } from "@/lib/debounce-toasts";
+import type { RichAddInput } from "@/components/rich-add-item-form";
+import { BulkAddItemsDialog } from "@/components/bulk-add-items-dialog";
 import { WishlistItemRow } from "@/components/wishlist-item-row";
 import { ItemDetailDialog } from "@/components/item-detail-dialog";
 
@@ -42,6 +44,7 @@ export function WishlistItemList({
 }: WishlistItemListProps) {
   const supabase = useSupabaseClient();
   const t = useTranslations("wishlist");
+  const tBulk = useTranslations("bulkAdd");
   const tCommon = useTranslations("common");
   const [items, setItems] = useState<Item[]>(initialItems);
   const [adding, setAdding] = useState(false);
@@ -70,49 +73,65 @@ export function WishlistItemList({
 
   const sortedItems = useMemo(() => sortWishlistItems(items), [items]);
   const locallyRemovedIdsRef = useRef<Set<string>>(new Set());
-  const handleAddRef = useRef<(input: RichAddInput) => void>(() => {});
 
-  const handleAdd = useCallback(
-    (input: RichAddInput) => {
-      const newItem = buildNewItem(listId, currentUserId, input);
-      setItems((prev) => upsertRow(prev, newItem));
+  const handleBulkAdd = useCallback(
+    (inputs: RichAddInput[]) => {
+      const validInputs = inputs.filter((input) => input.name.trim().length > 0);
+      if (validInputs.length === 0) return;
+
+      const newItems = validInputs.map((input) => buildNewItem(listId, currentUserId, input));
+      setItems((prev) => {
+        let next = prev;
+        for (const item of newItems) next = upsertRow(next, item);
+        return next;
+      });
       setAdding(true);
 
       void (async () => {
-        const { error } = await insertItemWithImages(
+        const { items: savedItems, error } = await insertItemsBulk(
           supabase,
           listId,
           currentUserId,
-          newItem,
-          input.files,
+          validInputs,
+          newItems,
         );
 
         setAdding(false);
 
         if (error) {
-          setItems((prev) => removeRow(prev, newItem.id));
+          setItems((prev) => {
+            let next = prev;
+            for (const item of newItems) next = removeRow(next, item.id);
+            return next;
+          });
           toast.error(
             error === "invalidType"
               ? t("imageInvalidType")
               : error === "tooLarge"
                 ? t("imageTooLarge")
                 : t("saveError"),
-            { action: { label: tCommon("retry"), onClick: () => handleAddRef.current(input) } },
           );
           return;
         }
 
-        if (input.files.length > 0) {
-          await refetchImages(items.map((i) => i.id).concat(newItem.id));
+        if (savedItems) {
+          setItems((prev) => {
+            let next = prev;
+            for (const item of savedItems) next = upsertRow(next, item);
+            return next;
+          });
+        }
+
+        toast.success(tBulk("addedToast", { count: validInputs.length }));
+
+        const itemIds = (savedItems ?? newItems).map((item) => item.id);
+        if (validInputs.some((input) => input.files.length > 0)) {
+          await refetchImages(items.map((i) => i.id).concat(itemIds));
         }
       })();
     },
-    [listId, currentUserId, supabase, t, tCommon, refetchImages, items],
+    [listId, currentUserId, supabase, t, tBulk, refetchImages, items],
   );
-
-  useEffect(() => {
-    handleAddRef.current = handleAdd;
-  });
 
   const updateItem = useCallback(
     (item: Item, patch: Partial<Item>, retry: () => void) => {
@@ -256,6 +275,26 @@ export function WishlistItemList({
     })();
   }, [listId, supabase, refetchImages]);
 
+  const otherUserAddToastRef = useRef(
+    createOtherUserAddToastDebouncer(
+      (message) => toast(message),
+      (userId) => nameFor(userId),
+      (name, user) => (user ? t("addedByOther", { name, user }) : t("addedOther", { name })),
+      (count, user) =>
+        user ? t("addedByOtherBulk", { count, user }) : t("addedOtherBulk", { count }),
+    ),
+  );
+
+  useEffect(() => {
+    otherUserAddToastRef.current = createOtherUserAddToastDebouncer(
+      (message) => toast(message),
+      (userId) => nameFor(userId),
+      (name, user) => (user ? t("addedByOther", { name, user }) : t("addedOther", { name })),
+      (count, user) =>
+        user ? t("addedByOtherBulk", { count, user }) : t("addedOtherBulk", { count }),
+    );
+  }, [nameFor, t]);
+
   useRealtimeItems(listId, currentUserId, {
     onUpsert: (row) => {
       setItems((prev) => upsertRow(prev, row));
@@ -266,12 +305,7 @@ export function WishlistItemList({
       setDetailItem((current) => (current?.id === id ? null : current));
     },
     onOtherUserAdd: (row) => {
-      const adderName = nameFor(row.created_by);
-      toast(
-        adderName
-          ? t("addedByOther", { name: row.name, user: adderName })
-          : t("addedOther", { name: row.name }),
-      );
+      otherUserAddToastRef.current(row.created_by, row.name);
     },
     onOtherUserReserve: (row) => {
       if (row.reserved_by === currentUserId) return;
@@ -293,7 +327,7 @@ export function WishlistItemList({
 
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <RichAddItemForm listType="wishlist" onAdd={handleAdd} pending={adding} />
+      <BulkAddItemsDialog listType="wishlist" onAdd={handleBulkAdd} pending={adding} />
 
       <div className="px-1">
         <span className="text-xs text-muted-foreground">
