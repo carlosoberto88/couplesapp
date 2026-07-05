@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Layers } from "lucide-react";
 
@@ -14,6 +14,7 @@ import { UsualItems } from "@/components/usual-items";
 import { Button } from "@/components/ui/button";
 import { isWishlist } from "@/lib/list-types";
 import type { LinkPreviewData } from "@/lib/persist-item";
+import { useStickyAddBarHeight } from "@/lib/use-sticky-add-bar-height";
 import type { ItemPriority } from "@/lib/types";
 
 type ListAddSectionProps = {
@@ -55,6 +56,9 @@ export function ListAddSection({
   const [internalBulkOpen, setInternalBulkOpen] = useState(false);
   const [addMode, setAddMode] = useState<AddMode>("manual");
   const [manualPrefillUrl, setManualPrefillUrl] = useState<string | null>(null);
+  const stickyBarRef = useRef<HTMLDivElement>(null);
+
+  useStickyAddBarHeight(stickyBarRef);
 
   const wishlist = isWishlist(listType);
   const isBulkOpen = bulkOpen ?? internalBulkOpen;
@@ -137,7 +141,10 @@ export function ListAddSection({
         hideTrigger
       />
 
-      <div className="sticky-add-bar pointer-events-none fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur supports-backdrop-filter:bg-background/80 md:hidden">
+      <div
+        ref={stickyBarRef}
+        className="sticky-add-bar pointer-events-none fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur supports-backdrop-filter:bg-background/80 md:hidden"
+      >
         <div className="pointer-events-auto mx-auto flex w-full max-w-[640px] flex-col gap-2">
           {wishlistLinkAdd ? (
             <>
