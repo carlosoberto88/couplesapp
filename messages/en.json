@@ -31,6 +31,20 @@
     "emptyArchivedDescription": "Lists you archive together will show up here.",
     "memberCount": "{count, plural, one {# member} other {# members}}"
   },
+  "allItems": {
+    "navLabel": "Main navigation",
+    "listsTab": "Lists",
+    "itemsTab": "Items",
+    "title": "All items",
+    "subtitle": "Everything across your active lists in one place.",
+    "filterLabel": "Filter items",
+    "pending": "Pending",
+    "done": "Done",
+    "emptyPendingTitle": "All caught up",
+    "emptyPendingDescription": "Nothing left to get — every item on your active lists is checked off or purchased.",
+    "emptyDoneTitle": "Nothing done yet",
+    "emptyDoneDescription": "Checked and purchased items from your lists will show up here."
+  },
   "listDetail": {
     "backToLists": "Lists",
     "memberCount": "{count, plural, one {# member} other {# members}}"

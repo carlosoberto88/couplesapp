@@ -10,6 +10,7 @@ import type { List } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { AppBar } from "@/components/app-bar";
 import { AppBarActions } from "@/components/app-bar-actions";
+import { MainNav } from "@/components/main-nav";
 import { CreateListDialog } from "@/components/create-list-dialog";
 import { ListFilter } from "@/components/list-filter";
 import { ListsEmptyActive } from "@/components/lists-empty-active";
@@ -51,6 +52,7 @@ export default async function ListsPage({
         <AppBarActions />
       </AppBar>
       <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-6 p-4 pb-safe">
+        <MainNav />
         <ListFilter showArchived={showArchived} />
 
         {visibleLists.length === 0 ? (

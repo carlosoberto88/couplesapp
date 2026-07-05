@@ -1,6 +1,6 @@
 import { AuthenticatedShell } from "@/components/authenticated-shell";
 
-export default function ListsLayout({
+export default function ItemsLayout({
   children,
 }: {
   children: React.ReactNode;

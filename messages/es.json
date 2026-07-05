@@ -31,6 +31,20 @@
     "emptyArchivedDescription": "Las listas que archiven juntos aparecerán aquí.",
     "memberCount": "{count, plural, one {# miembro} other {# miembros}}"
   },
+  "allItems": {
+    "navLabel": "Navegación principal",
+    "listsTab": "Listas",
+    "itemsTab": "Artículos",
+    "title": "Todos los artículos",
+    "subtitle": "Todo lo de tus listas activas en un solo lugar.",
+    "filterLabel": "Filtrar artículos",
+    "pending": "Pendientes",
+    "done": "Hechos",
+    "emptyPendingTitle": "Todo al día",
+    "emptyPendingDescription": "No queda nada por conseguir — todos los artículos de tus listas activas están marcados o comprados.",
+    "emptyDoneTitle": "Nada hecho aún",
+    "emptyDoneDescription": "Los artículos marcados y comprados de tus listas aparecerán aquí."
+  },
   "listDetail": {
     "backToLists": "Listas",
     "memberCount": "{count, plural, one {# miembro} other {# miembros}}"

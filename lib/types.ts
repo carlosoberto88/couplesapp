@@ -63,3 +63,9 @@ export type ItemImage = {
 export type ItemWithImages = Item & {
   images: ItemImage[];
 };
+
+export type ItemListContext = Pick<List, "id" | "name" | "type" | "owner_id">;
+
+export type ItemWithList = Item & {
+  lists: ItemListContext;
+};
