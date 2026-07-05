@@ -1,16 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, ImagePlus, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 import type { ItemPriority } from "@/lib/types";
 import { isWishlist } from "@/lib/list-types";
-import { MAX_IMAGES_PER_ITEM, validateImageFile } from "@/lib/upload-item-image";
 import type { RichAddInput } from "@/components/rich-add-item-form";
+import { ItemDetailsToggle } from "@/components/item-details-toggle";
+import { ItemOptionalFields } from "@/components/item-optional-fields";
+import { WishlistExtraFields } from "@/components/wishlist-extra-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 
 type BulkRow = {
   id: string;
@@ -45,7 +45,7 @@ type BulkAddItemsDialogProps = {
 
 const INITIAL_ROW_COUNT = 3;
 
-function createEmptyRow(expanded: boolean): BulkRow {
+function createEmptyRow(): BulkRow {
   return {
     id: crypto.randomUUID(),
     name: "",
@@ -55,7 +55,7 @@ function createEmptyRow(expanded: boolean): BulkRow {
     priority: null,
     files: [],
     fileError: null,
-    expanded,
+    expanded: false,
   };
 }
 
@@ -77,29 +77,6 @@ function BulkAddItemRow({
   const tItems = useTranslations("items");
   const tWishlist = useTranslations("wishlist");
   const tBulk = useTranslations("bulkAdd");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  function handleFilesSelected(selected: FileList | null) {
-    if (!selected?.length) return;
-    const next: File[] = [];
-    let fileError: string | null = null;
-
-    for (const file of Array.from(selected)) {
-      if (row.files.length + next.length >= MAX_IMAGES_PER_ITEM) break;
-      const err = validateImageFile(file);
-      if (err) {
-        fileError = err;
-        continue;
-      }
-      next.push(file);
-    }
-
-    onChange(row.id, {
-      files: [...row.files, ...next].slice(0, MAX_IMAGES_PER_ITEM),
-      fileError,
-    });
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  }
 
   return (
     <li className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-3">
@@ -127,136 +104,35 @@ function BulkAddItemRow({
         )}
       </div>
 
-      {!wishlist && (
-        <button
-          type="button"
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-          onClick={() => onChange(row.id, { expanded: !row.expanded })}
-        >
-          <ChevronDown
-            className={cn("size-4 transition-transform", row.expanded && "rotate-180")}
-            aria-hidden
-          />
-          {tItems("optionalDetails")}
-        </button>
-      )}
+      <ItemDetailsToggle
+        expanded={row.expanded}
+        onToggle={() => onChange(row.id, { expanded: !row.expanded })}
+      />
 
-      {(row.expanded || wishlist) && (
+      {row.expanded && (
         <div className="flex flex-col gap-3 border-t border-border pt-3">
-          <Input
-            className="h-10 rounded-xl"
-            type="url"
-            placeholder={tItems("urlPlaceholder")}
-            value={row.url}
-            onChange={(e) => onChange(row.id, { url: e.target.value })}
-            disabled={pending}
+          <ItemOptionalFields
+            url={row.url}
+            note={row.note}
+            files={row.files}
+            fileError={row.fileError}
+            pending={pending}
+            compact
+            onUrlChange={(url) => onChange(row.id, { url })}
+            onNoteChange={(note) => onChange(row.id, { note })}
+            onFilesChange={(files) => onChange(row.id, { files })}
+            onFileErrorChange={(fileError) => onChange(row.id, { fileError })}
           />
-          <textarea
-            className="min-h-16 w-full resize-y rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-            placeholder={tItems("descriptionPlaceholder")}
-            value={row.note}
-            onChange={(e) => onChange(row.id, { note: e.target.value })}
-            disabled={pending}
-          />
-
-          {wishlist && (
-            <>
-              <Input
-                className="h-10 rounded-xl"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder={tWishlist("pricePlaceholder")}
-                value={row.price}
-                onChange={(e) => onChange(row.id, { price: e.target.value })}
-                disabled={pending}
-              />
-              <div className="flex flex-col gap-1.5">
-                <Label>{tWishlist("priorityLabel")}</Label>
-                <div className="flex gap-2">
-                  {(["must_have", "nice_to_have"] as const).map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      disabled={pending}
-                      aria-pressed={row.priority === key}
-                      onClick={() =>
-                        onChange(row.id, {
-                          priority: row.priority === key ? null : key,
-                        })
-                      }
-                      className={cn(
-                        "flex-1 rounded-xl border-2 px-3 py-2 text-xs font-medium transition-colors",
-                        row.priority === key
-                          ? "border-primary bg-duo-coral-tint text-primary"
-                          : "border-border bg-background text-muted-foreground hover:bg-muted",
-                      )}
-                    >
-                      {key === "must_have"
-                        ? tWishlist("priorityMustHave")
-                        : tWishlist("priorityNiceToHave")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          <div className="flex flex-col gap-1.5">
-            <Label>{tItems("photosLabel")}</Label>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-              className="hidden"
-              onChange={(e) => handleFilesSelected(e.target.files)}
+          {wishlist ? (
+            <WishlistExtraFields
+              price={row.price}
+              priority={row.priority}
+              pending={pending}
+              compact
+              onPriceChange={(price) => onChange(row.id, { price })}
+              onPriorityChange={(priority) => onChange(row.id, { priority })}
             />
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="w-fit rounded-xl"
-              disabled={pending || row.files.length >= MAX_IMAGES_PER_ITEM}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <ImagePlus className="size-4" aria-hidden />
-              {tItems("addPhotos")}
-            </Button>
-            {row.fileError && (
-              <p className="text-xs text-destructive">
-                {row.fileError === "invalidType"
-                  ? tItems("imageInvalidType")
-                  : tItems("imageTooLarge")}
-              </p>
-            )}
-            {row.files.length > 0 && (
-              <ul className="flex flex-wrap gap-2">
-                {row.files.map((file, index) => (
-                  <li key={`${file.name}-${index}`} className="relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt=""
-                      className="size-14 rounded-lg object-cover"
-                    />
-                    <button
-                      type="button"
-                      className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-destructive text-[10px] text-white"
-                      onClick={() =>
-                        onChange(row.id, {
-                          files: row.files.filter((_, i) => i !== index),
-                        })
-                      }
-                      aria-label={tItems("removePhoto")}
-                    >
-                      ×
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          ) : null}
         </div>
       )}
     </li>
@@ -281,12 +157,13 @@ export function BulkAddItemsDialog({
     (controlledOnOpenChange ?? setInternalOpen)(next);
     if (!next) reset();
   }
+
   const [rows, setRows] = useState<BulkRow[]>(() =>
-    Array.from({ length: INITIAL_ROW_COUNT }, () => createEmptyRow(wishlist)),
+    Array.from({ length: INITIAL_ROW_COUNT }, () => createEmptyRow()),
   );
 
   function reset() {
-    setRows(Array.from({ length: INITIAL_ROW_COUNT }, () => createEmptyRow(wishlist)));
+    setRows(Array.from({ length: INITIAL_ROW_COUNT }, () => createEmptyRow()));
   }
 
   function updateRow(id: string, patch: Partial<BulkRow>) {
@@ -298,7 +175,7 @@ export function BulkAddItemsDialog({
   }
 
   function addRow() {
-    setRows((prev) => [...prev, createEmptyRow(wishlist)]);
+    setRows((prev) => [...prev, createEmptyRow()]);
   }
 
   const validRows = rows.filter((row) => row.name.trim().length > 0);

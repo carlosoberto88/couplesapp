@@ -2,14 +2,14 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, ImagePlus } from "lucide-react";
 
 import type { ItemPriority } from "@/lib/types";
 import { isWishlist } from "@/lib/list-types";
-import { MAX_IMAGES_PER_ITEM, validateImageFile } from "@/lib/upload-item-image";
+import { ItemDetailsToggle } from "@/components/item-details-toggle";
+import { ItemOptionalFields } from "@/components/item-optional-fields";
+import { WishlistExtraFields } from "@/components/wishlist-extra-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export type RichAddInput = {
@@ -26,17 +26,23 @@ type RichAddItemFormProps = {
   listType: string;
   onAdd: (input: RichAddInput) => void;
   pending?: boolean;
+  variant?: "default" | "sticky";
 };
 
-export function RichAddItemForm({ listType, onAdd, pending = false }: RichAddItemFormProps) {
+export function RichAddItemForm({
+  listType,
+  onAdd,
+  pending = false,
+  variant = "default",
+}: RichAddItemFormProps) {
   const tItems = useTranslations("items");
   const tWishlist = useTranslations("wishlist");
   const wishlist = isWishlist(listType);
+  const sticky = variant === "sticky";
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState("");
-  const [expanded, setExpanded] = useState(wishlist);
+  const [expanded, setExpanded] = useState(false);
   const [url, setUrl] = useState("");
   const [note, setNote] = useState("");
   const [price, setPrice] = useState("");
@@ -52,26 +58,8 @@ export function RichAddItemForm({ listType, onAdd, pending = false }: RichAddIte
     setPriority(null);
     setFiles([]);
     setFileError(null);
-    if (!wishlist) setExpanded(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    setExpanded(false);
     nameInputRef.current?.focus();
-  }
-
-  function handleFilesSelected(selected: FileList | null) {
-    if (!selected?.length) return;
-    setFileError(null);
-    const next: File[] = [];
-    for (const file of Array.from(selected)) {
-      if (files.length + next.length >= MAX_IMAGES_PER_ITEM) break;
-      const err = validateImageFile(file);
-      if (err) {
-        setFileError(err);
-        continue;
-      }
-      next.push(file);
-    }
-    setFiles((prev) => [...prev, ...next].slice(0, MAX_IMAGES_PER_ITEM));
-    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -95,155 +83,82 @@ export function RichAddItemForm({ listType, onAdd, pending = false }: RichAddIte
 
   return (
     <form
-      className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4"
+      className={cn(
+        "flex flex-col gap-3",
+        sticky
+          ? "gap-2"
+          : "rounded-2xl border border-border bg-card p-4",
+      )}
       onSubmit={handleSubmit}
     >
-      <Input
-        ref={nameInputRef}
-        className="h-11 rounded-xl"
-        placeholder={wishlist ? tWishlist("namePlaceholder") : tItems("addPlaceholder")}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-        disabled={pending}
-        aria-label={tItems("addAriaLabel")}
-      />
+      <div className={cn("flex gap-2", sticky && "items-start")}>
+        <Input
+          ref={nameInputRef}
+          className={cn("rounded-xl", sticky ? "h-11 flex-1" : "h-11")}
+          placeholder={wishlist ? tWishlist("namePlaceholder") : tItems("addPlaceholder")}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          disabled={pending}
+          aria-label={tItems("addAriaLabel")}
+        />
+        {sticky ? (
+          <Button
+            type="submit"
+            className="h-11 shrink-0 rounded-xl bg-duo-teal px-4 text-white hover:bg-duo-teal/90"
+            disabled={pending || !name.trim()}
+          >
+            {pending
+              ? wishlist
+                ? tWishlist("adding")
+                : tItems("adding")
+              : wishlist
+                ? tWishlist("submit")
+                : tItems("addSubmit")}
+          </Button>
+        ) : null}
+      </div>
 
-      {!wishlist && (
-        <button
-          type="button"
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-          onClick={() => setExpanded((v) => !v)}
-        >
-          <ChevronDown
-            className={cn("size-4 transition-transform", expanded && "rotate-180")}
-            aria-hidden
+      <ItemDetailsToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
+
+      {expanded && (
+        <div className={cn("flex flex-col gap-3", !sticky && "border-t border-border pt-3")}>
+          <ItemOptionalFields
+            url={url}
+            note={note}
+            files={files}
+            fileError={fileError}
+            pending={pending}
+            compact={sticky}
+            onUrlChange={setUrl}
+            onNoteChange={setNote}
+            onFilesChange={setFiles}
+            onFileErrorChange={setFileError}
           />
-          {tItems("optionalDetails")}
-        </button>
-      )}
-
-      {(expanded || wishlist) && (
-        <div className="flex flex-col gap-3 border-t border-border pt-3">
-          <Input
-            className="h-11 rounded-xl"
-            type="url"
-            placeholder={tItems("urlPlaceholder")}
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            disabled={pending}
-          />
-          <textarea
-            className="min-h-20 w-full resize-y rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-            placeholder={tItems("descriptionPlaceholder")}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            disabled={pending}
-          />
-
-          {wishlist && (
-            <>
-              <Input
-                className="h-11 rounded-xl"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder={tWishlist("pricePlaceholder")}
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                disabled={pending}
-              />
-              <div className="flex flex-col gap-1.5">
-                <Label>{tWishlist("priorityLabel")}</Label>
-                <div className="flex gap-2">
-                  {(["must_have", "nice_to_have"] as const).map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      disabled={pending}
-                      aria-pressed={priority === key}
-                      onClick={() => setPriority(priority === key ? null : key)}
-                      className={cn(
-                        "flex-1 rounded-xl border-2 px-3 py-2 text-xs font-medium transition-colors",
-                        priority === key
-                          ? "border-primary bg-duo-coral-tint text-primary"
-                          : "border-border bg-background text-muted-foreground hover:bg-muted",
-                      )}
-                    >
-                      {key === "must_have"
-                        ? tWishlist("priorityMustHave")
-                        : tWishlist("priorityNiceToHave")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          <div className="flex flex-col gap-1.5">
-            <Label>{tItems("photosLabel")}</Label>
-            <p className="text-xs text-muted-foreground">
-              {tItems("photosHint", { max: MAX_IMAGES_PER_ITEM, sizeMb: 5 })}
-            </p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-              className="hidden"
-              onChange={(e) => handleFilesSelected(e.target.files)}
+          {wishlist ? (
+            <WishlistExtraFields
+              price={price}
+              priority={priority}
+              pending={pending}
+              compact={sticky}
+              onPriceChange={setPrice}
+              onPriorityChange={setPriority}
             />
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="w-fit rounded-xl"
-              disabled={pending || files.length >= MAX_IMAGES_PER_ITEM}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <ImagePlus className="size-4" aria-hidden />
-              {tItems("addPhotos")}
-            </Button>
-            {fileError && (
-              <p className="text-xs text-destructive">
-                {fileError === "invalidType" ? tItems("imageInvalidType") : tItems("imageTooLarge")}
-              </p>
-            )}
-            {files.length > 0 && (
-              <ul className="flex flex-wrap gap-2">
-                {files.map((file, index) => (
-                  <li key={`${file.name}-${index}`} className="relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt=""
-                      className="size-16 rounded-lg object-cover"
-                    />
-                    <button
-                      type="button"
-                      className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-destructive text-[10px] text-white"
-                      onClick={() => setFiles((prev) => prev.filter((_, i) => i !== index))}
-                      aria-label={tItems("removePhoto")}
-                    >
-                      ×
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          ) : null}
         </div>
       )}
 
-      <Button type="submit" className="h-11 rounded-xl" disabled={pending || !name.trim()}>
-        {pending
-          ? wishlist
-            ? tWishlist("adding")
-            : tItems("adding")
-          : wishlist
-            ? tWishlist("submit")
-            : tItems("addSubmit")}
-      </Button>
+      {!sticky ? (
+        <Button type="submit" className="h-11 rounded-xl" disabled={pending || !name.trim()}>
+          {pending
+            ? wishlist
+              ? tWishlist("adding")
+              : tItems("adding")
+            : wishlist
+              ? tWishlist("submit")
+              : tItems("addSubmit")}
+        </Button>
+      ) : null}
     </form>
   );
 }

@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { Layers } from "lucide-react";
 
 import type { RichAddInput } from "@/components/rich-add-item-form";
+import { RichAddItemForm } from "@/components/rich-add-item-form";
 import { BulkAddItemsDialog } from "@/components/bulk-add-items-dialog";
-import { QuickAddBar } from "@/components/quick-add-bar";
 import { SmartAdd } from "@/components/smart-add";
 import { UsualItems } from "@/components/usual-items";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ type ListAddSectionProps = {
   currentItemNames: string[];
   showUsualItems?: boolean;
   showSmartAdd?: boolean;
+  onRichAdd: (input: RichAddInput) => void;
   onQuickAdd: (name: string) => void;
   onBulkAdd: (inputs: RichAddInput[]) => void;
   onSmartAddBulk: (items: { name: string; note: string | null }[]) => void;
@@ -32,6 +33,7 @@ export function ListAddSection({
   currentItemNames,
   showUsualItems = true,
   showSmartAdd = true,
+  onRichAdd,
   onQuickAdd,
   onBulkAdd,
   onSmartAddBulk,
@@ -46,12 +48,9 @@ export function ListAddSection({
 
   return (
     <>
-      <QuickAddBar
-        listType={listType}
-        onAdd={onQuickAdd}
-        pending={pending}
-        className="hidden md:flex"
-      />
+      <div className="hidden md:block">
+        <RichAddItemForm listType={listType} onAdd={onRichAdd} pending={pending} />
+      </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <Button
@@ -84,7 +83,12 @@ export function ListAddSection({
 
       <div className="sticky-add-bar pointer-events-none fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur supports-backdrop-filter:bg-background/80 md:hidden">
         <div className="pointer-events-auto mx-auto w-full max-w-[640px]">
-          <QuickAddBar listType={listType} onAdd={onQuickAdd} pending={pending} />
+          <RichAddItemForm
+            listType={listType}
+            onAdd={onRichAdd}
+            pending={pending}
+            variant="sticky"
+          />
         </div>
       </div>
     </>

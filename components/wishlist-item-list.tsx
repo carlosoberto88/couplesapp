@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Item, ItemImage, ListMember, Profile } from "@/lib/types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
-import { buildNewItem, insertItemsBulk } from "@/lib/persist-item";
+import { buildNewItem, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
 import { useItemImages } from "@/lib/use-item-images";
 import { upsertRow, removeRow } from "@/lib/item-list-utils";
 import { deleteItemImages } from "@/lib/upload-item-image";
@@ -79,6 +79,49 @@ export function WishlistItemList({
   const memberIds = useMemo(() => members.map((m) => m.user_id), [members]);
   const myDisplayName = nameFor(currentUserId) ?? "You";
   const locallyRemovedIdsRef = useRef<Set<string>>(new Set());
+  const handleRichAddRef = useRef<(input: RichAddInput) => void>(() => {});
+
+  const handleRichAdd = useCallback(
+    (input: RichAddInput) => {
+      const newItem = buildNewItem(listId, currentUserId, input);
+      setItems((prev) => upsertRow(prev, newItem));
+      setAdding(true);
+
+      void (async () => {
+        const { error } = await insertItemWithImages(
+          supabase,
+          listId,
+          currentUserId,
+          newItem,
+          input.files,
+        );
+
+        setAdding(false);
+
+        if (error) {
+          setItems((prev) => removeRow(prev, newItem.id));
+          toast.error(
+            error === "invalidType"
+              ? t("imageInvalidType")
+              : error === "tooLarge"
+                ? t("imageTooLarge")
+                : t("saveError"),
+            { action: { label: tCommon("retry"), onClick: () => handleRichAddRef.current(input) } },
+          );
+          return;
+        }
+
+        if (input.files.length > 0) {
+          await refetchImages(items.map((i) => i.id).concat(newItem.id));
+        }
+      })();
+    },
+    [listId, currentUserId, supabase, t, tCommon, refetchImages, items],
+  );
+
+  useEffect(() => {
+    handleRichAddRef.current = handleRichAdd;
+  });
 
   const handleBulkAdd = useCallback(
     (inputs: RichAddInput[]) => {
@@ -349,18 +392,17 @@ export function WishlistItemList({
         currentItemNames={items.map((item) => item.name)}
         showUsualItems
         showSmartAdd
+        onRichAdd={handleRichAdd}
         onQuickAdd={(name) =>
-          handleBulkAdd([
-            {
-              name,
-              note: null,
-              url: null,
-              files: [],
-              price: null,
-              currency: "USD",
-              priority: null,
-            },
-          ])
+          handleRichAdd({
+            name,
+            note: null,
+            url: null,
+            files: [],
+            price: null,
+            currency: "USD",
+            priority: null,
+          })
         }
         onBulkAdd={handleBulkAdd}
         onSmartAddBulk={(simpleItems) =>

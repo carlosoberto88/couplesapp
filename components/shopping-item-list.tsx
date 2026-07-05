@@ -445,6 +445,7 @@ export function ShoppingItemList({
         listType={listType}
         pending={adding}
         currentItemNames={currentItemNames}
+        onRichAdd={handleRichAdd}
         onQuickAdd={handleQuickAdd}
         onBulkAdd={handleBulkAdd}
         onSmartAddBulk={handleSmartAddBulk}
