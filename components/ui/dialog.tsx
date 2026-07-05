@@ -4,9 +4,64 @@ import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 
 import { cn } from "@/lib/utils"
-import { useVisualViewport } from "@/lib/use-visual-viewport"
+import { useVisualViewport, type VisualViewportSize } from "@/lib/use-visual-viewport"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
+
+const KEYBOARD_INSET_THRESHOLD = 50
+const H_PAD = 16
+const V_PAD = 8
+
+function getIsMobileViewport() {
+  if (typeof window === "undefined") return false
+  return window.matchMedia("(max-width: 639px)").matches
+}
+
+function getMobileBoxStyle(
+  visualViewport: VisualViewportSize,
+  keyboardOpen: boolean,
+): React.CSSProperties {
+  const boxWidth = Math.max(visualViewport.width - H_PAD, 280)
+
+  const base: React.CSSProperties = {
+    left: `${visualViewport.offsetLeft + H_PAD / 2}px`,
+    width: `${boxWidth}px`,
+    maxWidth: `${boxWidth}px`,
+    transform: "none",
+    right: "auto",
+  }
+
+  if (keyboardOpen) {
+    return {
+      ...base,
+      top: "auto",
+      bottom: `${visualViewport.keyboardInset + V_PAD}px`,
+      maxHeight: `${Math.max(visualViewport.height - H_PAD, 200)}px`,
+    }
+  }
+
+  return {
+    ...base,
+    top: `${visualViewport.offsetTop + V_PAD}px`,
+    bottom: "auto",
+    maxHeight: `${Math.max(visualViewport.height - H_PAD, 200)}px`,
+  }
+}
+
+function scrollFieldIntoDialogBody(target: HTMLElement) {
+  const scrollParent = target.closest("[data-dialog-scroll-body]")
+  if (!(scrollParent instanceof HTMLElement)) return
+
+  const parentRect = scrollParent.getBoundingClientRect()
+  const targetRect = target.getBoundingClientRect()
+  const nextTop =
+    targetRect.top - parentRect.top + scrollParent.scrollTop - V_PAD
+
+  scrollParent.scrollTo({
+    top: Math.max(0, nextTop),
+    behavior: "smooth",
+  })
+}
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
@@ -46,12 +101,14 @@ function DialogContent({
   showCloseButton = true,
   keyboardAware = false,
   style,
+  onFocusCapture,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
   keyboardAware?: boolean
 }) {
-  const [isMobile, setIsMobile] = React.useState(false)
+  const popupRef = React.useRef<HTMLDivElement>(null)
+  const [isMobile, setIsMobile] = React.useState(getIsMobileViewport)
 
   React.useEffect(() => {
     if (!keyboardAware) return
@@ -66,26 +123,51 @@ function DialogContent({
 
   const visualViewport = useVisualViewport(keyboardAware && isMobile)
 
-  const mobileKeyboardStyle =
+  React.useEffect(() => {
+    if (!keyboardAware || !isMobile) return
+
+    const popup = popupRef.current
+    if (!popup) return
+
+    function handleFocusIn(event: FocusEvent) {
+      const target = event.target
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement
+      ) {
+        requestAnimationFrame(() => {
+          scrollFieldIntoDialogBody(target)
+        })
+      }
+    }
+
+    popup.addEventListener("focusin", handleFocusIn)
+    return () => popup.removeEventListener("focusin", handleFocusIn)
+  }, [keyboardAware, isMobile])
+
+  const keyboardOpen =
+    keyboardAware && isMobile && visualViewport.keyboardInset > KEYBOARD_INSET_THRESHOLD
+
+  const mobileBoxStyle =
     keyboardAware && isMobile
-      ? {
-          top: `${visualViewport.offsetTop + 8}px`,
-          maxHeight: `${Math.max(visualViewport.height - 16, 200)}px`,
-          transform: "translateX(-50%)",
-        }
+      ? getMobileBoxStyle(visualViewport, keyboardOpen)
       : undefined
 
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Popup
+        ref={popupRef}
         data-slot="dialog-content"
         className={cn(
           "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-          keyboardAware && "max-sm:max-h-none flex flex-col",
+          keyboardAware &&
+            "max-sm:left-auto max-sm:w-auto max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-hidden max-sm:min-h-0 flex flex-col",
           className
         )}
-        style={{ ...style, ...mobileKeyboardStyle }}
+        style={{ ...style, ...mobileBoxStyle }}
+        onFocusCapture={onFocusCapture}
         {...props}
       >
         {children}

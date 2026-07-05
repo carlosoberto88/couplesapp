@@ -116,13 +116,16 @@ export function AddItemDialog({
         />
       ) : null}
 
-      <DialogContent keyboardAware className="flex max-h-[85vh] flex-col sm:max-w-lg">
+      <DialogContent keyboardAware className="flex flex-col sm:max-w-lg">
         <DialogHeader className="shrink-0">
           <DialogTitle>{addItemTitle}</DialogTitle>
           <DialogDescription>{addItemDescription}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <div
+          data-dialog-scroll-body
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+        >
           {supportsLinkAdd ? (
             <>
               <AddModeSegment mode={addMode} onChange={handleSwitchMode} />
