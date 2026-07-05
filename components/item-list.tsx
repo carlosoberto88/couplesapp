@@ -96,6 +96,7 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
   const handleRemoveRef = useRef<(item: Item) => void>(() => {});
   const handleUndoRemoveRef = useRef<(item: Item, toastId: string | number) => void>(() => {});
   const handleClearCheckedRef = useRef<() => void>(() => {});
+  const locallyRemovedIdsRef = useRef<Set<string>>(new Set());
 
   const handleAdd = useCallback(
     (name: string, note: string | null = null) => {
@@ -204,6 +205,11 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
   }, [supabase, t, tCommon]);
 
   const handleRemove = useCallback((item: Item) => {
+    locallyRemovedIdsRef.current.add(item.id);
+    setTimeout(() => {
+      locallyRemovedIdsRef.current.delete(item.id);
+    }, 3000);
+
     setItems((prev) => removeRow(prev, item.id));
 
     void (async () => {
@@ -284,6 +290,27 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
     [nameFor, t],
   );
 
+  const handleOtherUserCheck = useCallback(
+    (row: Item, checked: boolean) => {
+      const checkerName = nameFor(row.checked_by);
+      if (!checkerName) return;
+      toast(
+        checked
+          ? t("checkedByOther", { name: row.name, user: checkerName })
+          : t("uncheckedByOther", { name: row.name, user: checkerName }),
+      );
+    },
+    [nameFor, t],
+  );
+
+  const handleOtherUserRemove = useCallback(
+    (row: Item) => {
+      if (locallyRemovedIdsRef.current.has(row.id)) return;
+      toast(t("removedByOther", { name: row.name }));
+    },
+    [t],
+  );
+
   // Full replace on focus/reconnect — server wins (v1: no special-casing of
   // items mid-undo-grace; matches the plan's accepted simple-replace tolerance).
   const refetchItems = useCallback(() => {
@@ -304,6 +331,8 @@ export function ItemList({ listId, currentUserId, initialItems, members }: ItemL
     onUpsert: handleRealtimeUpsert,
     onRemove: handleRealtimeRemove,
     onOtherUserAdd: handleOtherUserAdd,
+    onOtherUserCheck: handleOtherUserCheck,
+    onOtherUserRemove: handleOtherUserRemove,
     onRefetch: refetchItems,
   });
 

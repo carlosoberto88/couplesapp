@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AppBar } from "@/components/app-bar";
 import { CreateListDialog } from "@/components/create-list-dialog";
 import { ListSettingsMenu } from "@/components/list-settings-menu";
+import { ListsLiveSync } from "@/components/lists-live-sync";
 import { cn } from "@/lib/utils";
 
 type ListRow = List & { list_members: { count: number }[] };
@@ -43,6 +44,7 @@ export default async function ListsPage({
 
   return (
     <>
+      <ListsLiveSync userId={userId} />
       <AppBar>
         <CreateListDialog />
         <UserButton appearance={clerkAppearance} />

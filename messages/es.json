@@ -117,7 +117,10 @@
     "clearCheckedError": "No se pudieron limpiar los marcados — toca para reintentar",
     "removedItem": "Se quitó \"{name}\"",
     "addedByOther": "\"{name}\" agregado por {user}",
-    "addedOther": "\"{name}\" agregado"
+    "addedOther": "\"{name}\" agregado",
+    "checkedByOther": "\"{name}\" marcado por {user}",
+    "uncheckedByOther": "\"{name}\" desmarcado por {user}",
+    "removedByOther": "Se quitó \"{name}\""
   },
   "smartAdd": {
     "triggerLabel": "Agregar inteligente desde texto pegado",
@@ -134,6 +137,12 @@
     "back": "Atrás",
     "addItems": "Agregar {count, plural, one {# ítem} other {# ítems}}",
     "addedToast": "Se agregaron {count, plural, one {# ítem} other {# ítems}}"
+  },
+  "push": {
+    "prompt": "¿Recibir avisos cuando tu pareja agregue ítems?",
+    "enable": "Activar",
+    "notNow": "Ahora no",
+    "enabling": "Activando…"
   },
   "api": {
     "notAuthenticated": "No autenticado",

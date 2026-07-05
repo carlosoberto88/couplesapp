@@ -7,6 +7,7 @@ import { getLocale, getMessages, getTranslations } from "next-intl/server";
 
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/sw-register";
+import { PushNotificationsSetup } from "@/components/push-notifications-setup";
 import "./globals.css";
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -51,6 +52,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <ClerkProvider localization={clerkLocalization}>
           <NextIntlClientProvider messages={messages}>
+            <PushNotificationsSetup />
             {children}
             <Toaster richColors position="top-center" />
             <ServiceWorkerRegister />

@@ -13,6 +13,7 @@ import { ItemList } from "@/components/item-list";
 import { AppBar } from "@/components/app-bar";
 import { MemberAvatar, initialsFor } from "@/components/member-avatar";
 import { InvitePanel } from "@/components/invite-panel";
+import { ListDetailLiveSync } from "@/components/list-detail-live-sync";
 
 type MemberWithProfile = ListMember & {
   profiles: Pick<Profile, "id" | "email" | "display_name"> | null;
@@ -61,6 +62,7 @@ export default async function ListDetailPage({
 
   return (
     <>
+      <ListDetailLiveSync listId={typedList.id} />
       <AppBar />
       <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 px-4 pb-8 pt-4">
         <Link

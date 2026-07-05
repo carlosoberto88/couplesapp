@@ -9,6 +9,8 @@ type RealtimeItemsHandlers = {
   onUpsert: (row: Item) => void;
   onRemove: (id: string) => void;
   onOtherUserAdd: (row: Item) => void;
+  onOtherUserCheck: (row: Item, checked: boolean) => void;
+  onOtherUserRemove: (row: Item) => void;
   onRefetch: () => void;
 };
 
@@ -48,9 +50,23 @@ export function useRealtimeItems(
             if (payload.eventType === "INSERT" && row.created_by !== currentUserId) {
               handlersRef.current.onOtherUserAdd(row);
             }
+            if (payload.eventType === "UPDATE") {
+              const oldRow = payload.old as Item;
+              const wasChecked = oldRow.checked_at !== null;
+              const isChecked = row.checked_at !== null;
+              if (wasChecked !== isChecked) {
+                const actor = isChecked ? row.checked_by : oldRow.checked_by;
+                if (actor && actor !== currentUserId) {
+                  handlersRef.current.onOtherUserCheck(row, isChecked);
+                }
+              }
+            }
           } else if (payload.eventType === "DELETE") {
             const row = payload.old as Item;
             handlersRef.current.onRemove(row.id);
+            if (row.created_by !== currentUserId) {
+              handlersRef.current.onOtherUserRemove(row);
+            }
           }
         },
       )

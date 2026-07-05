@@ -117,7 +117,10 @@
     "clearCheckedError": "Couldn't clear checked items — tap to retry",
     "removedItem": "Removed \"{name}\"",
     "addedByOther": "\"{name}\" added by {user}",
-    "addedOther": "\"{name}\" added"
+    "addedOther": "\"{name}\" added",
+    "checkedByOther": "\"{name}\" checked off by {user}",
+    "uncheckedByOther": "\"{name}\" unchecked by {user}",
+    "removedByOther": "\"{name}\" was removed"
   },
   "smartAdd": {
     "triggerLabel": "Smart add from pasted text",
@@ -134,6 +137,12 @@
     "back": "Back",
     "addItems": "Add {count, plural, one {# item} other {# items}}",
     "addedToast": "Added {count, plural, one {# item} other {# items}}"
+  },
+  "push": {
+    "prompt": "Get notified when your partner adds items?",
+    "enable": "Enable",
+    "notNow": "Not now",
+    "enabling": "Enabling…"
   },
   "api": {
     "notAuthenticated": "Not authenticated",
