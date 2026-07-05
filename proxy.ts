@@ -1,6 +1,11 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isPublicRoute = createRouteMatcher(["/login(.*)", "/signup(.*)"]);
+const isPublicRoute = createRouteMatcher([
+  "/login(.*)",
+  "/signup(.*)",
+  // Supabase Database Webhook — authenticated via SUPABASE_WEBHOOK_SECRET in the route.
+  "/api/push/send",
+]);
 
 export default clerkMiddleware(async (auth, request) => {
   if (!isPublicRoute(request)) {
