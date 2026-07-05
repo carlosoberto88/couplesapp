@@ -5,8 +5,7 @@ import { useTranslations } from "next-intl";
 import { Layers, Plus } from "lucide-react";
 
 import type { RichAddInput } from "@/components/rich-add-item-form";
-import { RichAddItemForm } from "@/components/rich-add-item-form";
-import { AddWishlistItemDialog } from "@/components/add-wishlist-item-dialog";
+import { AddItemDialog } from "@/components/add-item-dialog";
 import { BulkAddItemsDialog } from "@/components/bulk-add-items-dialog";
 import { SmartAdd } from "@/components/smart-add";
 import { UsualItems } from "@/components/usual-items";
@@ -68,29 +67,21 @@ export function ListAddSection({
   const isAddOpen = addOpen ?? internalAddOpen;
   const setAddOpen = onAddOpenChange ?? setInternalAddOpen;
 
-  const wishlistLinkAdd = wishlist && onAddFromLink;
+  const addItemLabel = wishlist ? t("addItemWishlist") : t("addItem");
 
   return (
     <>
-      {!wishlistLinkAdd ? (
-        <div className="hidden md:block">
-          <RichAddItemForm listType={listType} onAdd={onRichAdd} pending={pending} />
-        </div>
-      ) : null}
-
       <div className="flex flex-wrap items-center gap-2">
-        {wishlistLinkAdd ? (
-          <Button
-            type="button"
-            size="sm"
-            className="hidden rounded-full md:inline-flex"
-            onClick={() => setAddOpen(true)}
-            disabled={pending}
-          >
-            <Plus className="size-4" />
-            {t("addItem")}
-          </Button>
-        ) : null}
+        <Button
+          type="button"
+          size="sm"
+          className="hidden rounded-full md:inline-flex"
+          onClick={() => setAddOpen(true)}
+          disabled={pending}
+        >
+          <Plus className="size-4" />
+          {addItemLabel}
+        </Button>
         <Button
           type="button"
           variant="secondary"
@@ -110,17 +101,16 @@ export function ListAddSection({
         <UsualItems listId={listId} currentItemNames={currentItemNames} onAdd={onQuickAdd} />
       ) : null}
 
-      {wishlistLinkAdd ? (
-        <AddWishlistItemDialog
-          listId={listId}
-          pending={pending}
-          open={isAddOpen}
-          onOpenChange={setAddOpen}
-          hideTrigger
-          onRichAdd={onRichAdd}
-          onAddFromLink={onAddFromLink}
-        />
-      ) : null}
+      <AddItemDialog
+        listId={listId}
+        listType={listType}
+        pending={pending}
+        open={isAddOpen}
+        onOpenChange={setAddOpen}
+        hideTrigger
+        onRichAdd={onRichAdd}
+        onAddFromLink={onAddFromLink}
+      />
 
       <BulkAddItemsDialog
         listType={listType}
@@ -136,24 +126,15 @@ export function ListAddSection({
         className="sticky-add-bar pointer-events-none fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur supports-backdrop-filter:bg-background/80 md:hidden"
       >
         <div className="pointer-events-auto mx-auto flex w-full max-w-[640px] flex-col gap-2">
-          {wishlistLinkAdd ? (
-            <Button
-              type="button"
-              className="h-11 w-full rounded-xl"
-              onClick={() => setAddOpen(true)}
-              disabled={pending}
-            >
-              <Plus className="size-4" />
-              {t("addItem")}
-            </Button>
-          ) : (
-            <RichAddItemForm
-              listType={listType}
-              onAdd={onRichAdd}
-              pending={pending}
-              variant="sticky"
-            />
-          )}
+          <Button
+            type="button"
+            className="h-11 w-full rounded-xl"
+            onClick={() => setAddOpen(true)}
+            disabled={pending}
+          >
+            <Plus className="size-4" />
+            {addItemLabel}
+          </Button>
         </div>
       </div>
     </>

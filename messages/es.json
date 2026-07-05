@@ -259,9 +259,12 @@
   },
   "addMenu": {
     "addMultiple": "Agregar varios",
-    "addItem": "Agregar regalo",
-    "addItemTitle": "Agregar un regalo",
-    "addItemDescription": "Pega un enlace de producto o escribe los detalles tú mismo."
+    "addItem": "Agregar ítem",
+    "addItemWishlist": "Agregar regalo",
+    "addItemTitle": "Agregar un ítem",
+    "addItemTitleWishlist": "Agregar un regalo",
+    "addItemDescription": "Escribe lo que necesitas y agrégalo a la lista.",
+    "addItemDescriptionWishlist": "Pega un enlace de producto o escribe los detalles tú mismo."
   },
   "addFromLink": {
     "urlPlaceholder": "Pega un enlace de producto…",

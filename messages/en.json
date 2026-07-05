@@ -257,9 +257,12 @@
   },
   "addMenu": {
     "addMultiple": "Add multiple",
-    "addItem": "Add gift",
-    "addItemTitle": "Add a gift",
-    "addItemDescription": "Paste a product link or type the details yourself."
+    "addItem": "Add item",
+    "addItemWishlist": "Add gift",
+    "addItemTitle": "Add an item",
+    "addItemTitleWishlist": "Add a gift",
+    "addItemDescription": "Type what you need and add it to the list.",
+    "addItemDescriptionWishlist": "Paste a product link or type the details yourself."
   },
   "addFromLink": {
     "urlPlaceholder": "Paste a product link…",

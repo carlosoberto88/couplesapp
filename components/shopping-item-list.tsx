@@ -58,6 +58,7 @@ export function ShoppingItemList({
   const [adding, setAdding] = useState(false);
   const [detailItem, setDetailItem] = useState<Item | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const prevAllCheckedRef = useRef(false);
 
@@ -494,6 +495,8 @@ export function ShoppingItemList({
         onSmartAddBulk={handleSmartAddBulk}
         bulkOpen={bulkOpen}
         onBulkOpenChange={setBulkOpen}
+        addOpen={addOpen}
+        onAddOpenChange={setAddOpen}
       />
 
       <div className="flex items-center justify-between px-1">
@@ -518,7 +521,7 @@ export function ShoppingItemList({
           title={t("emptyTitle")}
           description={t("emptyDescription")}
           actionLabel={t("emptyAction")}
-          onAction={() => setBulkOpen(true)}
+          onAction={() => setAddOpen(true)}
         />
       ) : (
         <>
