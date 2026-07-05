@@ -38,6 +38,8 @@ export default async function ListDetailPage({
 
   const supabase = await createClient();
 
+  await supabase.rpc("accept_pending_invites");
+
   const [{ data: list }, { data: items }, { data: members }] =
     await Promise.all([
       supabase.from("lists").select("*").eq("id", listId).maybeSingle(),

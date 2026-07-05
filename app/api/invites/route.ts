@@ -72,6 +72,38 @@ export async function POST(request: NextRequest) {
     { auth: { persistSession: false } },
   );
 
+  async function grantListMembership({
+    listId: grantListId,
+    userId: grantUserId,
+    inviteId: grantInviteId,
+    email: grantEmail,
+  }: {
+    listId: string;
+    userId: string;
+    inviteId: string;
+    email: string;
+  }) {
+    const { error: profileError } = await admin
+      .from("profiles")
+      .upsert({ id: grantUserId, email: grantEmail }, { onConflict: "id" });
+
+    if (profileError) return profileError;
+
+    const { error: memberError } = await admin.from("list_members").upsert(
+      { list_id: grantListId, user_id: grantUserId, role: "member" },
+      { onConflict: "list_id,user_id", ignoreDuplicates: true },
+    );
+
+    if (memberError) return memberError;
+
+    const { error: inviteError } = await admin
+      .from("list_invites")
+      .update({ status: "accepted" })
+      .eq("id", grantInviteId);
+
+    return inviteError;
+  }
+
   const { data: existingMember } = await admin
     .from("list_members")
     .select("user_id, profiles!inner(email)")
@@ -130,6 +162,20 @@ export async function POST(request: NextRequest) {
   if (existingUsers.length > 0) {
     const inviteeUserId = existingUsers[0].id;
 
+    const grantError = await grantListMembership({
+      listId,
+      userId: inviteeUserId,
+      inviteId,
+      email,
+    });
+
+    if (grantError) {
+      return NextResponse.json(
+        { error: t("api.createInviteError") },
+        { status: 500 },
+      );
+    }
+
     const { data: inviterProfile } = await admin
       .from("profiles")
       .select("display_name, email")
@@ -182,6 +228,20 @@ export async function POST(request: NextRequest) {
         const inviteeUserId = raceUsers[0]?.id;
 
         if (inviteeUserId) {
+          const grantError = await grantListMembership({
+            listId,
+            userId: inviteeUserId,
+            inviteId,
+            email,
+          });
+
+          if (grantError) {
+            return NextResponse.json(
+              { error: t("api.createInviteError") },
+              { status: 500 },
+            );
+          }
+
           const { data: inviterProfile } = await admin
             .from("profiles")
             .select("display_name, email")
