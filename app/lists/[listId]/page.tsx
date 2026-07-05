@@ -11,6 +11,7 @@ import { buildMemberColorMap } from "@/lib/member-colors";
 import type { Item, ItemImage, List, ListMember, Profile } from "@/lib/types";
 import { ItemList } from "@/components/item-list";
 import { AppBar } from "@/components/app-bar";
+import { AppBarActions } from "@/components/app-bar-actions";
 import { MemberAvatar, initialsFor } from "@/components/member-avatar";
 import { InvitePanel } from "@/components/invite-panel";
 import { ListDetailLiveSync } from "@/components/list-detail-live-sync";
@@ -77,8 +78,10 @@ export default async function ListDetailPage({
   return (
     <>
       <ListDetailLiveSync listId={typedList.id} />
-      <AppBar />
-      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 px-4 pb-8 pt-4">
+      <AppBar>
+        <AppBarActions />
+      </AppBar>
+      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 px-4 pb-safe pt-4">
         <Link
           href="/lists"
           className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"

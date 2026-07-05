@@ -25,6 +25,7 @@
     "archived": "Archivadas",
     "emptyActiveTitle": "Aún no hay listas",
     "emptyActiveDescription": "Crea tu primera lista para empezar a compartir con tu persona.",
+    "emptyActiveAction": "Crear tu primera lista",
     "emptyArchivedTitle": "Nada archivado aún",
     "emptyArchivedDescription": "Las listas que archiven juntos aparecerán aquí.",
     "memberCount": "{count, plural, one {# miembro} other {# miembros}}"
@@ -106,6 +107,11 @@
     "itemCount": "{count, plural, one {# ítem} other {# ítems}}",
     "clearChecked": "Limpiar marcados",
     "empty": "Aún no hay ítems — agrega el primero arriba.",
+    "emptyTitle": "Aún no hay ítems",
+    "emptyDescription": "Agrega algo que necesites — tu pareja lo verá al instante.",
+    "emptyAction": "Agregar ítems",
+    "checkedCount": "{count, plural, one {# marcado} other {# marcados}}",
+    "photoAlt": "Foto de {name}",
     "allDone": "Todo listo 🎉",
     "clearCheckedPrompt": "¿Limpiar marcados?",
     "addedBy": "Agregado por",
@@ -144,6 +150,9 @@
   "wishlist": {
     "itemCount": "{count, plural, one {# regalo} other {# regalos}}",
     "empty": "Aún no hay regalos — agrega tu primer deseo arriba.",
+    "emptyTitle": "Aún no hay regalos",
+    "emptyDescription": "Agrega algo que te gustaría recibir — tu pareja puede reservarlo en secreto.",
+    "emptyAction": "Agregar regalos",
     "namePlaceholder": "Nombre del regalo…",
     "urlPlaceholder": "Enlace (opcional)",
     "descriptionPlaceholder": "Descripción (opcional)",
@@ -219,7 +228,52 @@
     "itemNamePlaceholder": "Nombre del ítem",
     "back": "Atrás",
     "addItems": "Agregar {count, plural, one {# ítem} other {# ítems}}",
-    "addedToast": "Se agregaron {count, plural, one {# ítem} other {# ítems}}"
+    "addedToast": "Se agregaron {count, plural, one {# ítem} other {# ítems}}",
+    "menuLabel": "Agregar inteligente"
+  },
+  "addMenu": {
+    "addMultiple": "Agregar varios"
+  },
+  "activity": {
+    "someone": "Alguien",
+    "itemPreviewMany": "{count} ítems",
+    "addedItems": "{user} agregó {items} · {time}"
+  },
+  "presence": {
+    "viewingOne": "{name} está viendo esta lista",
+    "viewingMany": "{count} personas están viendo esta lista"
+  },
+  "settings": {
+    "open": "Ajustes",
+    "title": "Ajustes",
+    "description": "Notificaciones, idioma e instalación.",
+    "notifications": "Notificaciones",
+    "pushUnsupported": "Las notificaciones push no están disponibles en este navegador.",
+    "pushEnabled": "Las notificaciones están activadas.",
+    "pushEnable": "Activar notificaciones",
+    "pushEnabling": "Activando…",
+    "language": "Idioma",
+    "english": "English",
+    "spanish": "Español",
+    "install": "Instalar app",
+    "installAction": "Instalar Couples",
+    "installHint": "En iPhone: Compartir → Agregar a inicio. En Android: usa Instalar cuando aparezca."
+  },
+  "install": {
+    "title": "Agrega Couples a tu pantalla de inicio",
+    "description": "Acceso rápido y notificaciones como una app nativa.",
+    "action": "Instalar",
+    "dismiss": "Ahora no"
+  },
+  "errors": {
+    "genericTitle": "Algo salió mal",
+    "genericDescription": "No pudimos cargar esta página. Intenta de nuevo en un momento.",
+    "setupTitle": "No se pudo configurar tu cuenta",
+    "setupDescription": "Hubo un problema al conectar tu perfil. Normalmente se arregla reintentando.",
+    "retry": "Reintentar",
+    "notFoundTitle": "Página no encontrada",
+    "notFoundDescription": "Esa página no existe o pudo haberse movido.",
+    "backToLists": "Volver a listas"
   },
   "push": {
     "prompt": "¿Recibir avisos cuando tu pareja agregue ítems?",

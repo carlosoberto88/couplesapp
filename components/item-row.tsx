@@ -63,7 +63,11 @@ export function ItemRow({
       >
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt="" className="size-10 shrink-0 rounded-lg object-cover" />
+          <img
+            src={imageUrl}
+            alt={t("photoAlt", { name: item.name })}
+            className="size-10 shrink-0 rounded-lg object-cover"
+          />
         ) : null}
 
         <div className="min-w-0 flex-1">

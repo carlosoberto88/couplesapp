@@ -27,11 +27,12 @@ type Candidate = {
 type SmartAddProps = {
   listId: string;
   onAddBulk: (items: { name: string; note: string | null }[]) => void;
+  variant?: "icon" | "menu";
 };
 
 type Stage = "compose" | "review";
 
-export function SmartAdd({ listId, onAddBulk }: SmartAddProps) {
+export function SmartAdd({ listId, onAddBulk, variant = "icon" }: SmartAddProps) {
   const t = useTranslations("smartAdd");
   const tItems = useTranslations("items");
   const tCommon = useTranslations("common");
@@ -127,17 +128,24 @@ export function SmartAdd({ listId, onAddBulk }: SmartAddProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon-lg"
-            className="h-11 w-11 shrink-0 rounded-full bg-duo-coral-tint text-duo-coral hover:bg-duo-coral-tint/70"
-            aria-label={t("triggerLabel")}
-          />
+          variant === "menu" ? (
+            <Button type="button" variant="secondary" size="sm" className="rounded-full">
+              <Sparkles className="size-4" />
+              {t("menuLabel")}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon-lg"
+              className="h-11 w-11 shrink-0 rounded-full bg-duo-coral-tint text-duo-coral hover:bg-duo-coral-tint/70"
+              aria-label={t("triggerLabel")}
+            >
+              <Sparkles />
+            </Button>
+          )
         }
-      >
-        <Sparkles />
-      </DialogTrigger>
+      />
 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

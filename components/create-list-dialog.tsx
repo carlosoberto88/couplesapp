@@ -21,17 +21,31 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-export function CreateListDialog() {
+export function CreateListDialog({
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  hideTrigger = false,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
+} = {}) {
   const router = useRouter();
   const supabase = useSupabaseClient();
   const t = useTranslations("createList");
   const tListTypes = useTranslations("listTypes");
   const tCommon = useTranslations("common");
 
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
   const [name, setName] = useState("");
   const [type, setType] = useState<ListTypeKey>("shopping");
   const [submitting, setSubmitting] = useState(false);
+
+  function handleOpenChange(next: boolean) {
+    (controlledOnOpenChange ?? setInternalOpen)(next);
+    if (!next) resetForm();
+  }
 
   function resetForm() {
     setName("");
@@ -55,22 +69,18 @@ export function CreateListDialog() {
       return;
     }
 
-    setOpen(false);
+    handleOpenChange(false);
     resetForm();
     router.push(`/lists/${data}`);
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) resetForm();
-      }}
-    >
-      <DialogTrigger render={<Button size="lg" className="h-11 rounded-xl px-4" />}>
-        {t("trigger")}
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      {!hideTrigger ? (
+        <DialogTrigger render={<Button size="lg" className="h-11 rounded-xl px-4" />}>
+          {t("trigger")}
+        </DialogTrigger>
+      ) : null}
       <DialogContent className="rounded-2xl bg-card">
         <DialogHeader>
           <DialogTitle className="font-display text-lg">{t("title")}</DialogTitle>

@@ -2,19 +2,20 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { auth } from "@clerk/nextjs/server";
-import { UserButton } from "@clerk/nextjs";
 
 import { createClient } from "@/lib/supabase/server";
 import { getListTypeMeta } from "@/lib/list-types";
 import { DUO_PALETTE } from "@/lib/member-colors";
-import { clerkAppearance } from "@/lib/clerk-appearance";
 import type { List } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { AppBar } from "@/components/app-bar";
+import { AppBarActions } from "@/components/app-bar-actions";
 import { CreateListDialog } from "@/components/create-list-dialog";
+import { ListFilter } from "@/components/list-filter";
+import { ListsEmptyActive } from "@/components/lists-empty-active";
+import { EmptyState } from "@/components/empty-state";
 import { ListSettingsMenu } from "@/components/list-settings-menu";
 import { ListsLiveSync } from "@/components/lists-live-sync";
-import { cn } from "@/lib/utils";
 
 type ListRow = List & { list_members: { count: number }[] };
 
@@ -47,51 +48,21 @@ export default async function ListsPage({
       <ListsLiveSync userId={userId} />
       <AppBar>
         <CreateListDialog />
-        <UserButton appearance={clerkAppearance} />
+        <AppBarActions />
       </AppBar>
-      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-6 p-4">
-        <div
-          className="inline-flex w-fit items-center gap-1 rounded-full bg-muted p-1 text-sm"
-          role="group"
-          aria-label={t("filterLabel")}
-        >
-          <Link href="/lists" prefetch={false}>
-            <span
-              className={cn(
-                "flex h-9 items-center rounded-full px-4 font-medium transition-colors",
-                showArchived
-                  ? "text-muted-foreground hover:text-foreground"
-                  : "bg-duo-coral-tint text-primary",
-              )}
-            >
-              {t("active")}
-            </span>
-          </Link>
-          <Link href="/lists?filter=archived" prefetch={false}>
-            <span
-              className={cn(
-                "flex h-9 items-center rounded-full px-4 font-medium transition-colors",
-                showArchived
-                  ? "bg-duo-coral-tint text-primary"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {t("archived")}
-            </span>
-          </Link>
-        </div>
+      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-6 p-4 pb-safe">
+        <ListFilter showArchived={showArchived} />
 
         {visibleLists.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border p-10 text-center">
-            <p className="font-display text-base font-semibold text-foreground">
-              {showArchived ? t("emptyArchivedTitle") : t("emptyActiveTitle")}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {showArchived
-                ? t("emptyArchivedDescription")
-                : t("emptyActiveDescription")}
-            </p>
-          </div>
+          showArchived ? (
+            <EmptyState
+              icon="📦"
+              title={t("emptyArchivedTitle")}
+              description={t("emptyArchivedDescription")}
+            />
+          ) : (
+            <ListsEmptyActive />
+          )
         ) : (
           <ul className="flex flex-col gap-3">
             {visibleLists.map((list) => {

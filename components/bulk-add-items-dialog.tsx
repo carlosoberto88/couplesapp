@@ -38,6 +38,9 @@ type BulkAddItemsDialogProps = {
   listType: string;
   onAdd: (inputs: RichAddInput[]) => void;
   pending?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 };
 
 const INITIAL_ROW_COUNT = 3;
@@ -260,22 +263,30 @@ function BulkAddItemRow({
   );
 }
 
-export function BulkAddItemsDialog({ listType, onAdd, pending = false }: BulkAddItemsDialogProps) {
+export function BulkAddItemsDialog({
+  listType,
+  onAdd,
+  pending = false,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  hideTrigger = false,
+}: BulkAddItemsDialogProps) {
   const tBulk = useTranslations("bulkAdd");
   const wishlist = isWishlist(listType);
 
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+
+  function handleOpenChange(next: boolean) {
+    (controlledOnOpenChange ?? setInternalOpen)(next);
+    if (!next) reset();
+  }
   const [rows, setRows] = useState<BulkRow[]>(() =>
     Array.from({ length: INITIAL_ROW_COUNT }, () => createEmptyRow(wishlist)),
   );
 
   function reset() {
     setRows(Array.from({ length: INITIAL_ROW_COUNT }, () => createEmptyRow(wishlist)));
-  }
-
-  function handleOpenChange(next: boolean) {
-    setOpen(next);
-    if (!next) reset();
   }
 
   function updateRow(id: string, patch: Partial<BulkRow>) {
@@ -315,13 +326,15 @@ export function BulkAddItemsDialog({ listType, onAdd, pending = false }: BulkAdd
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button type="button" className="h-11 w-full rounded-xl" disabled={pending}>
-            {tBulk("trigger")}
-          </Button>
-        }
-      />
+      {!hideTrigger ? (
+        <DialogTrigger
+          render={
+            <Button type="button" className="h-11 w-full rounded-xl" disabled={pending}>
+              {tBulk("trigger")}
+            </Button>
+          }
+        />
+      ) : null}
 
       <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-lg">
         <DialogHeader>

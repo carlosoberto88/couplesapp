@@ -177,9 +177,37 @@
 
   @media (prefers-reduced-motion: reduce) {
     .animate-check-pop,
-    .animate-item-in {
+    .animate-item-in,
+    .confetti-particle {
       animation: none;
       transition-duration: 0.01ms;
     }
+  }
+
+  @keyframes confetti-fall {
+    0% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(120px) scale(0.5);
+    }
+  }
+
+  .confetti-particle {
+    animation: confetti-fall 1.1s ease-out forwards;
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
+  }
+
+  .sticky-add-bar {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
   }
 }

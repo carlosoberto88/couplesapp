@@ -15,7 +15,10 @@ import { sortWishlistItems } from "@/lib/wishlist-utils";
 import { useRealtimeItems } from "@/lib/use-realtime-items";
 import { createOtherUserAddToastDebouncer } from "@/lib/debounce-toasts";
 import type { RichAddInput } from "@/components/rich-add-item-form";
-import { BulkAddItemsDialog } from "@/components/bulk-add-items-dialog";
+import { ListAddSection } from "@/components/list-add-section";
+import { EmptyState } from "@/components/empty-state";
+import { ListActivityStrip } from "@/components/list-activity-strip";
+import { PartnerPresence } from "@/components/partner-presence";
 import { WishlistItemRow } from "@/components/wishlist-item-row";
 import { ItemDetailDialog } from "@/components/item-detail-dialog";
 
@@ -49,6 +52,7 @@ export function WishlistItemList({
   const [items, setItems] = useState<Item[]>(initialItems);
   const [adding, setAdding] = useState(false);
   const [detailItem, setDetailItem] = useState<Item | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const { imagesByItemId, refetchImages, primaryImageUrl, imageUrlsForItem } = useItemImages(
     listId,
@@ -72,6 +76,8 @@ export function WishlistItemList({
   );
 
   const sortedItems = useMemo(() => sortWishlistItems(items), [items]);
+  const memberIds = useMemo(() => members.map((m) => m.user_id), [members]);
+  const myDisplayName = nameFor(currentUserId) ?? "You";
   const locallyRemovedIdsRef = useRef<Set<string>>(new Set());
 
   const handleBulkAdd = useCallback(
@@ -326,8 +332,53 @@ export function WishlistItemList({
   const detailImages = detailItem ? imagesByItemId.get(detailItem.id) ?? [] : [];
 
   return (
-    <div className="flex flex-1 flex-col gap-3">
-      <BulkAddItemsDialog listType="wishlist" onAdd={handleBulkAdd} pending={adding} />
+    <div className="flex flex-1 flex-col gap-3 pb-24 md:pb-0">
+      <PartnerPresence
+        listId={listId}
+        currentUserId={currentUserId}
+        displayName={myDisplayName}
+        memberIds={memberIds}
+      />
+
+      <ListActivityStrip items={items} nameFor={nameFor} />
+
+      <ListAddSection
+        listId={listId}
+        listType="wishlist"
+        pending={adding}
+        currentItemNames={items.map((item) => item.name)}
+        showUsualItems
+        showSmartAdd
+        onQuickAdd={(name) =>
+          handleBulkAdd([
+            {
+              name,
+              note: null,
+              url: null,
+              files: [],
+              price: null,
+              currency: "USD",
+              priority: null,
+            },
+          ])
+        }
+        onBulkAdd={handleBulkAdd}
+        onSmartAddBulk={(simpleItems) =>
+          handleBulkAdd(
+            simpleItems.map((item) => ({
+              name: item.name,
+              note: item.note,
+              url: null,
+              files: [],
+              price: null,
+              currency: "USD",
+              priority: null,
+            })),
+          )
+        }
+        bulkOpen={bulkOpen}
+        onBulkOpenChange={setBulkOpen}
+      />
 
       <div className="px-1">
         <span className="text-xs text-muted-foreground">
@@ -336,9 +387,13 @@ export function WishlistItemList({
       </div>
 
       {sortedItems.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-          {t("empty")}
-        </p>
+        <EmptyState
+          icon="🎁"
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
+          actionLabel={t("emptyAction")}
+          onAction={() => setBulkOpen(true)}
+        />
       ) : (
         <ul className="flex flex-col gap-2">
           {sortedItems.map((item) => (

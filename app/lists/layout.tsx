@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { ProvisioningError } from "@/components/provisioning-error";
 
 export default async function ListsLayout({
   children,
@@ -15,12 +16,10 @@ export default async function ListsLayout({
     redirect("/login");
   }
 
-  const email = sessionClaims.email;
+  const email = sessionClaims?.email;
 
   if (!email) {
-    throw new Error(
-      "Clerk session token is missing the `email` claim — add it in Clerk Dashboard → Sessions → Customize session token",
-    );
+    return <ProvisioningError />;
   }
 
   const supabase = await createClient();
@@ -30,19 +29,13 @@ export default async function ListsLayout({
     .upsert({ id: userId, email: email.toLowerCase() }, { onConflict: "id" });
 
   if (upsertErr) {
-    throw new Error(
-      "Profile provisioning failed — is migration 0003 applied and the Clerk↔Supabase integration connected? " +
-        upsertErr.message,
-    );
+    return <ProvisioningError message={upsertErr.message} />;
   }
 
   const { error: acceptErr } = await supabase.rpc("accept_pending_invites");
 
   if (acceptErr) {
-    throw new Error(
-      "Failed to accept pending invites — is migration 0003 applied and the Clerk↔Supabase integration connected? " +
-        acceptErr.message,
-    );
+    return <ProvisioningError message={acceptErr.message} />;
   }
 
   return <>{children}</>;

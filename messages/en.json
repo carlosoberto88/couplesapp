@@ -25,6 +25,7 @@
     "archived": "Archived",
     "emptyActiveTitle": "No lists yet",
     "emptyActiveDescription": "Create your first list to start sharing with your person.",
+    "emptyActiveAction": "Create your first list",
     "emptyArchivedTitle": "Nothing archived yet",
     "emptyArchivedDescription": "Lists you archive together will show up here.",
     "memberCount": "{count, plural, one {# member} other {# members}}"
@@ -106,6 +107,11 @@
     "itemCount": "{count, plural, one {# item} other {# items}}",
     "clearChecked": "Clear checked",
     "empty": "No items yet — add your first item above.",
+    "emptyTitle": "No items yet",
+    "emptyDescription": "Add something you need — your partner will see it right away.",
+    "emptyAction": "Add items",
+    "checkedCount": "{count, plural, one {# checked} other {# checked}}",
+    "photoAlt": "Photo for {name}",
     "allDone": "All done 🎉",
     "clearCheckedPrompt": "Clear checked?",
     "addedBy": "Added by",
@@ -144,6 +150,9 @@
   "wishlist": {
     "itemCount": "{count, plural, one {# gift} other {# gifts}}",
     "empty": "No gifts yet — add your first wish above.",
+    "emptyTitle": "No gifts yet",
+    "emptyDescription": "Add something you're hoping for — your partner can reserve it secretly.",
+    "emptyAction": "Add gifts",
     "namePlaceholder": "Gift name…",
     "urlPlaceholder": "Link (optional)",
     "descriptionPlaceholder": "Description (optional)",
@@ -217,7 +226,52 @@
     "itemNamePlaceholder": "Item name",
     "back": "Back",
     "addItems": "Add {count, plural, one {# item} other {# items}}",
-    "addedToast": "Added {count, plural, one {# item} other {# items}}"
+    "addedToast": "Added {count, plural, one {# item} other {# items}}",
+    "menuLabel": "Smart add"
+  },
+  "addMenu": {
+    "addMultiple": "Add multiple"
+  },
+  "activity": {
+    "someone": "Someone",
+    "itemPreviewMany": "{count} items",
+    "addedItems": "{user} added {items} · {time}"
+  },
+  "presence": {
+    "viewingOne": "{name} is viewing this list",
+    "viewingMany": "{count} people are viewing this list"
+  },
+  "settings": {
+    "open": "Settings",
+    "title": "Settings",
+    "description": "Notifications, language, and app install.",
+    "notifications": "Notifications",
+    "pushUnsupported": "Push notifications aren't supported in this browser.",
+    "pushEnabled": "Notifications are enabled.",
+    "pushEnable": "Enable notifications",
+    "pushEnabling": "Enabling…",
+    "language": "Language",
+    "english": "English",
+    "spanish": "Español",
+    "install": "Install app",
+    "installAction": "Install Couples",
+    "installHint": "On iPhone: Share → Add to Home Screen. On Android: use Install when prompted."
+  },
+  "install": {
+    "title": "Add Couples to your home screen",
+    "description": "Get quick access and notifications like a native app.",
+    "action": "Install",
+    "dismiss": "Not now"
+  },
+  "errors": {
+    "genericTitle": "Something went wrong",
+    "genericDescription": "We couldn't load this page. Try again in a moment.",
+    "setupTitle": "Couldn't set up your account",
+    "setupDescription": "There was a problem connecting your profile. This usually fixes itself with a retry.",
+    "retry": "Try again",
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "That page doesn't exist or may have moved.",
+    "backToLists": "Back to lists"
   },
   "push": {
     "prompt": "Get notified when your partner adds items?",

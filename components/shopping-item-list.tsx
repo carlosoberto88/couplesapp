@@ -12,9 +12,12 @@ import { useItemImages } from "@/lib/use-item-images";
 import { deleteItemImages } from "@/lib/upload-item-image";
 import { Button } from "@/components/ui/button";
 import type { RichAddInput } from "@/components/rich-add-item-form";
-import { BulkAddItemsDialog } from "@/components/bulk-add-items-dialog";
-import { SmartAdd } from "@/components/smart-add";
-import { UsualItems } from "@/components/usual-items";
+import { ListAddSection } from "@/components/list-add-section";
+import { EmptyState } from "@/components/empty-state";
+import { AllDoneCelebration } from "@/components/all-done-celebration";
+import { ListActivityStrip } from "@/components/list-activity-strip";
+import { PartnerPresence } from "@/components/partner-presence";
+import { CheckedItemsSection } from "@/components/checked-items-section";
 import { useRealtimeItems } from "@/lib/use-realtime-items";
 import { ItemRow } from "@/components/item-row";
 import { ItemDetailDialog } from "@/components/item-detail-dialog";
@@ -53,6 +56,9 @@ export function ShoppingItemList({
   const [items, setItems] = useState<Item[]>(initialItems);
   const [adding, setAdding] = useState(false);
   const [detailItem, setDetailItem] = useState<Item | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
+  const prevAllCheckedRef = useRef(false);
 
   const { imagesByItemId, refetchImages, primaryImageUrl, imageUrlsForItem } = useItemImages(
     listId,
@@ -75,9 +81,29 @@ export function ShoppingItemList({
     [memberByUserId],
   );
 
+  const memberIds = useMemo(() => members.map((m) => m.user_id), [members]);
+  const myDisplayName = nameFor(currentUserId) ?? "You";
+
   const sortedItems = useMemo(() => sortItems(items), [items]);
-  const hasChecked = sortedItems.some((item) => item.checked_at !== null);
-  const allChecked = sortedItems.length > 0 && hasChecked && sortedItems.every((item) => item.checked_at !== null);
+  const uncheckedItems = useMemo(
+    () => sortedItems.filter((item) => item.checked_at === null),
+    [sortedItems],
+  );
+  const checkedItemsList = useMemo(
+    () => sortedItems.filter((item) => item.checked_at !== null),
+    [sortedItems],
+  );
+  const hasChecked = checkedItemsList.length > 0;
+  const allChecked =
+    sortedItems.length > 0 && hasChecked && uncheckedItems.length === 0;
+
+  useEffect(() => {
+    if (allChecked && !prevAllCheckedRef.current) {
+      setCelebrate(true);
+      navigator.vibrate?.(40);
+    }
+    prevAllCheckedRef.current = allChecked;
+  }, [allChecked]);
 
   const handleRichAddRef = useRef<(input: RichAddInput) => void>(() => {});
   const handleToggleCheckedRef = useRef<(item: Item) => void>(() => {});
@@ -404,28 +430,52 @@ export function ShoppingItemList({
   const detailImages = detailItem ? imagesByItemId.get(detailItem.id) ?? [] : [];
 
   return (
-    <div className="flex flex-1 flex-col gap-3">
-      <UsualItems listId={listId} currentItemNames={currentItemNames} onAdd={handleQuickAdd} />
-      <BulkAddItemsDialog listType={listType} onAdd={handleBulkAdd} pending={adding} />
-      <div className="flex justify-end">
-        <SmartAdd listId={listId} onAddBulk={handleSmartAddBulk} />
-      </div>
+    <div className="flex flex-1 flex-col gap-3 pb-24 md:pb-0">
+      <PartnerPresence
+        listId={listId}
+        currentUserId={currentUserId}
+        displayName={myDisplayName}
+        memberIds={memberIds}
+      />
+
+      <ListActivityStrip items={items} nameFor={nameFor} />
+
+      <ListAddSection
+        listId={listId}
+        listType={listType}
+        pending={adding}
+        currentItemNames={currentItemNames}
+        onQuickAdd={handleQuickAdd}
+        onBulkAdd={handleBulkAdd}
+        onSmartAddBulk={handleSmartAddBulk}
+        bulkOpen={bulkOpen}
+        onBulkOpenChange={setBulkOpen}
+      />
 
       <div className="flex items-center justify-between px-1">
         <span className="text-xs text-muted-foreground">
           {t("itemCount", { count: sortedItems.length })}
         </span>
         {hasChecked && (
-          <Button variant="ghost" size="sm" onClick={handleClearChecked} className="text-muted-foreground hover:text-destructive">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearChecked}
+            className="text-muted-foreground hover:text-destructive"
+          >
             {t("clearChecked")}
           </Button>
         )}
       </div>
 
       {sortedItems.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-          {t("empty")}
-        </p>
+        <EmptyState
+          icon="🛒"
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
+          actionLabel={t("emptyAction")}
+          onAction={() => setBulkOpen(true)}
+        />
       ) : (
         <>
           {allChecked && (
@@ -437,12 +487,14 @@ export function ShoppingItemList({
             </div>
           )}
           <ul className="flex flex-col gap-2">
-            {sortedItems.map((item) => (
+            {uncheckedItems.map((item) => (
               <ItemRow
                 key={item.id}
                 item={item}
                 adderColor={colorMap.get(item.created_by) ?? UNKNOWN_MEMBER_COLOR}
-                checkerColor={item.checked_by ? colorMap.get(item.checked_by) ?? UNKNOWN_MEMBER_COLOR : null}
+                checkerColor={
+                  item.checked_by ? colorMap.get(item.checked_by) ?? UNKNOWN_MEMBER_COLOR : null
+                }
                 imageUrl={primaryImageUrl(item.id)}
                 hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
                 onToggle={handleToggleChecked}
@@ -451,8 +503,20 @@ export function ShoppingItemList({
               />
             ))}
           </ul>
+          <CheckedItemsSection
+            items={checkedItemsList}
+            colorMap={colorMap}
+            unknownColor={UNKNOWN_MEMBER_COLOR}
+            primaryImageUrl={primaryImageUrl}
+            imagesByItemId={imagesByItemId}
+            onToggle={handleToggleChecked}
+            onOpenDetail={setDetailItem}
+            onRemove={handleRemove}
+          />
         </>
       )}
+
+      <AllDoneCelebration active={celebrate} />
 
       <ItemDetailDialog
         item={detailItem}
