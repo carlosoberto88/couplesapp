@@ -19,6 +19,7 @@ import {
   buildReservePatch,
   buildToggleCheckedPatch,
   buildUnmarkPurchasedPatch,
+  type ItemUpdatePatch,
   updateItemFields,
 } from "@/lib/item-mutations";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
@@ -166,6 +167,15 @@ export function AllItemsView({
     [updateItem],
   );
 
+  const handleEdit = useCallback(
+    (item: Item, patch: ItemUpdatePatch) => {
+      const full = items.find((row) => row.id === item.id);
+      if (!full) return;
+      updateItem(full, patch, () => handleEdit(item, patch));
+    },
+    [items, updateItem],
+  );
+
   const handleRemove = useCallback(
     (item: ItemWithList) => {
       const images = imagesByItemId.get(item.id) ?? [];
@@ -288,6 +298,7 @@ export function AllItemsView({
         currentUserId={currentUserId}
         imageUrls={detailItem ? imageUrlsForItem(detailItem.id) : []}
         imageCount={detailItem ? (imagesByItemId.get(detailItem.id)?.length ?? 0) : 0}
+        existingImages={detailItem ? imagesByItemId.get(detailItem.id) ?? [] : []}
         adderName={detailAdderName}
         checkerColor={detailCheckerColor}
         onToggle={
@@ -296,6 +307,7 @@ export function AllItemsView({
             : undefined
         }
         onRemove={detailItem ? wrapItemHandler(handleRemove) : undefined}
+        onSave={handleEdit}
         onReserve={
           detailItem && isWishlist(detailItem.lists.type)
             ? wrapItemHandler(handleReserve)
@@ -317,6 +329,7 @@ export function AllItemsView({
             : undefined
         }
         onPhotosAdded={() => void refetchImages(wishlistItemIds)}
+        onImageRemoved={() => void refetchImages(wishlistItemIds)}
       />
     </>
   );

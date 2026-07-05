@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import type { RichAddInput } from "@/components/rich-add-item-form";
 import type { Item } from "@/lib/types";
 
 export type ItemUpdatePatch = Partial<
@@ -54,4 +55,15 @@ export function buildMarkPurchasedPatch(
 
 export function buildUnmarkPurchasedPatch(): Pick<Item, "checked_at" | "checked_by"> {
   return { checked_at: null, checked_by: null };
+}
+
+export function buildEditPatch(input: RichAddInput, wishlist: boolean): ItemUpdatePatch {
+  return {
+    name: input.name.trim(),
+    note: input.note,
+    url: input.url,
+    price: wishlist && input.price !== null ? input.price : null,
+    currency: wishlist && input.price !== null ? input.currency : null,
+    priority: wishlist ? input.priority : null,
+  };
 }

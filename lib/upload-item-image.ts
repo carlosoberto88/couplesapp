@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import type { ItemImage } from "@/lib/types";
+
 export const ITEM_IMAGE_BUCKET = "item-images";
 export const MAX_IMAGES_PER_ITEM = 5;
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -143,6 +145,16 @@ export async function deleteItemImages(
   if (images.length === 0) return;
   const paths = images.map((img) => img.storage_path);
   await supabase.storage.from(ITEM_IMAGE_BUCKET).remove(paths);
+}
+
+export async function deleteSingleItemImage(
+  supabase: SupabaseClient,
+  image: Pick<ItemImage, "id" | "storage_path">,
+): Promise<{ error?: string }> {
+  await deleteItemImages(supabase, [image]);
+  const { error } = await supabase.from("item_images").delete().eq("id", image.id);
+  if (error) return { error: error.message };
+  return {};
 }
 
 export async function getSignedImageUrls(

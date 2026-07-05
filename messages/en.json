@@ -221,7 +221,12 @@
     "status": "Status",
     "checkedOff": "Checked off",
     "checkOff": "Check off",
-    "uncheck": "Uncheck"
+    "uncheck": "Uncheck",
+    "edit": "Edit",
+    "editTitle": "Edit item",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Changes saved"
   },
   "bulkAdd": {
     "trigger": "Add items",

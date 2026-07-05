@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Item, ItemImage, ListMember, Profile } from "@/lib/types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
+import { type ItemUpdatePatch } from "@/lib/item-mutations";
 import { buildNewItem, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
 import { useItemImages } from "@/lib/use-item-images";
 import { deleteItemImages } from "@/lib/upload-item-image";
@@ -110,6 +111,7 @@ export function ShoppingItemList({
   const handleRemoveRef = useRef<(item: Item) => void>(() => {});
   const handleUndoRemoveRef = useRef<(item: Item, toastId: string | number) => void>(() => {});
   const handleClearCheckedRef = useRef<() => void>(() => {});
+  const handleEditRef = useRef<(item: Item, patch: ItemUpdatePatch) => void>(() => {});
   const locallyRemovedIdsRef = useRef<Set<string>>(new Set());
 
   const handleRichAdd = useCallback(
@@ -270,6 +272,33 @@ export function ShoppingItemList({
     [currentUserId, supabase, t, tCommon],
   );
 
+  const updateItem = useCallback(
+    (item: Item, patch: Partial<Item>, retry: () => void) => {
+      const nextItem = { ...item, ...patch };
+      setItems((prev) => upsertRow(prev, nextItem));
+      setDetailItem((current) => (current?.id === item.id ? nextItem : current));
+
+      void (async () => {
+        const { error } = await supabase.from("items").update(patch).eq("id", item.id);
+        if (error) {
+          setItems((prev) => upsertRow(prev, item));
+          setDetailItem((current) => (current?.id === item.id ? item : current));
+          toast.error(t("saveError"), {
+            action: { label: tCommon("retry"), onClick: retry },
+          });
+        }
+      })();
+    },
+    [supabase, t, tCommon],
+  );
+
+  const handleEdit = useCallback(
+    (item: Item, patch: ItemUpdatePatch) => {
+      updateItem(item, patch, () => handleEditRef.current(item, patch));
+    },
+    [updateItem],
+  );
+
   const handleUndoRemove = useCallback((item: Item, toastId: string | number) => {
     setItems((prev) => upsertRow(prev, item));
 
@@ -373,6 +402,7 @@ export function ShoppingItemList({
     handleRemoveRef.current = handleRemove;
     handleUndoRemoveRef.current = handleUndoRemove;
     handleClearCheckedRef.current = handleClearChecked;
+    handleEditRef.current = handleEdit;
   });
 
   const refetchAll = useCallback(() => {
@@ -542,6 +572,7 @@ export function ShoppingItemList({
         currentUserId={currentUserId}
         imageUrls={detailItem ? imageUrlsForItem(detailItem.id) : []}
         imageCount={detailImages.length}
+        existingImages={detailImages}
         adderName={detailItem ? nameFor(detailItem.created_by) : null}
         checkerColor={
           detailItem?.checked_by
@@ -550,7 +581,9 @@ export function ShoppingItemList({
         }
         onToggle={handleToggleChecked}
         onRemove={handleRemove}
+        onSave={handleEdit}
         onPhotosAdded={() => void refetchImages(items.map((i) => i.id))}
+        onImageRemoved={() => void refetchImages(items.map((i) => i.id))}
       />
     </div>
   );

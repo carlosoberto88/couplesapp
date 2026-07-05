@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Item, ItemImage, ItemPriority, ListMember, Profile } from "@/lib/types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
+import { type ItemUpdatePatch } from "@/lib/item-mutations";
 import { buildNewItem, insertItemFromLink, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
 import type { LinkPreviewData } from "@/lib/persist-item";
 import { useItemImages } from "@/lib/use-item-images";
@@ -289,6 +290,13 @@ export function WishlistItemList({
     [updateItem],
   );
 
+  const handleEdit = useCallback(
+    (item: Item, patch: ItemUpdatePatch) => {
+      updateItem(item, patch, () => handleEdit(item, patch));
+    },
+    [updateItem],
+  );
+
   const handleUndoRemove = useCallback(
     (item: Item, images: ItemImage[], toastId: string | number) => {
       setItems((prev) => upsertRow(prev, item));
@@ -522,6 +530,7 @@ export function WishlistItemList({
         currentUserId={currentUserId}
         imageUrls={detailItem ? imageUrlsForItem(detailItem.id) : []}
         imageCount={detailImages.length}
+        existingImages={detailImages}
         adderName={detailItem ? nameFor(detailItem.created_by) : null}
         checkerColor={
           detailItem?.checked_by
@@ -533,7 +542,9 @@ export function WishlistItemList({
         onMarkPurchased={handleMarkPurchased}
         onUnmarkPurchased={handleUnmarkPurchased}
         onRemove={handleRemove}
+        onSave={handleEdit}
         onPhotosAdded={() => void refetchImages(items.map((i) => i.id))}
+        onImageRemoved={() => void refetchImages(items.map((i) => i.id))}
       />
     </div>
   );

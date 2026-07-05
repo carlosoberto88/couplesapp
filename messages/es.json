@@ -223,7 +223,12 @@
     "status": "Estado",
     "checkedOff": "Marcado",
     "checkOff": "Marcar",
-    "uncheck": "Desmarcar"
+    "uncheck": "Desmarcar",
+    "edit": "Editar",
+    "editTitle": "Editar ítem",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "saved": "Cambios guardados"
   },
   "bulkAdd": {
     "trigger": "Agregar ítems",
