@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, X } from "lucide-react";
+import { Check, ChevronRight, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type { Item } from "@/lib/types";
@@ -23,6 +23,10 @@ type WishlistItemRowProps = {
   hasImages: boolean;
   onOpenDetail: (item: Item) => void;
   onRemove: (item: Item) => void;
+  onReserve: (item: Item) => void;
+  onRelease: (item: Item) => void;
+  onMarkPurchased: (item: Item) => void;
+  onUnmarkPurchased: (item: Item) => void;
 };
 
 export function WishlistItemRow({
@@ -34,12 +38,20 @@ export function WishlistItemRow({
   hasImages,
   onOpenDetail,
   onRemove,
+  onReserve,
+  onRelease,
+  onMarkPurchased,
+  onUnmarkPurchased,
 }: WishlistItemRowProps) {
   const t = useTranslations("wishlist");
   const purchased = isPurchased(item);
   const reserved = isReserved(item);
   const showReservation = canSeeReservation(item, currentUserId, listOwnerId);
   const isReserver = item.reserved_by === currentUserId;
+  const canReserve = !purchased && !reserved && currentUserId !== listOwnerId;
+  const canRelease = !purchased && reserved && isReserver;
+  const canMarkPurchased = !purchased && reserved && isReserver;
+  const canUnmarkPurchased = purchased && item.checked_by === currentUserId;
 
   return (
     <li
@@ -48,7 +60,50 @@ export function WishlistItemRow({
         purchased && "opacity-60",
       )}
     >
-      <div className="flex items-start gap-3 p-3">
+      <div className="flex items-start gap-2 p-3">
+        <div className="flex shrink-0 flex-col items-center gap-1 pt-1">
+          {canReserve ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="h-8 rounded-lg px-2 text-xs"
+              onClick={() => onReserve(item)}
+            >
+              {t("reserve")}
+            </Button>
+          ) : canMarkPurchased ? (
+            <button
+              type="button"
+              aria-label={t("markPurchasedItem", { name: item.name })}
+              className="flex size-8 items-center justify-center rounded-full border border-input transition-colors hover:border-primary"
+              onClick={() => onMarkPurchased(item)}
+            >
+              <Check className="size-4 text-muted-foreground" aria-hidden />
+            </button>
+          ) : purchased && canUnmarkPurchased ? (
+            <button
+              type="button"
+              aria-label={t("unmarkPurchasedItem", { name: item.name })}
+              className="flex size-8 animate-check-pop items-center justify-center rounded-full border border-transparent bg-primary text-primary-foreground"
+              onClick={() => onUnmarkPurchased(item)}
+            >
+              <Check className="size-4" aria-hidden />
+            </button>
+          ) : (
+            <span className="size-8 shrink-0" aria-hidden />
+          )}
+          {canRelease ? (
+            <button
+              type="button"
+              className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              onClick={() => onRelease(item)}
+            >
+              {t("release")}
+            </button>
+          ) : null}
+        </div>
+
         <button
           type="button"
           className="flex min-w-0 flex-1 items-start gap-3 text-left"

@@ -449,6 +449,10 @@ export function WishlistItemList({
               hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
               onOpenDetail={setDetailItem}
               onRemove={handleRemove}
+              onReserve={handleReserve}
+              onRelease={handleRelease}
+              onMarkPurchased={handleMarkPurchased}
+              onUnmarkPurchased={handleUnmarkPurchased}
             />
           ))}
         </ul>

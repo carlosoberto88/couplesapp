@@ -337,6 +337,15 @@ export function ShoppingItemList({
     const checkedItems = items.filter((item) => item.checked_at !== null);
     if (checkedItems.length === 0) return;
 
+    for (const item of checkedItems) {
+      locallyRemovedIdsRef.current.add(item.id);
+    }
+    setTimeout(() => {
+      for (const item of checkedItems) {
+        locallyRemovedIdsRef.current.delete(item.id);
+      }
+    }, 3000);
+
     setItems((prev) => prev.filter((item) => item.checked_at === null));
 
     void (async () => {
@@ -351,7 +360,10 @@ export function ShoppingItemList({
         toast.error(t("clearCheckedError"), {
           action: { label: tCommon("retry"), onClick: () => handleClearCheckedRef.current() },
         });
+        return;
       }
+
+      toast.success(t("clearedChecked", { count: checkedItems.length }));
     })();
   }, [items, listId, supabase, t, tCommon]);
 
@@ -421,6 +433,7 @@ export function ShoppingItemList({
     },
     onOtherUserRemove: (row) => {
       if (locallyRemovedIdsRef.current.has(row.id)) return;
+      if (!row.name?.trim()) return;
       toast(t("removedByOther", { name: row.name }));
     },
     onRefetch: refetchAll,
