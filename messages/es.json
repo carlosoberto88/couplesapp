@@ -148,6 +148,9 @@
     "addedByOtherBulk": "{count, plural, one {# ítem} other {# ítems}} agregados por {user}",
     "addedOtherBulk": "{count, plural, one {# ítem} other {# ítems}} agregados",
     "optionalDetails": "Agregar detalles opcionales",
+    "addLink": "Enlace",
+    "addNote": "Nota",
+    "addPhoto": "Foto",
     "urlPlaceholder": "Enlace (opcional)",
     "descriptionPlaceholder": "Descripción (opcional)",
     "photosLabel": "Fotos",
@@ -263,9 +266,13 @@
     "cancel": "Cancelar",
     "previewError": "No se pudo cargar una vista previa de ese enlace.",
     "manualFallback": "Agregar manualmente",
+    "wrongItemFallback": "¿No es este producto? Agregar manualmente",
     "manualLabel": "O agregar manualmente",
     "addWithoutLink": "Agregar sin enlace",
     "addFromLink": "Agregar desde enlace",
+    "modeLink": "Desde enlace",
+    "modeManual": "Escribir nombre",
+    "modeSegmentLabel": "Cómo agregar un ítem",
     "previewImageAlt": "Vista previa de {name}"
   },
   "activity": {

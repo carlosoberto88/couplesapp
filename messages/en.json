@@ -148,6 +148,9 @@
     "addedByOtherBulk": "{count, plural, one {# item} other {# items}} added by {user}",
     "addedOtherBulk": "{count, plural, one {# item} other {# items}} added",
     "optionalDetails": "Add optional details",
+    "addLink": "Link",
+    "addNote": "Note",
+    "addPhoto": "Photo",
     "urlPlaceholder": "Link (optional)",
     "descriptionPlaceholder": "Description (optional)",
     "photosLabel": "Photos",
@@ -261,9 +264,13 @@
     "cancel": "Cancel",
     "previewError": "Couldn't load a preview for that link.",
     "manualFallback": "Add manually instead",
+    "wrongItemFallback": "Not this item? Add manually",
     "manualLabel": "Or add manually",
     "addWithoutLink": "Add without a link",
     "addFromLink": "Add from link",
+    "modeLink": "From link",
+    "modeManual": "Type name",
+    "modeSegmentLabel": "How to add an item",
     "previewImageAlt": "Preview image for {name}"
   },
   "activity": {

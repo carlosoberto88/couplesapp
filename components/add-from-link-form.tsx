@@ -20,7 +20,7 @@ type AddFromLinkFormProps = {
     preview: LinkPreviewData,
     priority: ItemPriority | null,
   ) => Promise<boolean>;
-  onManualAdd?: () => void;
+  onManualAdd?: (url?: string) => void;
   variant?: "default" | "sticky";
 };
 
@@ -258,6 +258,18 @@ export function AddFromLinkForm({
             >
               {t("cancel")}
             </Button>
+            {onManualAdd ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="rounded-full text-muted-foreground"
+                disabled={pending}
+                onClick={() => onManualAdd(url.trim() || undefined)}
+              >
+                {t("wrongItemFallback")}
+              </Button>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -269,7 +281,7 @@ export function AddFromLinkForm({
             <button
               type="button"
               className="mt-1 underline underline-offset-2"
-              onClick={onManualAdd}
+              onClick={() => onManualAdd(url.trim() || undefined)}
             >
               {t("manualFallback")}
             </button>

@@ -2,11 +2,16 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { AlignLeft, ImagePlus, Link2 } from "lucide-react";
 
 import type { ItemPriority } from "@/lib/types";
 import { isWishlist } from "@/lib/list-types";
+import { MAX_IMAGES_PER_ITEM, validateImageFile } from "@/lib/upload-item-image";
 import { ItemDetailsToggle } from "@/components/item-details-toggle";
-import { ItemOptionalFields } from "@/components/item-optional-fields";
+import {
+  ItemOptionalFields,
+  type OptionalFieldKey,
+} from "@/components/item-optional-fields";
 import { WishlistExtraFields } from "@/components/wishlist-extra-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,13 +32,75 @@ type RichAddItemFormProps = {
   onAdd: (input: RichAddInput) => void;
   pending?: boolean;
   variant?: "default" | "sticky";
+  initialUrl?: string | null;
+  autoExpandDetails?: boolean;
 };
+
+type StickyOptionalField = OptionalFieldKey | null;
+
+function StickyOptionalChips({
+  activeField,
+  hasPhotos,
+  pending,
+  onToggleField,
+  onPhotoClick,
+}: {
+  activeField: StickyOptionalField;
+  hasPhotos: boolean;
+  pending?: boolean;
+  onToggleField: (field: "url" | "note") => void;
+  onPhotoClick: () => void;
+}) {
+  const tItems = useTranslations("items");
+
+  const chipClass = (field: StickyOptionalField, match: OptionalFieldKey) =>
+    cn(
+      "flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+      activeField === match || (match === "photo" && hasPhotos)
+        ? "bg-muted text-foreground"
+        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+    );
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <button
+        type="button"
+        className={chipClass(activeField, "url")}
+        disabled={pending}
+        onClick={() => onToggleField("url")}
+      >
+        <Link2 className="size-3.5" aria-hidden />
+        {tItems("addLink")}
+      </button>
+      <button
+        type="button"
+        className={chipClass(activeField, "note")}
+        disabled={pending}
+        onClick={() => onToggleField("note")}
+      >
+        <AlignLeft className="size-3.5" aria-hidden />
+        {tItems("addNote")}
+      </button>
+      <button
+        type="button"
+        className={chipClass(activeField, "photo")}
+        disabled={pending}
+        onClick={onPhotoClick}
+      >
+        <ImagePlus className="size-3.5" aria-hidden />
+        {tItems("addPhoto")}
+      </button>
+    </div>
+  );
+}
 
 export function RichAddItemForm({
   listType,
   onAdd,
   pending = false,
   variant = "default",
+  initialUrl = null,
+  autoExpandDetails = false,
 }: RichAddItemFormProps) {
   const tItems = useTranslations("items");
   const tWishlist = useTranslations("wishlist");
@@ -41,9 +108,13 @@ export function RichAddItemForm({
   const sticky = variant === "sticky";
 
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState("");
-  const [expanded, setExpanded] = useState(false);
-  const [url, setUrl] = useState("");
+  const [expanded, setExpanded] = useState(autoExpandDetails);
+  const [activeField, setActiveField] = useState<StickyOptionalField>(
+    autoExpandDetails ? "url" : null,
+  );
+  const [url, setUrl] = useState(initialUrl ?? "");
   const [note, setNote] = useState("");
   const [price, setPrice] = useState("");
   const [priority, setPriority] = useState<ItemPriority | null>(null);
@@ -59,7 +130,34 @@ export function RichAddItemForm({
     setFiles([]);
     setFileError(null);
     setExpanded(false);
+    setActiveField(null);
     nameInputRef.current?.focus();
+  }
+
+  function toggleStickyField(field: "url" | "note") {
+    setActiveField((current) => (current === field ? null : field));
+  }
+
+  function handlePhotoChipClick() {
+    setActiveField("photo");
+    fileInputRef.current?.click();
+  }
+
+  function handleFilesSelected(selected: FileList | null) {
+    if (!selected?.length) return;
+    setFileError(null);
+    const next: File[] = [];
+    for (const file of Array.from(selected)) {
+      if (files.length + next.length >= MAX_IMAGES_PER_ITEM) break;
+      const err = validateImageFile(file);
+      if (err) {
+        setFileError(err);
+        continue;
+      }
+      next.push(file);
+    }
+    setFiles([...files, ...next].slice(0, MAX_IMAGES_PER_ITEM));
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -81,13 +179,20 @@ export function RichAddItemForm({
     reset();
   }
 
+  const stickyVisibleFields: OptionalFieldKey[] = [];
+  if (activeField === "url") stickyVisibleFields.push("url");
+  if (activeField === "note") stickyVisibleFields.push("note");
+  if (activeField === "photo" || files.length > 0) stickyVisibleFields.push("photo");
+
+  const showStickyOptionalPanel = sticky && stickyVisibleFields.length > 0;
+  const showWishlistExtras =
+    sticky && wishlist && (activeField === "url" || activeField === "note");
+
   return (
     <form
       className={cn(
         "flex flex-col gap-3",
-        sticky
-          ? "gap-2"
-          : "rounded-2xl border border-border bg-card p-4",
+        sticky ? "gap-2" : "rounded-2xl border border-border bg-card p-4",
       )}
       onSubmit={handleSubmit}
     >
@@ -119,33 +224,82 @@ export function RichAddItemForm({
         ) : null}
       </div>
 
-      <ItemDetailsToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
-
-      {expanded && (
-        <div className={cn("flex flex-col gap-3", !sticky && "border-t border-border pt-3")}>
-          <ItemOptionalFields
-            url={url}
-            note={note}
-            files={files}
-            fileError={fileError}
-            pending={pending}
-            compact={sticky}
-            onUrlChange={setUrl}
-            onNoteChange={setNote}
-            onFilesChange={setFiles}
-            onFileErrorChange={setFileError}
+      {sticky ? (
+        <>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              setActiveField("photo");
+              handleFilesSelected(e.target.files);
+            }}
           />
-          {wishlist ? (
+          <StickyOptionalChips
+            activeField={activeField}
+            hasPhotos={files.length > 0}
+            pending={pending}
+            onToggleField={toggleStickyField}
+            onPhotoClick={handlePhotoChipClick}
+          />
+          {showStickyOptionalPanel ? (
+            <ItemOptionalFields
+              url={url}
+              note={note}
+              files={files}
+              fileError={fileError}
+              pending={pending}
+              compact
+              visibleFields={stickyVisibleFields}
+              fileInputRef={fileInputRef}
+              onUrlChange={setUrl}
+              onNoteChange={setNote}
+              onFilesChange={setFiles}
+              onFileErrorChange={setFileError}
+            />
+          ) : null}
+          {showWishlistExtras ? (
             <WishlistExtraFields
               price={price}
               priority={priority}
               pending={pending}
-              compact={sticky}
+              compact
               onPriceChange={setPrice}
               onPriorityChange={setPriority}
             />
           ) : null}
-        </div>
+        </>
+      ) : (
+        <>
+          <ItemDetailsToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
+
+          {expanded && (
+            <div className="flex flex-col gap-3 border-t border-border pt-3">
+              <ItemOptionalFields
+                url={url}
+                note={note}
+                files={files}
+                fileError={fileError}
+                pending={pending}
+                onUrlChange={setUrl}
+                onNoteChange={setNote}
+                onFilesChange={setFiles}
+                onFileErrorChange={setFileError}
+              />
+              {wishlist ? (
+                <WishlistExtraFields
+                  price={price}
+                  priority={priority}
+                  pending={pending}
+                  onPriceChange={setPrice}
+                  onPriorityChange={setPriority}
+                />
+              ) : null}
+            </div>
+          )}
+        </>
       )}
 
       {!sticky ? (
