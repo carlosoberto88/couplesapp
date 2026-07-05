@@ -4,6 +4,7 @@ import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 
 import { cn } from "@/lib/utils"
+import { useVisualViewport } from "@/lib/use-visual-viewport"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
@@ -43,10 +44,37 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  keyboardAware = false,
+  style,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
+  keyboardAware?: boolean
 }) {
+  const [isMobile, setIsMobile] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!keyboardAware) return
+
+    const mq = window.matchMedia("(max-width: 639px)")
+    const update = () => setIsMobile(mq.matches)
+
+    update()
+    mq.addEventListener("change", update)
+    return () => mq.removeEventListener("change", update)
+  }, [keyboardAware])
+
+  const visualViewport = useVisualViewport(keyboardAware && isMobile)
+
+  const mobileKeyboardStyle =
+    keyboardAware && isMobile
+      ? {
+          top: `${visualViewport.offsetTop + 8}px`,
+          maxHeight: `${Math.max(visualViewport.height - 16, 200)}px`,
+          transform: "translateX(-50%)",
+        }
+      : undefined
+
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -54,8 +82,10 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          keyboardAware && "max-sm:max-h-none flex flex-col",
           className
         )}
+        style={{ ...style, ...mobileKeyboardStyle }}
         {...props}
       >
         {children}

@@ -116,38 +116,40 @@ export function AddItemDialog({
         />
       ) : null}
 
-      <DialogContent className="flex max-h-[85vh] flex-col overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent keyboardAware className="flex max-h-[85vh] flex-col sm:max-w-lg">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{addItemTitle}</DialogTitle>
           <DialogDescription>{addItemDescription}</DialogDescription>
         </DialogHeader>
 
-        {supportsLinkAdd ? (
-          <>
-            <AddModeSegment mode={addMode} onChange={handleSwitchMode} />
-            <div className="mt-1">
-              {addMode === "link" ? (
-                <AddFromLinkForm
-                  listId={listId}
-                  pending={pending}
-                  onConfirm={handleAddFromLink}
-                  onManualAdd={handleManualAddFromLink}
-                />
-              ) : (
-                <RichAddItemForm
-                  key={manualFormKey}
-                  listType={listType}
-                  onAdd={handleRichAdd}
-                  pending={pending}
-                  initialUrl={manualPrefillUrl}
-                  autoExpandDetails={Boolean(manualPrefillUrl)}
-                />
-              )}
-            </div>
-          </>
-        ) : (
-          <RichAddItemForm listType={listType} onAdd={handleRichAdd} pending={pending} />
-        )}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {supportsLinkAdd ? (
+            <>
+              <AddModeSegment mode={addMode} onChange={handleSwitchMode} />
+              <div className="mt-1">
+                {addMode === "link" ? (
+                  <AddFromLinkForm
+                    listId={listId}
+                    pending={pending}
+                    onConfirm={handleAddFromLink}
+                    onManualAdd={handleManualAddFromLink}
+                  />
+                ) : (
+                  <RichAddItemForm
+                    key={manualFormKey}
+                    listType={listType}
+                    onAdd={handleRichAdd}
+                    pending={pending}
+                    initialUrl={manualPrefillUrl}
+                    autoExpandDetails={Boolean(manualPrefillUrl)}
+                  />
+                )}
+              </div>
+            </>
+          ) : (
+            <RichAddItemForm listType={listType} onAdd={handleRichAdd} pending={pending} />
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

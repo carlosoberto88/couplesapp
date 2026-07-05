@@ -213,30 +213,32 @@ export function BulkAddItemsDialog({
         />
       ) : null}
 
-      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent keyboardAware className="flex max-h-[85vh] flex-col sm:max-w-lg">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{tBulk("title")}</DialogTitle>
           <DialogDescription>{tBulk("description")}</DialogDescription>
         </DialogHeader>
 
-        <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto py-1">
-          {rows.map((row) => (
-            <BulkAddItemRow
-              key={row.id}
-              row={row}
-              wishlist={wishlist}
-              pending={pending}
-              canRemove={rows.length > 1}
-              onChange={updateRow}
-              onRemove={removeRow}
-            />
-          ))}
-        </ul>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <ul className="flex flex-col gap-2 py-1">
+            {rows.map((row) => (
+              <BulkAddItemRow
+                key={row.id}
+                row={row}
+                wishlist={wishlist}
+                pending={pending}
+                canRemove={rows.length > 1}
+                onChange={updateRow}
+                onRemove={removeRow}
+              />
+            ))}
+          </ul>
+        </div>
 
         <Button
           type="button"
           variant="secondary"
-          className="w-fit rounded-xl"
+          className="w-fit shrink-0 rounded-xl"
           onClick={addRow}
           disabled={pending || rows.length >= 50}
         >
@@ -244,7 +246,7 @@ export function BulkAddItemsDialog({
           {tBulk("addRow")}
         </Button>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0">
           <Button
             type="button"
             onClick={handleSubmit}

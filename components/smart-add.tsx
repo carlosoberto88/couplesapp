@@ -147,14 +147,15 @@ export function SmartAdd({ listId, onAddBulk, variant = "icon" }: SmartAddProps)
         }
       />
 
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent keyboardAware className="flex max-h-[85vh] flex-col sm:max-w-md">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
             {stage === "compose" ? t("composeDescription") : t("reviewDescription")}
           </DialogDescription>
         </DialogHeader>
 
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         {stage === "compose" ? (
           <div className="flex flex-col gap-3">
             <textarea
@@ -255,6 +256,7 @@ export function SmartAdd({ listId, onAddBulk, variant = "icon" }: SmartAddProps)
             </DialogFooter>
           </div>
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );
