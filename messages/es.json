@@ -257,7 +257,20 @@
     "spanish": "Español",
     "install": "Instalar app",
     "installAction": "Instalar Couples",
-    "installHint": "En iPhone: Compartir → Agregar a inicio. En Android: usa Instalar cuando aparezca."
+    "installHint": "En iPhone: Compartir → Agregar a inicio. En Android: usa Instalar cuando aparezca.",
+    "feedback": {
+      "title": "Comentarios",
+      "description": "Comparte una idea o reporta algo que no funciona.",
+      "typeSuggestion": "Sugerencia",
+      "typeBug": "Reportar problema",
+      "placeholder": "Cuéntanos qué piensas…",
+      "minChars": "Faltan {count} caracteres",
+      "charCount": "{count} / {max}",
+      "submit": "Enviar comentario",
+      "submitting": "Enviando…",
+      "submitSuccess": "¡Gracias! Recibimos tu comentario.",
+      "submitError": "No se pudo enviar — intenta de nuevo"
+    }
   },
   "install": {
     "title": "Agrega Couples a tu pantalla de inicio",
@@ -293,6 +306,13 @@
     "bulkInsertError": "No se pudieron agregar los ítems — intenta de nuevo",
     "listIdTextRequired": "listId y text son obligatorios",
     "textTooLong": "Es mucho texto — prueba con un fragmento más pequeño",
-    "parseFailed": "No pudimos entender ese texto — prueba reformular o pegar menos de una vez"
+    "parseFailed": "No pudimos entender ese texto — prueba reformular o pegar menos de una vez",
+    "invalidFeedback": "Escribe al menos 10 caracteres",
+    "feedbackSubmitError": "No se pudo enviar el comentario — intenta de nuevo",
+    "feedbackFetchError": "No se pudieron cargar los comentarios",
+    "feedbackResolveError": "No se pudo marcar como resuelto",
+    "feedbackNotFound": "Comentario no encontrado o ya resuelto",
+    "invalidFeedbackId": "Id de comentario inválido",
+    "forbidden": "No tienes acceso a esto"
   }
 }

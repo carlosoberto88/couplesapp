@@ -255,7 +255,20 @@
     "spanish": "Español",
     "install": "Install app",
     "installAction": "Install Couples",
-    "installHint": "On iPhone: Share → Add to Home Screen. On Android: use Install when prompted."
+    "installHint": "On iPhone: Share → Add to Home Screen. On Android: use Install when prompted.",
+    "feedback": {
+      "title": "Feedback",
+      "description": "Share an idea or report something that isn't working.",
+      "typeSuggestion": "Suggestion",
+      "typeBug": "Report issue",
+      "placeholder": "Tell us what's on your mind…",
+      "minChars": "{count} more characters needed",
+      "charCount": "{count} / {max}",
+      "submit": "Send feedback",
+      "submitting": "Sending…",
+      "submitSuccess": "Thanks — we got your feedback!",
+      "submitError": "Couldn't send feedback — try again"
+    }
   },
   "install": {
     "title": "Add Couples to your home screen",
@@ -291,6 +304,13 @@
     "bulkInsertError": "Could not add items — try again",
     "listIdTextRequired": "listId and text are required",
     "textTooLong": "That's a lot of text — try a smaller chunk",
-    "parseFailed": "Couldn't make sense of that text — try rephrasing or pasting less at once"
+    "parseFailed": "Couldn't make sense of that text — try rephrasing or pasting less at once",
+    "invalidFeedback": "Please write at least 10 characters",
+    "feedbackSubmitError": "Couldn't send feedback — try again",
+    "feedbackFetchError": "Couldn't load feedback",
+    "feedbackResolveError": "Couldn't mark as resolved",
+    "feedbackNotFound": "Feedback not found or already resolved",
+    "invalidFeedbackId": "Invalid feedback id",
+    "forbidden": "You don't have access to this"
   }
 }

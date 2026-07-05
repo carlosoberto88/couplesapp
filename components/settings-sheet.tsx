@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Bell, Download, Globe, Settings } from "lucide-react";
+import { Bell, Download, Globe, MessageSquare, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { locales, type Locale } from "@/i18n/config";
 import { isPushSupported, urlBase64ToUint8Array } from "@/lib/push-client";
+import { FeedbackForm } from "@/components/feedback-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -171,6 +172,15 @@ export function SettingsSheet({ currentLocale }: SettingsSheetProps) {
                 </button>
               ))}
             </div>
+          </section>
+
+          <section className="flex flex-col gap-2">
+            <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <MessageSquare className="size-4" />
+              {t("feedback.title")}
+            </h3>
+            <p className="text-sm text-muted-foreground">{t("feedback.description")}</p>
+            <FeedbackForm />
           </section>
 
           <section className="flex flex-col gap-2">
