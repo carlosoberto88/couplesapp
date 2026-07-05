@@ -373,7 +373,75 @@ async function main() {
       fail("Assertion 4 skipped — no listId from Assertion 1");
     }
 
-    // ---------- 5. Member removal + invite revoke ----------
+    // ---------- 7. Wishlist fields + reservation + item_images ----------
+    console.log("\n--- Assertion 7: wishlist fields + reservation ---");
+    if (listId) {
+      const { data: wishlistId, error: wishlistErr } = await clientA.rpc("create_list", {
+        p_name: "Birthday wishes",
+        p_type: "wishlist",
+      });
+      assert("A creates wishlist via RPC", !wishlistErr && !!wishlistId, wishlistErr?.message);
+
+      if (wishlistId) {
+        await serviceClient.from("list_members").insert({
+          list_id: wishlistId,
+          user_id: userBId,
+          role: "member",
+        });
+
+        const { data: giftItem, error: giftErr } = await clientA
+          .from("items")
+          .insert({
+            list_id: wishlistId,
+            name: "Headphones",
+            note: "Noise cancelling",
+            url: "https://example.com/headphones",
+            priority: "must_have",
+            price: 199.99,
+            created_by: userAId,
+          })
+          .select()
+          .maybeSingle();
+        assert("A can insert wishlist item with extra fields", !giftErr && !!giftItem, giftErr?.message);
+
+        if (giftItem) {
+          const { data: reserved, error: reserveErr } = await clientB
+            .from("items")
+            .update({
+              reserved_by: userBId,
+              reserved_at: new Date().toISOString(),
+            })
+            .eq("id", giftItem.id)
+            .select()
+            .maybeSingle();
+          assert("B can reserve a wishlist item", !reserveErr && reserved?.reserved_by === userBId, reserveErr?.message);
+
+          const { data: imageRow, error: imageErr } = await clientA
+            .from("item_images")
+            .insert({
+              item_id: giftItem.id,
+              storage_path: `${wishlistId}/${giftItem.id}/test.jpg`,
+              sort_order: 0,
+              created_by: userAId,
+            })
+            .select()
+            .maybeSingle();
+          assert("A can insert item_images row", !imageErr && !!imageRow, imageErr?.message);
+
+          const { data: imagesSeenByB } = await clientB
+            .from("item_images")
+            .select("*")
+            .eq("item_id", giftItem.id);
+          assert("B can read item_images for shared list", (imagesSeenByB ?? []).length === 1, imagesSeenByB);
+        }
+
+        await serviceClient.from("lists").delete().eq("id", wishlistId);
+      }
+    } else {
+      fail("Assertion 7 skipped — no listId from Assertion 1");
+    }
+
+    // ---------- 5. Member removal + invite revoke -----------------
     console.log("\n--- Assertion 5: member removal + invite revoke ---");
     if (listId) {
       const { data: revokedByB } = await clientB

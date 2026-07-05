@@ -91,7 +91,7 @@ export function CreateListDialog() {
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>{t("typeLabel")}</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {LIST_TYPE_KEYS.map((key) => (
                 <button
                   key={key}

@@ -1,35 +1,78 @@
-// List "type" is label/icon only — no type-specific behavior (PRD non-goal).
-
-export type ListTypeKey = "shopping" | "todo" | "other";
+export type ListTypeKey = "shopping" | "todo" | "wishlist" | "other";
 
 export type ListTypeMeta = {
   label: string;
   icon: string;
 };
 
-export const LIST_TYPE_KEYS: ListTypeKey[] = ["shopping", "todo", "other"];
+export type ListTypeConfig = {
+  icon: string;
+  supportsCheckoff: boolean;
+  supportsReservation: boolean;
+  supportsImages: boolean;
+  supportsUrl: boolean;
+};
 
-const LIST_TYPE_ICONS: Record<ListTypeKey, string> = {
-  shopping: "🛒",
-  todo: "✓",
-  other: "📋",
+export const LIST_TYPE_KEYS: ListTypeKey[] = ["shopping", "todo", "wishlist", "other"];
+
+const LIST_TYPE_CONFIG: Record<ListTypeKey, ListTypeConfig> = {
+  shopping: {
+    icon: "🛒",
+    supportsCheckoff: true,
+    supportsReservation: false,
+    supportsImages: false,
+    supportsUrl: false,
+  },
+  todo: {
+    icon: "✓",
+    supportsCheckoff: true,
+    supportsReservation: false,
+    supportsImages: false,
+    supportsUrl: false,
+  },
+  wishlist: {
+    icon: "🎁",
+    supportsCheckoff: true,
+    supportsReservation: true,
+    supportsImages: true,
+    supportsUrl: true,
+  },
+  other: {
+    icon: "📋",
+    supportsCheckoff: true,
+    supportsReservation: false,
+    supportsImages: false,
+    supportsUrl: false,
+  },
 };
 
 const DEFAULT_LABELS: Record<ListTypeKey | "fallback", string> = {
   shopping: "Shopping",
   todo: "To-do",
+  wishlist: "Wishlist",
   other: "Other",
   fallback: "List",
 };
+
+export function isWishlist(type: string): boolean {
+  return type === "wishlist";
+}
+
+export function getListTypeConfig(type: string): ListTypeConfig {
+  if (type in LIST_TYPE_CONFIG) {
+    return LIST_TYPE_CONFIG[type as ListTypeKey];
+  }
+  return LIST_TYPE_CONFIG.other;
+}
 
 /** Safe lookup for a (possibly unknown/legacy) `type` value stored on a list row. */
 export function getListTypeMeta(
   type: string,
   translate?: (key: ListTypeKey | "fallback") => string,
 ): ListTypeMeta {
-  const isKnown = type in LIST_TYPE_ICONS;
+  const isKnown = type in LIST_TYPE_CONFIG;
   const key = (isKnown ? type : "fallback") as ListTypeKey | "fallback";
-  const icon = isKnown ? LIST_TYPE_ICONS[type as ListTypeKey] : "📋";
+  const icon = isKnown ? LIST_TYPE_CONFIG[type as ListTypeKey].icon : "📋";
 
   return {
     label: translate ? translate(key) : DEFAULT_LABELS[key],
@@ -39,5 +82,5 @@ export function getListTypeMeta(
 
 /** Icons only — for type picker grids that supply their own translated labels. */
 export function getListTypeIcon(type: ListTypeKey): string {
-  return LIST_TYPE_ICONS[type];
+  return LIST_TYPE_CONFIG[type].icon;
 }

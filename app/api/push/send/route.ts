@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
   );
 
   const [{ data: list }, { data: members }] = await Promise.all([
-    admin.from("lists").select("name").eq("id", listId).maybeSingle(),
+    admin.from("lists").select("name, type").eq("id", listId).maybeSingle(),
     admin.from("list_members").select("user_id").eq("list_id", listId),
   ]);
 
@@ -80,9 +80,12 @@ export async function POST(request: NextRequest) {
     .in("user_id", recipientIds);
 
   const listName = list?.name ?? "List";
+  const isWishlist = list?.type === "wishlist";
   const notificationPayload = JSON.stringify({
     title: "Couples",
-    body: `"${itemName}" added to ${listName}`,
+    body: isWishlist
+      ? `"${itemName}" added to wishlist ${listName}`
+      : `"${itemName}" added to ${listName}`,
     url: `/lists/${listId}`,
   });
 

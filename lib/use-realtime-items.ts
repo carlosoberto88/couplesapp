@@ -9,9 +9,12 @@ type RealtimeItemsHandlers = {
   onUpsert: (row: Item) => void;
   onRemove: (id: string) => void;
   onOtherUserAdd: (row: Item) => void;
-  onOtherUserCheck: (row: Item, checked: boolean) => void;
+  onOtherUserCheck?: (row: Item, checked: boolean) => void;
+  onOtherUserReserve?: (row: Item) => void;
+  onOtherUserPurchase?: (row: Item) => void;
   onOtherUserRemove: (row: Item) => void;
   onRefetch: () => void;
+  wishlistMode?: boolean;
 };
 
 /**
@@ -54,10 +57,20 @@ export function useRealtimeItems(
               const oldRow = payload.old as Item;
               const wasChecked = oldRow.checked_at !== null;
               const isChecked = row.checked_at !== null;
-              if (wasChecked !== isChecked) {
+              const wasReserved = oldRow.reserved_by !== null;
+              const isReserved = row.reserved_by !== null;
+
+              if (handlersRef.current.wishlistMode) {
+                if (!wasReserved && isReserved && row.reserved_by !== currentUserId) {
+                  handlersRef.current.onOtherUserReserve?.(row);
+                }
+                if (!wasChecked && isChecked && row.checked_by !== currentUserId) {
+                  handlersRef.current.onOtherUserPurchase?.(row);
+                }
+              } else if (wasChecked !== isChecked) {
                 const actor = isChecked ? row.checked_by : oldRow.checked_by;
                 if (actor && actor !== currentUserId) {
-                  handlersRef.current.onOtherUserCheck(row, isChecked);
+                  handlersRef.current.onOtherUserCheck?.(row, isChecked);
                 }
               }
             }
@@ -72,9 +85,6 @@ export function useRealtimeItems(
       )
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
-          // Covers both the initial subscribe and any resubscribe below —
-          // server wins, so refetch to reconcile anything missed while
-          // disconnected.
           handlersRef.current.onRefetch();
         } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
           channel.subscribe();

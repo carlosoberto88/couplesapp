@@ -8,7 +8,7 @@ import { auth } from "@clerk/nextjs/server";
 import { createClient } from "@/lib/supabase/server";
 import { getListTypeMeta } from "@/lib/list-types";
 import { buildMemberColorMap } from "@/lib/member-colors";
-import type { Item, List, ListMember, Profile } from "@/lib/types";
+import type { Item, ItemImage, List, ListMember, Profile } from "@/lib/types";
 import { ItemList } from "@/components/item-list";
 import { AppBar } from "@/components/app-bar";
 import { MemberAvatar, initialsFor } from "@/components/member-avatar";
@@ -58,7 +58,21 @@ export default async function ListDetailPage({
   const typedList = list as List;
   const meta = getListTypeMeta(typedList.type, (key) => tListTypes(key));
   const typedMembers = (members ?? []) as unknown as MemberWithProfile[];
+  const typedItems = (items ?? []) as Item[];
   const colorMap = buildMemberColorMap(typedMembers);
+
+  let initialImages: ItemImage[] = [];
+  if (typedList.type === "wishlist" && typedItems.length > 0) {
+    const { data: imageRows } = await supabase
+      .from("item_images")
+      .select("*")
+      .in(
+        "item_id",
+        typedItems.map((item) => item.id),
+      )
+      .order("sort_order");
+    initialImages = (imageRows ?? []) as ItemImage[];
+  }
 
   return (
     <>
@@ -118,8 +132,11 @@ export default async function ListDetailPage({
 
         <ItemList
           listId={typedList.id}
+          listType={typedList.type}
+          listOwnerId={typedList.owner_id}
           currentUserId={userId}
-          initialItems={(items ?? []) as Item[]}
+          initialItems={typedItems}
+          initialImages={initialImages}
           members={typedMembers}
         />
       </main>
