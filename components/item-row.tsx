@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Check, X } from "lucide-react";
+import { Check, ChevronRight, Link2, X } from "lucide-react";
 
 import type { Item } from "@/lib/types";
 import type { MemberColor } from "@/lib/member-colors";
@@ -14,39 +13,29 @@ type ItemRowProps = {
   item: Item;
   adderColor: MemberColor;
   checkerColor: MemberColor | null;
+  imageUrl: string | null;
+  hasImages: boolean;
   onToggle: (item: Item) => void;
+  onOpenDetail: (item: Item) => void;
   onRemove: (item: Item) => void;
-  onUpdateNote: (item: Item, note: string | null) => void;
 };
 
 export function ItemRow({
   item,
   adderColor,
   checkerColor,
+  imageUrl,
+  hasImages,
   onToggle,
+  onOpenDetail,
   onRemove,
-  onUpdateNote,
 }: ItemRowProps) {
   const t = useTranslations("items");
-  const [editingNote, setEditingNote] = useState(false);
-  const [noteValue, setNoteValue] = useState(item.note ?? "");
   const checked = item.checked_at !== null;
   const checkColor = checkerColor ?? UNKNOWN_MEMBER_COLOR;
 
-  function commitNote() {
-    setEditingNote(false);
-    const trimmed = noteValue.trim();
-    onUpdateNote(item, trimmed.length > 0 ? trimmed : null);
-  }
-
   return (
-    <li
-      className={cn(
-        "animate-item-in flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl border border-border bg-card px-3 py-2.5 transition-opacity",
-        checked && "opacity-60",
-      )}
-      onClick={() => onToggle(item)}
-    >
+    <li className="animate-item-in flex min-h-11 items-start gap-3 rounded-2xl border border-border bg-card px-3 py-2.5">
       <span
         aria-hidden
         title={t("addedBy")}
@@ -54,63 +43,58 @@ export function ItemRow({
         style={{ backgroundColor: adderColor.color }}
       />
 
-      <span
-        aria-hidden
+      <button
+        type="button"
+        aria-label={checked ? t("uncheckItem", { name: item.name }) : t("checkItem", { name: item.name })}
         className={cn(
-          "flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors",
+          "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors",
           checked ? "border-transparent text-primary-foreground animate-check-pop" : "border-input",
         )}
         style={checked ? { backgroundColor: checkColor.color } : undefined}
+        onClick={() => onToggle(item)}
       >
         {checked && <Check className="size-3" />}
-      </span>
+      </button>
 
-      <div className="flex flex-1 flex-col gap-0.5">
-        <span className={cn("text-sm text-foreground", checked && "text-muted-foreground line-through")}>
-          {item.name}
-        </span>
+      <button
+        type="button"
+        className="flex min-w-0 flex-1 items-start gap-2 text-left"
+        onClick={() => onOpenDetail(item)}
+      >
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={imageUrl} alt="" className="size-10 shrink-0 rounded-lg object-cover" />
+        ) : null}
 
-        {editingNote ? (
-          <input
-            autoFocus
-            value={noteValue}
-            onChange={(e) => setNoteValue(e.target.value)}
-            onBlur={commitNote}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                commitNote();
-              }
-            }}
-            onClick={(e) => e.stopPropagation()}
-            placeholder={t("addNotePlaceholder")}
-            className="border-b border-input bg-transparent text-xs text-foreground outline-none"
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setNoteValue(item.note ?? "");
-              setEditingNote(true);
-            }}
+        <div className="min-w-0 flex-1">
+          <span
             className={cn(
-              "w-fit text-left text-xs text-muted-foreground",
-              !item.note && "text-muted-foreground/50",
+              "block text-sm text-foreground",
+              checked && "text-muted-foreground line-through",
             )}
           >
-            {item.note ?? t("addNote")}
-          </button>
-        )}
-      </div>
+            {item.name}
+          </span>
+          {item.note && (
+            <span className="mt-0.5 block truncate text-xs text-muted-foreground">{item.note}</span>
+          )}
+          {(item.url || hasImages) && (
+            <span className="mt-1 flex items-center gap-2 text-muted-foreground">
+              {item.url && <Link2 className="size-3" aria-hidden />}
+              {hasImages && (
+                <span className="text-[10px] font-medium uppercase tracking-wide">{t("hasPhotos")}</span>
+              )}
+            </span>
+          )}
+        </div>
+
+        <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+      </button>
 
       <Button
         variant="ghost"
         size="icon-sm"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove(item);
-        }}
+        onClick={() => onRemove(item)}
         aria-label={t("removeItem", { name: item.name })}
       >
         <X />

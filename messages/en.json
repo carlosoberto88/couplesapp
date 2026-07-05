@@ -121,7 +121,22 @@
     "addedOther": "\"{name}\" added",
     "checkedByOther": "\"{name}\" checked off by {user}",
     "uncheckedByOther": "\"{name}\" unchecked by {user}",
-    "removedByOther": "\"{name}\" was removed"
+    "removedByOther": "\"{name}\" was removed",
+    "optionalDetails": "Add optional details",
+    "urlPlaceholder": "Link (optional)",
+    "descriptionPlaceholder": "Description (optional)",
+    "photosLabel": "Photos",
+    "photosHint": "Up to {max} photos, {sizeMb} MB each",
+    "addPhotos": "Add photos",
+    "removePhoto": "Remove photo",
+    "adding": "Adding…",
+    "addSubmit": "Add item",
+    "hasPhotos": "Photos",
+    "checkItem": "Check off {name}",
+    "uncheckItem": "Uncheck {name}",
+    "uploadError": "Couldn't upload photos — try again",
+    "imageInvalidType": "Only JPEG, PNG, and WebP images are allowed",
+    "imageTooLarge": "Each photo must be under 5 MB"
   },
   "wishlist": {
     "itemCount": "{count, plural, one {# gift} other {# gifts}}",
@@ -161,7 +176,19 @@
     "addedOther": "\"{name}\" added",
     "reservedByOther": "\"{name}\" was reserved",
     "purchasedByOther": "\"{name}\" was marked purchased",
-    "removedByOther": "\"{name}\" was removed"
+    "removedByOther": "\"{name}\" was removed",
+    "viewDetails": "View details",
+    "hasPhotos": "Photos"
+  },
+  "itemDetail": {
+    "description": "Description",
+    "link": "Link",
+    "price": "Price",
+    "addedBy": "Added by",
+    "status": "Status",
+    "checkedOff": "Checked off",
+    "checkOff": "Check off",
+    "uncheck": "Uncheck"
   },
   "smartAdd": {
     "triggerLabel": "Smart add from pasted text",

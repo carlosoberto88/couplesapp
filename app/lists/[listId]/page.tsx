@@ -62,7 +62,7 @@ export default async function ListDetailPage({
   const colorMap = buildMemberColorMap(typedMembers);
 
   let initialImages: ItemImage[] = [];
-  if (typedList.type === "wishlist" && typedItems.length > 0) {
+  if (typedItems.length > 0) {
     const { data: imageRows } = await supabase
       .from("item_images")
       .select("*")

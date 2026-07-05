@@ -44,8 +44,11 @@ export function ItemList({
   return (
     <ShoppingItemList
       listId={listId}
+      listType={listType}
+      listOwnerId={listOwnerId}
       currentUserId={currentUserId}
       initialItems={initialItems}
+      initialImages={initialImages}
       members={members}
     />
   );

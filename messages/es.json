@@ -121,7 +121,22 @@
     "addedOther": "\"{name}\" agregado",
     "checkedByOther": "\"{name}\" marcado por {user}",
     "uncheckedByOther": "\"{name}\" desmarcado por {user}",
-    "removedByOther": "Se quitó \"{name}\""
+    "removedByOther": "Se quitó \"{name}\"",
+    "optionalDetails": "Agregar detalles opcionales",
+    "urlPlaceholder": "Enlace (opcional)",
+    "descriptionPlaceholder": "Descripción (opcional)",
+    "photosLabel": "Fotos",
+    "photosHint": "Hasta {max} fotos, {sizeMb} MB c/u",
+    "addPhotos": "Agregar fotos",
+    "removePhoto": "Quitar foto",
+    "adding": "Agregando…",
+    "addSubmit": "Agregar ítem",
+    "hasPhotos": "Fotos",
+    "checkItem": "Marcar {name}",
+    "uncheckItem": "Desmarcar {name}",
+    "uploadError": "No se pudieron subir las fotos — intenta de nuevo",
+    "imageInvalidType": "Solo se permiten imágenes JPEG, PNG y WebP",
+    "imageTooLarge": "Cada foto debe pesar menos de 5 MB"
   },
   "wishlist": {
     "itemCount": "{count, plural, one {# regalo} other {# regalos}}",
@@ -161,7 +176,19 @@
     "addedOther": "\"{name}\" agregado",
     "reservedByOther": "\"{name}\" fue reservado",
     "purchasedByOther": "\"{name}\" fue marcado como comprado",
-    "removedByOther": "Se quitó \"{name}\""
+    "removedByOther": "Se quitó \"{name}\"",
+    "viewDetails": "Ver detalles",
+    "hasPhotos": "Fotos"
+  },
+  "itemDetail": {
+    "description": "Descripción",
+    "link": "Enlace",
+    "price": "Precio",
+    "addedBy": "Agregado por",
+    "status": "Estado",
+    "checkedOff": "Marcado",
+    "checkOff": "Marcar",
+    "uncheck": "Desmarcar"
   },
   "smartAdd": {
     "triggerLabel": "Agregar inteligente desde texto pegado",
