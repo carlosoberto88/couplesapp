@@ -13,7 +13,7 @@ export default function ListsLoading() {
           </div>
         </div>
       </header>
-      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-6 p-4">
+      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 p-4 pb-bottom-nav">
         <Skeleton className="h-9 w-40 rounded-full" />
 
         <ul className="flex flex-col gap-3">

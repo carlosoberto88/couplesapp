@@ -1,5 +1,3 @@
-import { getTranslations } from "next-intl/server";
-
 import { auth } from "@clerk/nextjs/server";
 
 import { createClient } from "@/lib/supabase/server";
@@ -7,7 +5,6 @@ import { isWishlist } from "@/lib/list-types";
 import type { ItemImage, ItemWithList, ListMember, Profile } from "@/lib/types";
 import { AppBar } from "@/components/app-bar";
 import { AppBarActions } from "@/components/app-bar-actions";
-import { MainNav } from "@/components/main-nav";
 import { AllItemsFilter } from "@/components/all-items-filter";
 import { AllItemsView } from "@/components/all-items-view";
 import type { AllItemsStatus } from "@/lib/all-items-utils";
@@ -27,7 +24,6 @@ export default async function AllItemsPage({
   const { userId } = await auth();
   if (!userId) return null;
 
-  const t = await getTranslations("allItems");
   const supabase = await createClient();
 
   const { data: itemRows } = await supabase
@@ -73,12 +69,7 @@ export default async function AllItemsPage({
       <AppBar>
         <AppBarActions />
       </AppBar>
-      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 p-4 pb-safe">
-        <MainNav />
-        <div className="flex flex-col gap-1">
-          <h1 className="font-display text-lg font-semibold text-foreground">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
+      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 p-4 pb-bottom-nav">
         <AllItemsFilter showDone={status === "done"} />
         <AllItemsView
           currentUserId={userId}

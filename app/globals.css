@@ -207,6 +207,10 @@
     padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
   }
 
+  .pb-bottom-nav {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
   .sticky-add-bar {
     padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
   }
