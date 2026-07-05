@@ -243,6 +243,23 @@
     "viewingOne": "{name} está viendo esta lista",
     "viewingMany": "{count} personas están viendo esta lista"
   },
+  "onboarding": {
+    "stepOf": "Paso {step} de {total}",
+    "welcomeTitle": "Bienvenido a Couples",
+    "welcomeDescription": "Un lugar para las listas que comparten — compras, pendientes, deseos y más.",
+    "createTitle": "Crea tu primera lista",
+    "createDescription": "Ponle un nombre y elige un tipo. Siempre puedes agregar más listas después.",
+    "inviteTitle": "Invita a tu persona",
+    "inviteDescription": "Comparte una lista por correo. Cuando se registre con esa dirección, se une automáticamente.",
+    "itemsTitle": "Agrega y marca ítems",
+    "itemsDescription": "Usa la barra de agregar para añadir ítems. Márcalos al completarlos — tu pareja ve los cambios al instante.",
+    "next": "Siguiente",
+    "back": "Atrás",
+    "skip": "Omitir por ahora",
+    "getStarted": "Empezar",
+    "openList": "Abrir tu nueva lista",
+    "completeError": "No se pudo guardar el progreso — intenta de nuevo"
+  },
   "settings": {
     "open": "Ajustes",
     "title": "Ajustes",
@@ -258,6 +275,9 @@
     "install": "Instalar app",
     "installAction": "Instalar Couples",
     "installHint": "En iPhone: Compartir → Agregar a inicio. En Android: usa Instalar cuando aparezca.",
+    "showTutorial": "Ver tutorial de nuevo",
+    "showTutorialHint": "Repite el recorrido de bienvenida desde el inicio.",
+    "replayError": "No se pudo reiniciar el tutorial — intenta de nuevo",
     "feedback": {
       "title": "Comentarios",
       "description": "Comparte una idea o reporta algo que no funciona.",

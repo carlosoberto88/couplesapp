@@ -241,6 +241,23 @@
     "viewingOne": "{name} is viewing this list",
     "viewingMany": "{count} people are viewing this list"
   },
+  "onboarding": {
+    "stepOf": "Step {step} of {total}",
+    "welcomeTitle": "Welcome to Couples",
+    "welcomeDescription": "One home for the lists you keep together — groceries, to-dos, wishlists, and more.",
+    "createTitle": "Create your first list",
+    "createDescription": "Give it a name and pick a type. You can always add more lists later.",
+    "inviteTitle": "Invite your person",
+    "inviteDescription": "Share a list by email. When they sign up with that address, they join automatically — no extra steps.",
+    "itemsTitle": "Add and check off items",
+    "itemsDescription": "Use the add bar to drop in items. Check them off as you go — your partner sees updates instantly.",
+    "next": "Next",
+    "back": "Back",
+    "skip": "Skip for now",
+    "getStarted": "Get started",
+    "openList": "Open your new list",
+    "completeError": "Couldn't save your progress — try again"
+  },
   "settings": {
     "open": "Settings",
     "title": "Settings",
@@ -256,6 +273,9 @@
     "install": "Install app",
     "installAction": "Install Couples",
     "installHint": "On iPhone: Share → Add to Home Screen. On Android: use Install when prompted.",
+    "showTutorial": "Show tutorial again",
+    "showTutorialHint": "Replay the welcome walkthrough from the start.",
+    "replayError": "Couldn't reset the tutorial — try again",
     "feedback": {
       "title": "Feedback",
       "description": "Share an idea or report something that isn't working.",

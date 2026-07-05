@@ -6,10 +6,9 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
-import { LIST_TYPE_KEYS, getListTypeIcon, type ListTypeKey } from "@/lib/list-types";
+import { type ListTypeKey } from "@/lib/list-types";
+import { CreateListForm } from "@/components/create-list-form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +18,6 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 
 export function CreateListDialog({
   open: controlledOpen,
@@ -33,8 +31,6 @@ export function CreateListDialog({
   const router = useRouter();
   const supabase = useSupabaseClient();
   const t = useTranslations("createList");
-  const tListTypes = useTranslations("listTypes");
-  const tCommon = useTranslations("common");
 
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
@@ -87,40 +83,13 @@ export function CreateListDialog({
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="list-name">{tCommon("name")}</Label>
-            <Input
-              id="list-name"
-              className="h-11 rounded-xl"
-              placeholder={t("namePlaceholder")}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-              required
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("typeLabel")}</Label>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {LIST_TYPE_KEYS.map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setType(key)}
-                  aria-pressed={type === key}
-                  className={cn(
-                    "flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl border-2 px-2 py-2.5 text-xs font-medium transition-colors",
-                    type === key
-                      ? "border-primary bg-duo-coral-tint text-primary"
-                      : "border-border bg-background text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  <span className="text-xl leading-none">{getListTypeIcon(key)}</span>
-                  {tListTypes(key)}
-                </button>
-              ))}
-            </div>
-          </div>
+          <CreateListForm
+            name={name}
+            onNameChange={setName}
+            type={type}
+            onTypeChange={setType}
+            autoFocus
+          />
           <DialogFooter>
             <Button
               type="submit"

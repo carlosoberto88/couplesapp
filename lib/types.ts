@@ -2,6 +2,7 @@ export type Profile = {
   id: string;
   email: string;
   display_name: string | null;
+  onboarding_completed_at: string | null;
   created_at: string;
 };
 

@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Bell, Download, Globe, MessageSquare, Settings } from "lucide-react";
+import { Bell, BookOpen, Download, Globe, MessageSquare, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { toast } from "sonner";
 
 import { locales, type Locale } from "@/i18n/config";
 import { isPushSupported, urlBase64ToUint8Array } from "@/lib/push-client";
+import { useSupabaseClient } from "@/lib/supabase/client";
 import { FeedbackForm } from "@/components/feedback-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,10 +34,13 @@ type SettingsSheetProps = {
 export function SettingsSheet({ currentLocale }: SettingsSheetProps) {
   const t = useTranslations("settings");
   const router = useRouter();
+  const { user } = useUser();
+  const supabase = useSupabaseClient();
   const [open, setOpen] = useState(false);
   const [pushStatus, setPushStatus] = useState<NotificationPermission | "unsupported">("default");
   const [pushPending, setPushPending] = useState(false);
   const [localePending, setLocalePending] = useState(false);
+  const [tutorialPending, setTutorialPending] = useState(false);
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
@@ -101,6 +107,25 @@ export function SettingsSheet({ currentLocale }: SettingsSheetProps) {
     await installEvent.prompt();
     await installEvent.userChoice;
     setInstallEvent(null);
+  }
+
+  async function replayTutorial() {
+    if (!user?.id) return;
+
+    setTutorialPending(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ onboarding_completed_at: null })
+      .eq("id", user.id);
+    setTutorialPending(false);
+
+    if (error) {
+      toast.error(t("replayError"));
+      return;
+    }
+
+    setOpen(false);
+    router.refresh();
   }
 
   return (
@@ -181,6 +206,23 @@ export function SettingsSheet({ currentLocale }: SettingsSheetProps) {
             </h3>
             <p className="text-sm text-muted-foreground">{t("feedback.description")}</p>
             <FeedbackForm />
+          </section>
+
+          <section className="flex flex-col gap-2">
+            <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <BookOpen className="size-4" />
+              {t("showTutorial")}
+            </h3>
+            <p className="text-sm text-muted-foreground">{t("showTutorialHint")}</p>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-fit rounded-xl"
+              disabled={tutorialPending}
+              onClick={() => void replayTutorial()}
+            >
+              {t("showTutorial")}
+            </Button>
           </section>
 
           <section className="flex flex-col gap-2">

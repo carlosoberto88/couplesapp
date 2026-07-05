@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { ProvisioningError } from "@/components/provisioning-error";
+import { OnboardingWizard } from "@/components/onboarding-wizard";
 
 export default async function ListsLayout({
   children,
@@ -38,5 +39,19 @@ export default async function ListsLayout({
     return <ProvisioningError message={acceptErr.message} />;
   }
 
-  return <>{children}</>;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("onboarding_completed_at")
+    .eq("id", userId)
+    .single();
+
+  return (
+    <>
+      <OnboardingWizard
+        key={profile?.onboarding_completed_at ?? "pending"}
+        show={!profile?.onboarding_completed_at}
+      />
+      {children}
+    </>
+  );
 }
