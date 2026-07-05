@@ -264,6 +264,8 @@
     "previewError": "No se pudo cargar una vista previa de ese enlace.",
     "manualFallback": "Agregar manualmente",
     "manualLabel": "O agregar manualmente",
+    "addWithoutLink": "Agregar sin enlace",
+    "addFromLink": "Agregar desde enlace",
     "previewImageAlt": "Vista previa de {name}"
   },
   "activity": {

@@ -13,6 +13,9 @@ import { UsualItems } from "@/components/usual-items";
 import { Button } from "@/components/ui/button";
 import { isWishlist } from "@/lib/list-types";
 import type { LinkPreviewData } from "@/lib/persist-item";
+import type { ItemPriority } from "@/lib/types";
+
+type AddMode = "link" | "manual";
 
 type ListAddSectionProps = {
   listId: string;
@@ -25,10 +28,40 @@ type ListAddSectionProps = {
   onQuickAdd: (name: string) => void;
   onBulkAdd: (inputs: RichAddInput[]) => void;
   onSmartAddBulk: (items: { name: string; note: string | null }[]) => void;
-  onAddFromLink?: (previewToken: string, preview: LinkPreviewData) => void;
+  onAddFromLink?: (
+    previewToken: string,
+    preview: LinkPreviewData,
+    priority: ItemPriority | null,
+  ) => Promise<boolean>;
   bulkOpen?: boolean;
   onBulkOpenChange?: (open: boolean) => void;
 };
+
+function AddModeSwitch({
+  mode,
+  onSwitch,
+  compact = false,
+}: {
+  mode: AddMode;
+  onSwitch: (mode: AddMode) => void;
+  compact?: boolean;
+}) {
+  const t = useTranslations("addFromLink");
+
+  return (
+    <button
+      type="button"
+      className={
+        compact
+          ? "text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          : "text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+      }
+      onClick={() => onSwitch(mode === "link" ? "manual" : "link")}
+    >
+      {mode === "link" ? t("addWithoutLink") : t("addFromLink")}
+    </button>
+  );
+}
 
 export function ListAddSection({
   listId,
@@ -48,28 +81,39 @@ export function ListAddSection({
   const t = useTranslations("addMenu");
   const tAddFromLink = useTranslations("addFromLink");
   const [internalBulkOpen, setInternalBulkOpen] = useState(false);
-  const [showManualAdd, setShowManualAdd] = useState(false);
+  const [addMode, setAddMode] = useState<AddMode>("link");
 
   const wishlist = isWishlist(listType);
   const isBulkOpen = bulkOpen ?? internalBulkOpen;
   const setBulkOpen = onBulkOpenChange ?? setInternalBulkOpen;
 
+  const wishlistLinkAdd = wishlist && onAddFromLink;
+
   return (
     <>
-      {wishlist && onAddFromLink ? (
+      {wishlistLinkAdd ? (
         <div className="hidden md:block">
-          <AddFromLinkForm
-            listId={listId}
-            pending={pending}
-            onConfirm={onAddFromLink}
-            onManualAdd={() => setShowManualAdd(true)}
-          />
-          {showManualAdd ? (
-            <div className="mt-3">
+          {addMode === "link" ? (
+            <>
+              <AddFromLinkForm
+                listId={listId}
+                pending={pending}
+                onConfirm={onAddFromLink}
+                onManualAdd={() => setAddMode("manual")}
+              />
+              <div className="mt-2">
+                <AddModeSwitch mode="link" onSwitch={setAddMode} />
+              </div>
+            </>
+          ) : (
+            <>
               <p className="mb-2 text-xs text-muted-foreground">{tAddFromLink("manualLabel")}</p>
               <RichAddItemForm listType={listType} onAdd={onRichAdd} pending={pending} />
-            </div>
-          ) : null}
+              <div className="mt-2">
+                <AddModeSwitch mode="manual" onSwitch={setAddMode} />
+              </div>
+            </>
+          )}
         </div>
       ) : (
         <div className="hidden md:block">
@@ -107,15 +151,30 @@ export function ListAddSection({
       />
 
       <div className="sticky-add-bar pointer-events-none fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur supports-backdrop-filter:bg-background/80 md:hidden">
-        <div className="pointer-events-auto mx-auto w-full max-w-[640px]">
-          {wishlist && onAddFromLink ? (
-            <AddFromLinkForm
-              listId={listId}
-              pending={pending}
-              onConfirm={onAddFromLink}
-              onManualAdd={() => setShowManualAdd(true)}
-              variant="sticky"
-            />
+        <div className="pointer-events-auto mx-auto flex w-full max-w-[640px] flex-col gap-2">
+          {wishlistLinkAdd ? (
+            addMode === "link" ? (
+              <>
+                <AddFromLinkForm
+                  listId={listId}
+                  pending={pending}
+                  onConfirm={onAddFromLink}
+                  onManualAdd={() => setAddMode("manual")}
+                  variant="sticky"
+                />
+                <AddModeSwitch mode="link" onSwitch={setAddMode} compact />
+              </>
+            ) : (
+              <>
+                <RichAddItemForm
+                  listType={listType}
+                  onAdd={onRichAdd}
+                  pending={pending}
+                  variant="sticky"
+                />
+                <AddModeSwitch mode="manual" onSwitch={setAddMode} compact />
+              </>
+            )
           ) : (
             <RichAddItemForm
               listType={listType}

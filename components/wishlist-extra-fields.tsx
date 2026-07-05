@@ -12,6 +12,7 @@ type WishlistExtraFieldsProps = {
   priority: ItemPriority | null;
   pending?: boolean;
   compact?: boolean;
+  showPrice?: boolean;
   onPriceChange: (price: string) => void;
   onPriorityChange: (priority: ItemPriority | null) => void;
 };
@@ -21,6 +22,7 @@ export function WishlistExtraFields({
   priority,
   pending = false,
   compact = false,
+  showPrice = true,
   onPriceChange,
   onPriorityChange,
 }: WishlistExtraFieldsProps) {
@@ -28,16 +30,18 @@ export function WishlistExtraFields({
 
   return (
     <>
-      <Input
-        className={cn("rounded-xl", compact ? "h-10" : "h-11")}
-        type="number"
-        min="0"
-        step="0.01"
-        placeholder={tWishlist("pricePlaceholder")}
-        value={price}
-        onChange={(e) => onPriceChange(e.target.value)}
-        disabled={pending}
-      />
+      {showPrice ? (
+        <Input
+          className={cn("rounded-xl", compact ? "h-10" : "h-11")}
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder={tWishlist("pricePlaceholder")}
+          value={price}
+          onChange={(e) => onPriceChange(e.target.value)}
+          disabled={pending}
+        />
+      ) : null}
       <div className="flex flex-col gap-1.5">
         <Label>{tWishlist("priorityLabel")}</Label>
         <div className="flex gap-2">

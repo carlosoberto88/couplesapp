@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
-import type { Item, ItemImage, ListMember, Profile } from "@/lib/types";
+import type { Item, ItemImage, ItemPriority, ListMember, Profile } from "@/lib/types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { buildNewItem, insertItemFromLink, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
 import type { LinkPreviewData } from "@/lib/persist-item";
@@ -125,7 +125,11 @@ export function WishlistItemList({
   });
 
   const handleAddFromLink = useCallback(
-    (previewToken: string, preview: LinkPreviewData) => {
+    async (
+      previewToken: string,
+      preview: LinkPreviewData,
+      priority: ItemPriority | null,
+    ): Promise<boolean> => {
       const optimisticItem: Item = {
         id: crypto.randomUUID(),
         list_id: listId,
@@ -134,7 +138,7 @@ export function WishlistItemList({
         url: preview.url,
         price: preview.price,
         currency: preview.price !== null ? (preview.currency ?? "USD") : null,
-        priority: null,
+        priority,
         position: 0,
         created_by: currentUserId,
         created_at: new Date().toISOString(),
@@ -147,28 +151,27 @@ export function WishlistItemList({
       setItems((prev) => upsertRow(prev, optimisticItem));
       setAdding(true);
 
-      void (async () => {
-        const { item, error } = await insertItemFromLink(listId, previewToken);
+      const { item, error } = await insertItemFromLink(listId, previewToken, priority);
 
-        setAdding(false);
+      setAdding(false);
 
-        if (error || !item) {
-          setItems((prev) => removeRow(prev, optimisticItem.id));
-          toast.error(t("saveError"), {
-            action: {
-              label: tCommon("retry"),
-              onClick: () => handleAddFromLink(previewToken, preview),
-            },
-          });
-          return;
-        }
-
-        setItems((prev) => {
-          const withoutOptimistic = removeRow(prev, optimisticItem.id);
-          return upsertRow(withoutOptimistic, item);
+      if (error || !item) {
+        setItems((prev) => removeRow(prev, optimisticItem.id));
+        toast.error(t("saveError"), {
+          action: {
+            label: tCommon("retry"),
+            onClick: () => void handleAddFromLink(previewToken, preview, priority),
+          },
         });
-        await refetchImages([...items.map((entry) => entry.id), item.id]);
-      })();
+        return false;
+      }
+
+      setItems((prev) => {
+        const withoutOptimistic = removeRow(prev, optimisticItem.id);
+        return upsertRow(withoutOptimistic, item);
+      });
+      await refetchImages([...items.map((entry) => entry.id), item.id]);
+      return true;
     },
     [listId, currentUserId, t, tCommon, refetchImages, items],
   );

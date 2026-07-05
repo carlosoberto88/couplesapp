@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { Item } from "@/lib/types";
+import type { Item, ItemPriority } from "@/lib/types";
 import type { RichAddInput } from "@/components/rich-add-item-form";
 import { uploadItemImages } from "@/lib/upload-item-image";
 
@@ -163,11 +163,12 @@ export async function fetchLinkPreview(
 export async function insertItemFromLink(
   listId: string,
   previewToken: string,
+  priority: ItemPriority | null = null,
 ): Promise<{ item?: Item; error?: string }> {
   const res = await fetch("/api/items/from-link", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ listId, previewToken }),
+    body: JSON.stringify({ listId, previewToken, priority }),
   });
 
   const data = (await res.json().catch(() => null)) as { item?: Item; error?: string };

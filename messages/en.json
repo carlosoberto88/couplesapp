@@ -262,6 +262,8 @@
     "previewError": "Couldn't load a preview for that link.",
     "manualFallback": "Add manually instead",
     "manualLabel": "Or add manually",
+    "addWithoutLink": "Add without a link",
+    "addFromLink": "Add from link",
     "previewImageAlt": "Preview image for {name}"
   },
   "activity": {

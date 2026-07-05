@@ -19,6 +19,7 @@ import {
 const requestSchema = z.object({
   listId: z.string().uuid(),
   previewToken: z.string().min(1),
+  priority: z.enum(["must_have", "nice_to_have"]).nullable().optional(),
 });
 
 function extFromPath(path: string): "jpg" | "png" | "webp" {
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: t("api.linkPreviewExpired") }, { status: 400 });
   }
 
-  const { listId } = parsed.data;
+  const { listId, priority: requestPriority } = parsed.data;
 
   const supabase = await createClient();
   const { data: list } = await supabase
@@ -138,7 +139,7 @@ export async function POST(request: NextRequest) {
       url: payload.normalizedUrl,
       price: payload.price,
       currency: payload.price !== null ? (payload.currency ?? "USD") : null,
-      priority: null,
+      priority: requestPriority ?? null,
       position: 0,
       created_by: userId,
       skip_push: true,

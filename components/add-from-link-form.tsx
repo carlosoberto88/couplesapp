@@ -6,6 +6,8 @@ import { Link2, Loader2 } from "lucide-react";
 
 import type { LinkPreviewData } from "@/lib/persist-item";
 import { fetchLinkPreview } from "@/lib/persist-item";
+import type { ItemPriority } from "@/lib/types";
+import { WishlistExtraFields } from "@/components/wishlist-extra-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -13,7 +15,11 @@ import { cn } from "@/lib/utils";
 type AddFromLinkFormProps = {
   listId: string;
   pending?: boolean;
-  onConfirm: (previewToken: string, preview: LinkPreviewData) => void;
+  onConfirm: (
+    previewToken: string,
+    preview: LinkPreviewData,
+    priority: ItemPriority | null,
+  ) => Promise<boolean>;
   onManualAdd?: () => void;
   variant?: "default" | "sticky";
 };
@@ -47,12 +53,24 @@ export function AddFromLinkForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<LinkPreviewData | null>(null);
+  const [priority, setPriority] = useState<ItemPriority | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef(0);
+
+  const resetForm = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    requestIdRef.current += 1;
+    setUrl("");
+    setPreview(null);
+    setError(null);
+    setLoading(false);
+    setPriority(null);
+  }, []);
 
   const resetPreview = useCallback(() => {
     setPreview(null);
     setError(null);
+    setPriority(null);
   }, []);
 
   const loadPreview = useCallback(
@@ -67,6 +85,7 @@ export function AddFromLinkForm({
       setLoading(true);
       setError(null);
       setPreview(null);
+      setPriority(null);
 
       const { preview: nextPreview, error: previewError } = await fetchLinkPreview(
         listId,
@@ -109,14 +128,19 @@ export function AddFromLinkForm({
     schedulePreview(value);
   }
 
+  const handleConfirm = useCallback(async () => {
+    if (!preview || pending || loading) return;
+
+    const ok = await onConfirm(preview.previewToken, preview, priority);
+    if (ok) resetForm();
+  }, [preview, pending, loading, onConfirm, priority, resetForm]);
+
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (pending || loading) return;
 
     if (preview) {
-      onConfirm(preview.previewToken, preview);
-      setUrl("");
-      resetPreview();
+      void handleConfirm();
       return;
     }
 
@@ -182,45 +206,58 @@ export function AddFromLinkForm({
       ) : null}
 
       {preview ? (
-        <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-3">
-          {preview.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={preview.imageUrl}
-              alt={t("previewImageAlt", { name: preview.name })}
-              className="size-14 shrink-0 rounded-lg object-cover"
-            />
-          ) : (
-            <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted">
-              <Link2 className="size-5 text-muted-foreground" aria-hidden />
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/20 p-3">
+          <div className="flex items-start gap-3">
+            {preview.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={preview.imageUrl}
+                alt={t("previewImageAlt", { name: preview.name })}
+                className="size-14 shrink-0 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted">
+                <Link2 className="size-5 text-muted-foreground" aria-hidden />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-2 text-sm font-medium text-foreground">{preview.name}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {[priceLabel, preview.hostname].filter(Boolean).join(" · ")}
+              </p>
             </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="line-clamp-2 text-sm font-medium text-foreground">{preview.name}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {[priceLabel, preview.hostname].filter(Boolean).join(" · ")}
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                className="rounded-full"
-                disabled={pending}
-                onClick={() => onConfirm(preview.previewToken, preview)}
-              >
-                {pending ? t("adding") : t("addToList")}
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="rounded-full"
-                disabled={pending}
-                onClick={handleCancelPreview}
-              >
-                {t("cancel")}
-              </Button>
-            </div>
+          </div>
+
+          <WishlistExtraFields
+            price=""
+            priority={priority}
+            pending={pending}
+            compact
+            showPrice={false}
+            onPriceChange={() => {}}
+            onPriorityChange={setPriority}
+          />
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              className="rounded-full"
+              disabled={pending}
+              onClick={() => void handleConfirm()}
+            >
+              {pending ? t("adding") : t("addToList")}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="rounded-full"
+              disabled={pending}
+              onClick={handleCancelPreview}
+            >
+              {t("cancel")}
+            </Button>
           </div>
         </div>
       ) : null}
