@@ -12,7 +12,8 @@
     "close": "Cerrar"
   },
   "auth": {
-    "tagline": "Un solo lugar para las listas que comparten."
+    "tagline": "Un solo lugar para las listas que comparten.",
+    "signUpPasswordHint": "Evita contraseñas comunes o que ya uses en otros sitios. Aunque el campo parezca válido, no se aceptan contraseñas que aparezcan en filtraciones de datos."
   },
   "noAccess": {
     "title": "No tienes acceso a esta lista",

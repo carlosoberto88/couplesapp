@@ -31,6 +31,9 @@ export default async function SignUpPage({
         initialValues={email ? { emailAddress: email } : undefined}
         appearance={clerkAppearance}
       />
+      <p className="max-w-[400px] text-center text-sm text-muted-foreground">
+        {t("signUpPasswordHint")}
+      </p>
     </main>
   );
 }

@@ -1,9 +1,10 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import { enUS, esES } from "@clerk/localizations";
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
+
+import { getClerkLocalization } from "@/lib/clerk-localization";
 
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/sw-register";
@@ -46,7 +47,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages();
-  const clerkLocalization = locale === "es" ? esES : enUS;
+  const clerkLocalization = getClerkLocalization(locale);
 
   return (
     <html

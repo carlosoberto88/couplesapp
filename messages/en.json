@@ -12,7 +12,8 @@
     "close": "Close"
   },
   "auth": {
-    "tagline": "One home for the lists you keep together."
+    "tagline": "One home for the lists you keep together.",
+    "signUpPasswordHint": "Avoid common or reused passwords. Even if the field looks valid, passwords found in data breaches cannot be used."
   },
   "noAccess": {
     "title": "You don't have access to this list",
