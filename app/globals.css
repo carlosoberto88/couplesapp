@@ -218,4 +218,74 @@
   .sticky-add-bar {
     padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
   }
+
+  .navigation-progress-track {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 60;
+    height: 2px;
+    pointer-events: none;
+    background: transparent;
+  }
+
+  .navigation-progress-bar {
+    height: 100%;
+    width: 0;
+    opacity: 0;
+    background: var(--duo-coral);
+    box-shadow: 0 0 8px color-mix(in oklab, var(--duo-coral) 55%, transparent);
+  }
+
+  html[data-navigating] .navigation-progress-bar {
+    opacity: 1;
+    animation: navigationProgress 2.2s ease-out forwards;
+  }
+
+  @keyframes navigationProgress {
+    0% {
+      width: 18%;
+    }
+
+    70% {
+      width: 88%;
+    }
+
+    100% {
+      width: 100%;
+    }
+  }
+
+  .link-pending-dot {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.35rem;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .link-pending-dot.is-pending {
+    visibility: visible;
+    animation-name: linkPendingFadeIn, linkPendingPulse;
+    animation-duration: 200ms, 1s;
+    animation-delay: 100ms, 100ms;
+    animation-timing-function: ease, ease-in-out;
+    animation-iteration-count: 1, infinite;
+    animation-fill-mode: forwards, none;
+  }
+
+  @keyframes linkPendingFadeIn {
+    to {
+      opacity: 0.45;
+    }
+  }
+
+  @keyframes linkPendingPulse {
+    50% {
+      opacity: 0.2;
+    }
+  }
 }

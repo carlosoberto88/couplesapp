@@ -1,10 +1,11 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { auth } from "@clerk/nextjs/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { ProvisioningError } from "@/components/provisioning-error";
-import { OnboardingWizard } from "@/components/onboarding-wizard";
+import { OnboardingGate } from "@/components/onboarding-gate";
 import { TabShell } from "@/components/tab-shell";
 
 export async function AuthenticatedShell({
@@ -34,24 +35,11 @@ export async function AuthenticatedShell({
     return <ProvisioningError message={upsertErr.message} />;
   }
 
-  const { error: acceptErr } = await supabase.rpc("accept_pending_invites");
-
-  if (acceptErr) {
-    return <ProvisioningError message={acceptErr.message} />;
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("onboarding_completed_at")
-    .eq("id", userId)
-    .single();
-
   return (
     <>
-      <OnboardingWizard
-        key={profile?.onboarding_completed_at ?? "pending"}
-        show={!profile?.onboarding_completed_at}
-      />
+      <Suspense fallback={null}>
+        <OnboardingGate />
+      </Suspense>
       {children}
       <TabShell />
     </>

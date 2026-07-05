@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { auth } from "@clerk/nextjs/server";
@@ -16,6 +15,7 @@ import { ListsEmptyActive } from "@/components/lists-empty-active";
 import { EmptyState } from "@/components/empty-state";
 import { ListSettingsMenu } from "@/components/list-settings-menu";
 import { ListsLiveSync } from "@/components/lists-live-sync";
+import { ListCardLink } from "@/components/list-card-link";
 
 type ListRow = List & { list_members: { count: number }[] };
 
@@ -32,6 +32,8 @@ export default async function ListsPage({
   const tListTypes = await getTranslations("listTypes");
 
   const supabase = await createClient();
+
+  await supabase.rpc("accept_pending_invites");
 
   const { data: lists } = await supabase
     .from("lists")
@@ -76,10 +78,7 @@ export default async function ListsPage({
                 <li key={list.id}>
                   <Card className="relative rounded-2xl">
                     <CardContent className="flex min-h-11 items-center gap-4 py-1">
-                      <Link
-                        href={`/lists/${list.id}`}
-                        className="flex flex-1 items-center gap-4 py-2.5"
-                      >
+                      <ListCardLink href={`/lists/${list.id}`}>
                         <span
                           className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-xl"
                           aria-hidden
@@ -118,7 +117,7 @@ export default async function ListsPage({
                             )}
                           </div>
                         )}
-                      </Link>
+                      </ListCardLink>
                       {isOwner && <ListSettingsMenu list={list} />}
                     </CardContent>
                   </Card>

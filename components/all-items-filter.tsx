@@ -18,7 +18,7 @@ export function AllItemsFilter({ showDone }: AllItemsFilterProps) {
       role="tablist"
       aria-label={t("filterLabel")}
     >
-      <Link href="/items" prefetch={false} role="tab" aria-selected={!showDone}>
+      <Link href="/items" role="tab" aria-selected={!showDone}>
         <span
           className={cn(
             "flex h-9 items-center rounded-full px-4 font-medium transition-colors",
@@ -30,7 +30,7 @@ export function AllItemsFilter({ showDone }: AllItemsFilterProps) {
           {t("pending")}
         </span>
       </Link>
-      <Link href="/items?status=done" prefetch={false} role="tab" aria-selected={showDone}>
+      <Link href="/items?status=done" role="tab" aria-selected={showDone}>
         <span
           className={cn(
             "flex h-9 items-center rounded-full px-4 font-medium transition-colors",

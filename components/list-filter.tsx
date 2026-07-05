@@ -18,7 +18,7 @@ export function ListFilter({ showArchived }: ListFilterProps) {
       role="tablist"
       aria-label={t("filterLabel")}
     >
-      <Link href="/lists" prefetch={false} role="tab" aria-selected={!showArchived}>
+      <Link href="/lists" role="tab" aria-selected={!showArchived}>
         <span
           className={cn(
             "flex h-9 items-center rounded-full px-4 font-medium transition-colors",
@@ -30,7 +30,7 @@ export function ListFilter({ showArchived }: ListFilterProps) {
           {t("active")}
         </span>
       </Link>
-      <Link href="/lists?filter=archived" prefetch={false} role="tab" aria-selected={showArchived}>
+      <Link href="/lists?filter=archived" role="tab" aria-selected={showArchived}>
         <span
           className={cn(
             "flex h-9 items-center rounded-full px-4 font-medium transition-colors",

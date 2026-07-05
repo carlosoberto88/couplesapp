@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LayoutList, ListChecks } from "lucide-react";
 
+import { LinkPendingIndicator } from "@/components/link-pending-indicator";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -30,10 +31,9 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              prefetch={false}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-medium transition-colors",
+                "relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-medium transition-colors",
                 active
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground",
@@ -41,11 +41,12 @@ export function BottomNav() {
             >
               <span
                 className={cn(
-                  "flex size-9 items-center justify-center rounded-full transition-colors",
+                  "relative flex size-9 items-center justify-center rounded-full transition-colors",
                   active && "bg-duo-coral-tint",
                 )}
               >
                 <Icon className="size-5" aria-hidden />
+                <LinkPendingIndicator className="top-1 right-1" />
               </span>
               {t(labelKey)}
             </Link>

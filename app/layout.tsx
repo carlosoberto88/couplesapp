@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/sw-register";
 import { PushNotificationsSetup } from "@/components/push-notifications-setup";
 import { InstallPrompt } from "@/components/install-prompt";
+import { NavigationProgress } from "@/components/navigation-progress";
 import "./globals.css";
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -59,6 +60,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <ClerkProvider localization={clerkLocalization}>
           <NextIntlClientProvider messages={messages}>
+            <NavigationProgress />
             <InstallPrompt />
             <PushNotificationsSetup />
             {children}
