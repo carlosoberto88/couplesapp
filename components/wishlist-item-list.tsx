@@ -55,6 +55,7 @@ export function WishlistItemList({
   const [adding, setAdding] = useState(false);
   const [detailItem, setDetailItem] = useState<Item | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
 
   const { imagesByItemId, refetchImages, primaryImageUrl, imageUrlsForItem } = useItemImages(
     listId,
@@ -482,6 +483,8 @@ export function WishlistItemList({
         }
         bulkOpen={bulkOpen}
         onBulkOpenChange={setBulkOpen}
+        addOpen={addOpen}
+        onAddOpenChange={setAddOpen}
       />
 
       <div className="px-1">
@@ -496,7 +499,7 @@ export function WishlistItemList({
           title={t("emptyTitle")}
           description={t("emptyDescription")}
           actionLabel={t("emptyAction")}
-          onAction={() => setBulkOpen(true)}
+          onAction={() => setAddOpen(true)}
         />
       ) : (
         <ul className="flex flex-col gap-2">

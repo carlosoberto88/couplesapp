@@ -258,7 +258,10 @@
     "menuLabel": "Agregar inteligente"
   },
   "addMenu": {
-    "addMultiple": "Agregar varios"
+    "addMultiple": "Agregar varios",
+    "addItem": "Agregar regalo",
+    "addItemTitle": "Agregar un regalo",
+    "addItemDescription": "Pega un enlace de producto o escribe los detalles tú mismo."
   },
   "addFromLink": {
     "urlPlaceholder": "Pega un enlace de producto…",

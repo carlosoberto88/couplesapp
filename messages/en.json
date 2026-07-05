@@ -256,7 +256,10 @@
     "menuLabel": "Smart add"
   },
   "addMenu": {
-    "addMultiple": "Add multiple"
+    "addMultiple": "Add multiple",
+    "addItem": "Add gift",
+    "addItemTitle": "Add a gift",
+    "addItemDescription": "Paste a product link or type the details yourself."
   },
   "addFromLink": {
     "urlPlaceholder": "Paste a product link…",
