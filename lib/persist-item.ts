@@ -120,3 +120,61 @@ export async function insertItemsBulk(
 
   return { items: savedItems };
 }
+
+export type LinkPreviewData = {
+  previewToken: string;
+  name: string;
+  url: string;
+  price: number | null;
+  currency: string | null;
+  imageUrl: string | null;
+  hostname: string;
+};
+
+export async function fetchLinkPreview(
+  listId: string,
+  url: string,
+): Promise<{ preview?: LinkPreviewData; error?: string }> {
+  const res = await fetch("/api/items/preview-link", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ listId, url }),
+  });
+
+  const data = (await res.json().catch(() => null)) as LinkPreviewData & { error?: string };
+
+  if (!res.ok || !data?.previewToken) {
+    return { error: data?.error ?? "preview_failed" };
+  }
+
+  return {
+    preview: {
+      previewToken: data.previewToken,
+      name: data.name,
+      url: data.url,
+      price: data.price,
+      currency: data.currency,
+      imageUrl: data.imageUrl,
+      hostname: data.hostname,
+    },
+  };
+}
+
+export async function insertItemFromLink(
+  listId: string,
+  previewToken: string,
+): Promise<{ item?: Item; error?: string }> {
+  const res = await fetch("/api/items/from-link", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ listId, previewToken }),
+  });
+
+  const data = (await res.json().catch(() => null)) as { item?: Item; error?: string };
+
+  if (!res.ok || !data?.item) {
+    return { error: data?.error ?? "from_link_failed" };
+  }
+
+  return { item: data.item };
+}

@@ -6,10 +6,13 @@ import { Layers } from "lucide-react";
 
 import type { RichAddInput } from "@/components/rich-add-item-form";
 import { RichAddItemForm } from "@/components/rich-add-item-form";
+import { AddFromLinkForm } from "@/components/add-from-link-form";
 import { BulkAddItemsDialog } from "@/components/bulk-add-items-dialog";
 import { SmartAdd } from "@/components/smart-add";
 import { UsualItems } from "@/components/usual-items";
 import { Button } from "@/components/ui/button";
+import { isWishlist } from "@/lib/list-types";
+import type { LinkPreviewData } from "@/lib/persist-item";
 
 type ListAddSectionProps = {
   listId: string;
@@ -22,6 +25,7 @@ type ListAddSectionProps = {
   onQuickAdd: (name: string) => void;
   onBulkAdd: (inputs: RichAddInput[]) => void;
   onSmartAddBulk: (items: { name: string; note: string | null }[]) => void;
+  onAddFromLink?: (previewToken: string, preview: LinkPreviewData) => void;
   bulkOpen?: boolean;
   onBulkOpenChange?: (open: boolean) => void;
 };
@@ -37,20 +41,41 @@ export function ListAddSection({
   onQuickAdd,
   onBulkAdd,
   onSmartAddBulk,
+  onAddFromLink,
   bulkOpen,
   onBulkOpenChange,
 }: ListAddSectionProps) {
   const t = useTranslations("addMenu");
+  const tAddFromLink = useTranslations("addFromLink");
   const [internalBulkOpen, setInternalBulkOpen] = useState(false);
+  const [showManualAdd, setShowManualAdd] = useState(false);
 
+  const wishlist = isWishlist(listType);
   const isBulkOpen = bulkOpen ?? internalBulkOpen;
   const setBulkOpen = onBulkOpenChange ?? setInternalBulkOpen;
 
   return (
     <>
-      <div className="hidden md:block">
-        <RichAddItemForm listType={listType} onAdd={onRichAdd} pending={pending} />
-      </div>
+      {wishlist && onAddFromLink ? (
+        <div className="hidden md:block">
+          <AddFromLinkForm
+            listId={listId}
+            pending={pending}
+            onConfirm={onAddFromLink}
+            onManualAdd={() => setShowManualAdd(true)}
+          />
+          {showManualAdd ? (
+            <div className="mt-3">
+              <p className="mb-2 text-xs text-muted-foreground">{tAddFromLink("manualLabel")}</p>
+              <RichAddItemForm listType={listType} onAdd={onRichAdd} pending={pending} />
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div className="hidden md:block">
+          <RichAddItemForm listType={listType} onAdd={onRichAdd} pending={pending} />
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <Button
@@ -83,12 +108,22 @@ export function ListAddSection({
 
       <div className="sticky-add-bar pointer-events-none fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur supports-backdrop-filter:bg-background/80 md:hidden">
         <div className="pointer-events-auto mx-auto w-full max-w-[640px]">
-          <RichAddItemForm
-            listType={listType}
-            onAdd={onRichAdd}
-            pending={pending}
-            variant="sticky"
-          />
+          {wishlist && onAddFromLink ? (
+            <AddFromLinkForm
+              listId={listId}
+              pending={pending}
+              onConfirm={onAddFromLink}
+              onManualAdd={() => setShowManualAdd(true)}
+              variant="sticky"
+            />
+          ) : (
+            <RichAddItemForm
+              listType={listType}
+              onAdd={onRichAdd}
+              pending={pending}
+              variant="sticky"
+            />
+          )}
         </div>
       </div>
     </>

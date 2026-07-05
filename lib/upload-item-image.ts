@@ -11,6 +11,50 @@ export function buildItemImagePath(listId: string, itemId: string, file: File): 
   return `${listId}/${itemId}/${crypto.randomUUID()}.${ext}`;
 }
 
+export function buildItemImagePathFromExt(
+  listId: string,
+  itemId: string,
+  ext: "jpg" | "png" | "webp",
+): string {
+  return `${listId}/${itemId}/${crypto.randomUUID()}.${ext}`;
+}
+
+export function buildPreviewImagePath(ext: "jpg" | "png" | "webp"): string {
+  return `previews/${crypto.randomUUID()}.${ext}`;
+}
+
+export async function uploadImageBuffer(
+  supabase: SupabaseClient,
+  storagePath: string,
+  buffer: Buffer,
+  contentType: string,
+): Promise<{ error?: string }> {
+  const { error } = await supabase.storage
+    .from(ITEM_IMAGE_BUCKET)
+    .upload(storagePath, buffer, { contentType, upsert: false });
+
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function copyStorageObject(
+  supabase: SupabaseClient,
+  fromPath: string,
+  toPath: string,
+): Promise<{ error?: string }> {
+  const { error } = await supabase.storage.from(ITEM_IMAGE_BUCKET).copy(fromPath, toPath);
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function removeStorageObjects(
+  supabase: SupabaseClient,
+  paths: string[],
+): Promise<void> {
+  if (paths.length === 0) return;
+  await supabase.storage.from(ITEM_IMAGE_BUCKET).remove(paths);
+}
+
 export function validateImageFile(file: File): string | null {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
     return "invalidType";
@@ -56,6 +100,40 @@ export async function uploadItemImages(
   }
 
   return {};
+}
+
+export async function uploadItemImageBuffer(
+  supabase: SupabaseClient,
+  listId: string,
+  itemId: string,
+  userId: string,
+  buffer: Buffer,
+  contentType: "image/jpeg" | "image/png" | "image/webp",
+  ext: "jpg" | "png" | "webp",
+  sortOrder = 0,
+): Promise<{ storagePath?: string; error?: string }> {
+  const storagePath = buildItemImagePathFromExt(listId, itemId, ext);
+  const { error: uploadError } = await uploadImageBuffer(
+    supabase,
+    storagePath,
+    buffer,
+    contentType,
+  );
+  if (uploadError) return { error: uploadError };
+
+  const { error: insertError } = await supabase.from("item_images").insert({
+    item_id: itemId,
+    storage_path: storagePath,
+    sort_order: sortOrder,
+    created_by: userId,
+  });
+
+  if (insertError) {
+    await supabase.storage.from(ITEM_IMAGE_BUCKET).remove([storagePath]);
+    return { error: insertError.message };
+  }
+
+  return { storagePath };
 }
 
 export async function deleteItemImages(

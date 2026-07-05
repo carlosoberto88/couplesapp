@@ -250,6 +250,20 @@
   "addMenu": {
     "addMultiple": "Add multiple"
   },
+  "addFromLink": {
+    "urlPlaceholder": "Paste a product link…",
+    "urlAriaLabel": "Product link",
+    "preview": "Preview",
+    "loading": "Loading…",
+    "confirmAdd": "Add",
+    "addToList": "Add to list",
+    "adding": "Adding…",
+    "cancel": "Cancel",
+    "previewError": "Couldn't load a preview for that link.",
+    "manualFallback": "Add manually instead",
+    "manualLabel": "Or add manually",
+    "previewImageAlt": "Preview image for {name}"
+  },
   "activity": {
     "someone": "Someone",
     "itemPreviewMany": "{count} items",
@@ -349,6 +363,11 @@
     "feedbackResolveError": "Couldn't mark as resolved",
     "feedbackNotFound": "Feedback not found or already resolved",
     "invalidFeedbackId": "Invalid feedback id",
-    "forbidden": "You don't have access to this"
+    "forbidden": "You don't have access to this",
+    "invalidLinkPreview": "That link doesn't look valid — check the URL and try again",
+    "linkPreviewFailed": "Couldn't fetch a preview for that link",
+    "linkPreviewExpired": "That preview expired — paste the link again",
+    "fromLinkInsertError": "Couldn't add that item — try again",
+    "fromLinkImageError": "Couldn't save the product image — try again"
   }
 }

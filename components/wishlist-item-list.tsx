@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Item, ItemImage, ListMember, Profile } from "@/lib/types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
-import { buildNewItem, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
+import { buildNewItem, insertItemFromLink, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
+import type { LinkPreviewData } from "@/lib/persist-item";
 import { useItemImages } from "@/lib/use-item-images";
 import { upsertRow, removeRow } from "@/lib/item-list-utils";
 import { deleteItemImages } from "@/lib/upload-item-image";
@@ -122,6 +123,55 @@ export function WishlistItemList({
   useEffect(() => {
     handleRichAddRef.current = handleRichAdd;
   });
+
+  const handleAddFromLink = useCallback(
+    (previewToken: string, preview: LinkPreviewData) => {
+      const optimisticItem: Item = {
+        id: crypto.randomUUID(),
+        list_id: listId,
+        name: preview.name,
+        note: null,
+        url: preview.url,
+        price: preview.price,
+        currency: preview.price !== null ? (preview.currency ?? "USD") : null,
+        priority: null,
+        position: 0,
+        created_by: currentUserId,
+        created_at: new Date().toISOString(),
+        checked_at: null,
+        checked_by: null,
+        reserved_by: null,
+        reserved_at: null,
+      };
+
+      setItems((prev) => upsertRow(prev, optimisticItem));
+      setAdding(true);
+
+      void (async () => {
+        const { item, error } = await insertItemFromLink(listId, previewToken);
+
+        setAdding(false);
+
+        if (error || !item) {
+          setItems((prev) => removeRow(prev, optimisticItem.id));
+          toast.error(t("saveError"), {
+            action: {
+              label: tCommon("retry"),
+              onClick: () => handleAddFromLink(previewToken, preview),
+            },
+          });
+          return;
+        }
+
+        setItems((prev) => {
+          const withoutOptimistic = removeRow(prev, optimisticItem.id);
+          return upsertRow(withoutOptimistic, item);
+        });
+        await refetchImages([...items.map((entry) => entry.id), item.id]);
+      })();
+    },
+    [listId, currentUserId, t, tCommon, refetchImages, items],
+  );
 
   const handleBulkAdd = useCallback(
     (inputs: RichAddInput[]) => {
@@ -405,6 +455,7 @@ export function WishlistItemList({
           })
         }
         onBulkAdd={handleBulkAdd}
+        onAddFromLink={handleAddFromLink}
         onSmartAddBulk={(simpleItems) =>
           handleBulkAdd(
             simpleItems.map((item) => ({

@@ -252,6 +252,20 @@
   "addMenu": {
     "addMultiple": "Agregar varios"
   },
+  "addFromLink": {
+    "urlPlaceholder": "Pega un enlace de producto…",
+    "urlAriaLabel": "Enlace del producto",
+    "preview": "Vista previa",
+    "loading": "Cargando…",
+    "confirmAdd": "Agregar",
+    "addToList": "Agregar a la lista",
+    "adding": "Agregando…",
+    "cancel": "Cancelar",
+    "previewError": "No se pudo cargar una vista previa de ese enlace.",
+    "manualFallback": "Agregar manualmente",
+    "manualLabel": "O agregar manualmente",
+    "previewImageAlt": "Vista previa de {name}"
+  },
   "activity": {
     "someone": "Alguien",
     "itemPreviewMany": "{count} ítems",
@@ -351,6 +365,11 @@
     "feedbackResolveError": "No se pudo marcar como resuelto",
     "feedbackNotFound": "Comentario no encontrado o ya resuelto",
     "invalidFeedbackId": "Id de comentario inválido",
-    "forbidden": "No tienes acceso a esto"
+    "forbidden": "No tienes acceso a esto",
+    "invalidLinkPreview": "Ese enlace no parece válido — revisa la URL e intenta de nuevo",
+    "linkPreviewFailed": "No se pudo obtener una vista previa de ese enlace",
+    "linkPreviewExpired": "Esa vista previa expiró — pega el enlace otra vez",
+    "fromLinkInsertError": "No se pudo agregar ese ítem — intenta de nuevo",
+    "fromLinkImageError": "No se pudo guardar la imagen del producto — intenta de nuevo"
   }
 }
