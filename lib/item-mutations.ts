@@ -16,6 +16,9 @@ export type ItemUpdatePatch = Partial<
     | "price"
     | "currency"
     | "priority"
+    | "is_extra"
+    | "aisle"
+    | "position"
   >
 >;
 

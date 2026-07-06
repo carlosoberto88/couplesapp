@@ -2,7 +2,12 @@
 
 import { useTranslations } from "next-intl";
 
-import { LIST_TYPE_KEYS, getListTypeIcon, type ListTypeKey } from "@/lib/list-types";
+import {
+  LIST_TYPE_KEYS,
+  getListTypeConfig,
+  getListTypeIcon,
+  type ListTypeKey,
+} from "@/lib/list-types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -12,6 +17,8 @@ type CreateListFormProps = {
   onNameChange: (name: string) => void;
   type: ListTypeKey;
   onTypeChange: (type: ListTypeKey) => void;
+  recurring?: boolean;
+  onRecurringChange?: (recurring: boolean) => void;
   nameInputId?: string;
   autoFocus?: boolean;
 };
@@ -21,6 +28,8 @@ export function CreateListForm({
   onNameChange,
   type,
   onTypeChange,
+  recurring = false,
+  onRecurringChange,
   nameInputId = "list-name",
   autoFocus = false,
 }: CreateListFormProps) {
@@ -64,6 +73,32 @@ export function CreateListForm({
           ))}
         </div>
       </div>
+      {getListTypeConfig(type).supportsRecurring ? (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2.5">
+          <div className="flex flex-col gap-0.5">
+            <Label htmlFor="create-list-recurring">{t("recurringLabel")}</Label>
+            <p className="text-xs text-muted-foreground">{t("recurringHint")}</p>
+          </div>
+          <button
+            id="create-list-recurring"
+            type="button"
+            role="switch"
+            aria-checked={recurring}
+            onClick={() => onRecurringChange?.(!recurring)}
+            className={cn(
+              "relative h-6 w-11 shrink-0 rounded-full transition-colors",
+              recurring ? "bg-primary" : "bg-muted",
+            )}
+          >
+            <span
+              className={cn(
+                "absolute top-0.5 left-0.5 size-5 rounded-full bg-background shadow transition-transform",
+                recurring && "translate-x-5",
+              )}
+            />
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

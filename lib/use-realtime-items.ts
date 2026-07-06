@@ -49,6 +49,18 @@ export function useRealtimeItems(
         (payload) => {
           if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
             const row = payload.new as Item;
+
+            if (row.removed_at !== null) {
+              handlersRef.current.onRemove(row.id);
+              if (payload.eventType === "UPDATE") {
+                const oldRow = payload.old as Item;
+                if (oldRow?.removed_at == null && row.created_by !== currentUserId) {
+                  handlersRef.current.onOtherUserRemove(row);
+                }
+              }
+              return;
+            }
+
             handlersRef.current.onUpsert(row);
             if (payload.eventType === "INSERT" && row.created_by !== currentUserId) {
               handlersRef.current.onOtherUserAdd(row);

@@ -47,6 +47,7 @@ export default async function ListDetailPage({
         .from("items")
         .select("*")
         .eq("list_id", listId)
+        .is("removed_at", null)
         .order("created_at", { ascending: true }),
       supabase
         .from("list_members")
@@ -143,6 +144,7 @@ export default async function ListDetailPage({
           initialItems={typedItems}
           initialImages={initialImages}
           members={typedMembers}
+          listRecurring={typedList.recurring}
         />
       </main>
     </>

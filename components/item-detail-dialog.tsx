@@ -3,11 +3,12 @@
 import { useCallback, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ExternalLink, ImagePlus, Pencil } from "lucide-react";
+import { Switch } from "@base-ui/react/switch";
 import { toast } from "sonner";
 
 import type { Item, ItemImage, ItemPriority } from "@/lib/types";
 import type { MemberColor } from "@/lib/member-colors";
-import { isWishlist } from "@/lib/list-types";
+import { getListTypeConfig, isWishlist } from "@/lib/list-types";
 import { buildEditPatch, type ItemUpdatePatch } from "@/lib/item-mutations";
 import {
   canSeeReservation,
@@ -42,6 +43,7 @@ type ItemDetailDialogProps = {
   listType: string;
   listOwnerId: string;
   currentUserId: string;
+  listRecurring?: boolean;
   imageUrls: string[];
   imageCount: number;
   existingImages?: ItemImage[];
@@ -65,6 +67,7 @@ function initEditForm(source: Item) {
     note: source.note ?? "",
     price: source.price !== null ? source.price.toFixed(2) : "",
     priority: source.priority,
+    aisle: source.aisle ?? "",
   };
 }
 
@@ -76,6 +79,7 @@ export function ItemDetailDialog({
   listType,
   listOwnerId,
   currentUserId,
+  listRecurring = false,
   imageUrls,
   imageCount,
   existingImages = [],
@@ -106,6 +110,7 @@ export function ItemDetailDialog({
   const [note, setNote] = useState("");
   const [price, setPrice] = useState("");
   const [priority, setPriority] = useState<ItemPriority | null>(null);
+  const [aisle, setAisle] = useState("");
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [removedImageIds, setRemovedImageIds] = useState<Set<string>>(() => new Set());
@@ -117,6 +122,7 @@ export function ItemDetailDialog({
     setNote(form.note);
     setPrice(form.price);
     setPriority(form.priority);
+    setAisle(form.aisle);
     setNewFiles([]);
     setFileError(null);
     setRemovedImageIds(new Set());
@@ -128,6 +134,7 @@ export function ItemDetailDialog({
   const editing = editingItemId === currentItem.id;
 
   const wishlist = isWishlist(listType);
+  const showAisle = getListTypeConfig(listType).supportsAisles;
   const checked = currentItem.checked_at !== null;
   const purchased = isPurchased(currentItem);
   const reserved = isReserved(currentItem);
@@ -213,6 +220,9 @@ export function ItemDetailDialog({
       files: newFiles,
     };
     const patch = buildEditPatch(editInput, wishlist);
+    if (showAisle) {
+      patch.aisle = aisle.trim() || null;
+    }
 
     setSaving(true);
 
@@ -307,6 +317,23 @@ export function ItemDetailDialog({
               onFilesChange={setNewFiles}
               onFileErrorChange={setFileError}
             />
+
+            {showAisle && (
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="item-aisle" className="text-xs font-medium text-muted-foreground">
+                  {t("aisle")}
+                </label>
+                <Input
+                  id="item-aisle"
+                  className="h-11 rounded-xl"
+                  value={aisle}
+                  onChange={(e) => setAisle(e.target.value)}
+                  placeholder={tItems("aislePlaceholder")}
+                  maxLength={24}
+                  disabled={saving}
+                />
+              </div>
+            )}
 
             {wishlist ? (
               <WishlistExtraFields
@@ -511,6 +538,22 @@ export function ItemDetailDialog({
                 </div>
               )}
             </dl>
+
+            {listRecurring && onSave && (
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-3 py-2.5">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground">{t("justThisTrip")}</span>
+                  <span className="text-xs text-muted-foreground">{t("justThisTripHint")}</span>
+                </div>
+                <Switch.Root
+                  checked={currentItem.is_extra}
+                  onCheckedChange={(checked) => onSave(currentItem, { is_extra: checked })}
+                  className="relative inline-flex h-6 w-10 shrink-0 items-center rounded-full bg-input transition-colors data-[checked]:bg-primary"
+                >
+                  <Switch.Thumb className="block size-4 translate-x-1 rounded-full bg-background shadow transition-transform data-[checked]:translate-x-5" />
+                </Switch.Root>
+              </div>
+            )}
 
             {wishlist && (
               <div className="flex flex-wrap gap-1.5">

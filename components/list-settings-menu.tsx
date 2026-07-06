@@ -8,6 +8,7 @@ import { MoreVertical, Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-re
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { List } from "@/lib/types";
+import { getListTypeConfig } from "@/lib/list-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,10 +25,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 
 type ListSettingsMenuProps = {
-  list: Pick<List, "id" | "name" | "archived_at">;
+  list: Pick<List, "id" | "name" | "archived_at" | "type" | "recurring">;
 };
 
 export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
@@ -42,6 +44,7 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
   const [pending, setPending] = useState(false);
 
   const isArchived = list.archived_at !== null;
+  const canRecur = getListTypeConfig(list.type).supportsRecurring;
 
   async function handleRename(e: React.FormEvent) {
     e.preventDefault();
@@ -76,6 +79,21 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
       return;
     }
     toast.success(isArchived ? t("unarchivedToast") : t("archivedToast"));
+    router.refresh();
+  }
+
+  async function toggleRecurring() {
+    setPending(true);
+    const { error } = await supabase
+      .from("lists")
+      .update({ recurring: !list.recurring })
+      .eq("id", list.id);
+    setPending(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     router.refresh();
   }
 
@@ -114,6 +132,22 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
             <Pencil />
             {t("rename")}
           </DropdownMenuItem>
+          {canRecur ? (
+            <DropdownMenuCheckboxItem
+              checked={list.recurring}
+              onClick={(e) => e.stopPropagation()}
+              onCheckedChange={() => {
+                void toggleRecurring();
+              }}
+            >
+              <div className="flex flex-col">
+                <span>{t("recurring")}</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  {t("recurringHint")}
+                </span>
+              </div>
+            </DropdownMenuCheckboxItem>
+          ) : null}
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();

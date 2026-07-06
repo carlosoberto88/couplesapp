@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
+const UNDO_GRACE_MS = 5000;
+
 import type { Item, ItemImage, ItemListContext, ItemWithList, ListMember, Profile } from "@/lib/types";
 import { isWishlist } from "@/lib/list-types";
 import {
@@ -26,7 +28,6 @@ import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import { useCrossListItemImages } from "@/lib/use-cross-list-item-images";
 import { useRealtimeAllItems } from "@/lib/use-realtime-all-items";
-import { deleteItemImages } from "@/lib/upload-item-image";
 import { AllItemsRow } from "@/components/all-items-row";
 import { ItemDetailDialog } from "@/components/item-detail-dialog";
 import { EmptyState } from "@/components/empty-state";
@@ -176,15 +177,40 @@ export function AllItemsView({
     [items, updateItem],
   );
 
+  const handleUndoRemove = useCallback(
+    (item: ItemWithList, toastId: string | number) => {
+      setItems((prev) => upsertItemWithList(prev, item));
+
+      void (async () => {
+        const { error } = await supabase
+          .from("items")
+          .update({ removed_at: null })
+          .eq("id", item.id);
+
+        if (error) {
+          setItems((prev) => removeItemWithList(prev, item.id));
+          toast.error(tItems("undoError"), {
+            action: { label: tCommon("retry"), onClick: () => handleUndoRemove(item, toastId) },
+          });
+          return;
+        }
+
+        toast.dismiss(toastId);
+      })();
+    },
+    [supabase, tItems, tCommon],
+  );
+
   const handleRemove = useCallback(
     (item: ItemWithList) => {
-      const images = imagesByItemId.get(item.id) ?? [];
       setItems((prev) => removeItemWithList(prev, item.id));
       if (detailItem?.id === item.id) setDetailItem(null);
 
       void (async () => {
-        await deleteItemImages(supabase, images);
-        const { error } = await supabase.from("items").delete().eq("id", item.id);
+        const { error } = await supabase
+          .from("items")
+          .update({ removed_at: new Date().toISOString() })
+          .eq("id", item.id);
 
         if (error) {
           setItems((prev) => upsertItemWithList(prev, item));
@@ -194,10 +220,16 @@ export function AllItemsView({
           return;
         }
 
-        toast(tItems("removedItem", { name: item.name }));
+        const toastId = toast(tItems("removedItem", { name: item.name }), {
+          duration: UNDO_GRACE_MS,
+          action: {
+            label: tCommon("undo"),
+            onClick: () => handleUndoRemove(item, toastId),
+          },
+        });
       })();
     },
-    [imagesByItemId, supabase, tItems, tCommon, detailItem?.id],
+    [supabase, tItems, tCommon, detailItem?.id, handleUndoRemove],
   );
 
   useEffect(() => {
@@ -224,6 +256,7 @@ export function AllItemsView({
         .from("items")
         .select("*, lists!inner(id, name, type, owner_id, archived_at)")
         .is("lists.archived_at", null)
+        .is("removed_at", null)
         .order("created_at", { ascending: true });
 
       if (!error && data) {

@@ -17,6 +17,7 @@ type ItemListProps = {
   initialItems: Item[];
   initialImages?: ItemImage[];
   members: MemberWithProfile[];
+  listRecurring?: boolean;
 };
 
 export function ItemList({
@@ -27,6 +28,7 @@ export function ItemList({
   initialItems,
   initialImages = [],
   members,
+  listRecurring = false,
 }: ItemListProps) {
   if (isWishlist(listType)) {
     return (
@@ -50,6 +52,7 @@ export function ItemList({
       initialItems={initialItems}
       initialImages={initialImages}
       members={members}
+      listRecurring={listRecurring}
     />
   );
 }

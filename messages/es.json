@@ -31,7 +31,8 @@
     "emptyArchivedDescription": "Las listas que archiven juntos aparecerán aquí.",
     "memberCount": "{count, plural, one {# miembro} other {# miembros}}",
     "membersYouAnd": "Tú y {name}",
-    "membersCount": "{count} personas"
+    "membersCount": "{count} personas",
+    "archivedCount": "Archivadas ({count})"
   },
   "allItems": {
     "navLabel": "Navegación principal",
@@ -64,12 +65,16 @@
     "description": "Ponle un nombre y elige un tipo para encontrarla después.",
     "namePlaceholder": "Compras semanales",
     "typeLabel": "Tipo",
+    "recurringLabel": "Lista recurrente",
+    "recurringHint": "Conserva sus artículos entre compras",
     "creating": "Creando…",
     "submit": "Crear lista",
     "error": "No se pudo crear la lista"
   },
   "listSettings": {
     "menuLabel": "Ajustes de la lista",
+    "recurring": "Lista recurrente",
+    "recurringHint": "Conserva sus artículos entre compras",
     "rename": "Renombrar",
     "archive": "Archivar",
     "unarchive": "Desarchivar",
@@ -168,7 +173,15 @@
     "uncheckItem": "Desmarcar {name}",
     "uploadError": "No se pudieron subir las fotos — intenta de nuevo",
     "imageInvalidType": "Solo se permiten imágenes JPEG, PNG y WebP",
-    "imageTooLarge": "Cada foto debe pesar menos de 5 MB"
+    "imageTooLarge": "Cada foto debe pesar menos de 5 MB",
+    "finishShopping": "Finalizar compra",
+    "oneTimeChip": "Solo esta vez",
+    "resetToast": "Lista lista para la próxima compra",
+    "finishedToast": "Finalizado — {count, plural, one {# artículo de un solo uso eliminado} other {# artículos de un solo uso eliminados}}",
+    "noAisle": "Sin pasillo",
+    "aislePlaceholder": "p. ej. 3 o Lácteos",
+    "aisleChipLabel": "Pasillo {aisle}",
+    "reorderItem": "Reordenar {name}"
   },
   "wishlist": {
     "itemCount": "{count, plural, one {# regalo} other {# regalos}}",
@@ -230,11 +243,14 @@
     "checkedOff": "Marcado",
     "checkOff": "Marcar",
     "uncheck": "Desmarcar",
+    "justThisTrip": "Solo esta vez",
+    "justThisTripHint": "Se elimina al finalizar la compra",
     "edit": "Editar",
     "editTitle": "Editar ítem",
     "save": "Guardar",
     "cancel": "Cancelar",
-    "saved": "Cambios guardados"
+    "saved": "Cambios guardados",
+    "aisle": "Pasillo"
   },
   "bulkAdd": {
     "trigger": "Agregar ítems",

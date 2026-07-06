@@ -11,6 +11,9 @@ export type ListTypeConfig = {
   supportsReservation: boolean;
   supportsImages: boolean;
   supportsUrl: boolean;
+  supportsRecurring: boolean;
+  supportsAisles: boolean;
+  supportsReorder: boolean;
 };
 
 export const LIST_TYPE_KEYS: ListTypeKey[] = ["shopping", "todo", "wishlist", "other"];
@@ -22,6 +25,9 @@ const LIST_TYPE_CONFIG: Record<ListTypeKey, ListTypeConfig> = {
     supportsReservation: false,
     supportsImages: false,
     supportsUrl: false,
+    supportsRecurring: true,
+    supportsAisles: true,
+    supportsReorder: true,
   },
   todo: {
     icon: "✓",
@@ -29,6 +35,9 @@ const LIST_TYPE_CONFIG: Record<ListTypeKey, ListTypeConfig> = {
     supportsReservation: false,
     supportsImages: false,
     supportsUrl: false,
+    supportsRecurring: false,
+    supportsAisles: false,
+    supportsReorder: true,
   },
   wishlist: {
     icon: "🎁",
@@ -36,6 +45,9 @@ const LIST_TYPE_CONFIG: Record<ListTypeKey, ListTypeConfig> = {
     supportsReservation: true,
     supportsImages: true,
     supportsUrl: true,
+    supportsRecurring: false,
+    supportsAisles: false,
+    supportsReorder: false,
   },
   other: {
     icon: "📋",
@@ -43,6 +55,9 @@ const LIST_TYPE_CONFIG: Record<ListTypeKey, ListTypeConfig> = {
     supportsReservation: false,
     supportsImages: false,
     supportsUrl: false,
+    supportsRecurring: false,
+    supportsAisles: false,
+    supportsReorder: true,
   },
 };
 

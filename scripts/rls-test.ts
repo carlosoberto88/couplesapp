@@ -373,6 +373,136 @@ async function main() {
       fail("Assertion 4 skipped — no listId from Assertion 1");
     }
 
+    // ---------- 4.5. Recurring lists + is_extra/removed_at soft delete (0012) ----------
+    console.log("\n--- Assertion 4.5: recurring lists + is_extra/removed_at ---");
+    if (listId && itemId) {
+      // Non-owner member B can flag/unflag is_extra and stamp/clear removed_at
+      // on an item created by owner A — items_update_member has no column
+      // restrictions.
+      const { data: extraFlagged, error: extraErr } = await clientB
+        .from("items")
+        .update({ is_extra: true })
+        .eq("id", itemId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Non-owner B can flag partner-created item as is_extra",
+        !extraErr && extraFlagged?.is_extra === true,
+        extraErr?.message ?? extraFlagged,
+      );
+
+      const { data: removedStamp, error: removeErr } = await clientB
+        .from("items")
+        .update({ removed_at: new Date().toISOString() })
+        .eq("id", itemId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Non-owner B can soft-remove (stamp removed_at) partner-created item",
+        !removeErr && !!removedStamp?.removed_at,
+        removeErr?.message ?? removedStamp,
+      );
+
+      const { data: removedCleared, error: undoErr } = await clientB
+        .from("items")
+        .update({ removed_at: null })
+        .eq("id", itemId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Non-owner B can undo soft-remove (clear removed_at) on partner-created item",
+        !undoErr && removedCleared?.removed_at === null,
+        undoErr?.message ?? removedCleared,
+      );
+
+      // aisle + position (0013): items_update_member has no column
+      // restrictions, so non-owner B can update both on A's item.
+      const { data: aisleAndPositionUpdated, error: aisleErr } = await clientB
+        .from("items")
+        .update({ aisle: "Dairy", position: 2 })
+        .eq("id", itemId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Non-owner B can update aisle and position on partner-created item",
+        !aisleErr &&
+          aisleAndPositionUpdated?.aisle === "Dairy" &&
+          aisleAndPositionUpdated?.position === 2,
+        aisleErr?.message ?? aisleAndPositionUpdated,
+      );
+
+      // lists.recurring: owner-only, same as rename/archive.
+      const { data: recurringByB } = await clientB
+        .from("lists")
+        .update({ recurring: true })
+        .eq("id", listId)
+        .select();
+      assert(
+        "Non-owner B cannot update lists.recurring",
+        (recurringByB ?? []).length === 0,
+        recurringByB,
+      );
+
+      const { data: recurringByA, error: recurringErr } = await clientA
+        .from("lists")
+        .update({ recurring: true })
+        .eq("id", listId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Owner A can update lists.recurring",
+        !recurringErr && recurringByA?.recurring === true,
+        recurringErr?.message ?? recurringByA,
+      );
+
+      // create_list: 3-arg RPC works with and without p_recurring.
+      const { data: recurringListId, error: recurringCreateErr } = await clientA.rpc(
+        "create_list",
+        { p_name: "Weekly groceries", p_type: "shopping", p_recurring: true },
+      );
+      assert(
+        "A creates list via RPC with p_recurring: true",
+        !recurringCreateErr && !!recurringListId,
+        recurringCreateErr?.message,
+      );
+      if (recurringListId) {
+        const { data: recurringListRow } = await serviceClient
+          .from("lists")
+          .select("recurring")
+          .eq("id", recurringListId)
+          .maybeSingle();
+        assert(
+          "List created with p_recurring: true has recurring = true",
+          recurringListRow?.recurring === true,
+          recurringListRow,
+        );
+      }
+
+      const { data: defaultListId, error: defaultCreateErr } = await clientA.rpc("create_list", {
+        p_name: "One-off list",
+        p_type: "shopping",
+      });
+      assert(
+        "A creates list via RPC without p_recurring",
+        !defaultCreateErr && !!defaultListId,
+        defaultCreateErr?.message,
+      );
+      if (defaultListId) {
+        const { data: defaultListRow } = await serviceClient
+          .from("lists")
+          .select("recurring")
+          .eq("id", defaultListId)
+          .maybeSingle();
+        assert(
+          "List created without p_recurring defaults recurring = false",
+          defaultListRow?.recurring === false,
+          defaultListRow,
+        );
+      }
+    } else {
+      fail("Assertion 4.5 skipped — no listId/itemId from Assertion 1");
+    }
+
     // ---------- 7. Wishlist fields + reservation + item_images ----------
     console.log("\n--- Assertion 7: wishlist fields + reservation ---");
     if (listId) {

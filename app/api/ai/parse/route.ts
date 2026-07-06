@@ -53,7 +53,8 @@ export async function POST(request: NextRequest) {
   const { data: existingItems } = await supabase
     .from("items")
     .select("name")
-    .eq("list_id", listId);
+    .eq("list_id", listId)
+    .is("removed_at", null);
 
   const existingNames = (existingItems ?? []).map((item) => item.name);
 

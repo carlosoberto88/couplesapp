@@ -1,13 +1,21 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useTranslations } from "next-intl";
-import { Check, ChevronRight, Link2, X } from "lucide-react";
+import { Check, ChevronRight, GripVertical, Link2, X } from "lucide-react";
+import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 
 import type { Item } from "@/lib/types";
+import type { ItemUpdatePatch } from "@/lib/item-mutations";
 import type { MemberColor } from "@/lib/member-colors";
 import { UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+export type ItemRowDragHandleProps = {
+  attributes: DraggableAttributes;
+  listeners: DraggableSyntheticListeners;
+};
 
 type ItemRowProps = {
   item: Item;
@@ -15,9 +23,16 @@ type ItemRowProps = {
   checkerColor: MemberColor | null;
   imageUrl: string | null;
   hasImages: boolean;
+  listRecurring?: boolean;
+  showAisle?: boolean;
+  dragHandleProps?: ItemRowDragHandleProps;
+  dragActivatorRef?: (node: HTMLElement | null) => void;
+  dragRef?: (node: HTMLLIElement | null) => void;
+  dragStyle?: CSSProperties;
   onToggle: (item: Item) => void;
   onOpenDetail: (item: Item) => void;
   onRemove: (item: Item) => void;
+  onEdit?: (item: Item, patch: ItemUpdatePatch) => void;
 };
 
 export function ItemRow({
@@ -26,9 +41,16 @@ export function ItemRow({
   checkerColor,
   imageUrl,
   hasImages,
+  listRecurring = false,
+  showAisle = false,
+  dragHandleProps,
+  dragActivatorRef,
+  dragRef,
+  dragStyle,
   onToggle,
   onOpenDetail,
   onRemove,
+  onEdit,
 }: ItemRowProps) {
   const t = useTranslations("items");
   const checked = item.checked_at !== null;
@@ -36,14 +58,29 @@ export function ItemRow({
 
   return (
     <li
+      ref={dragRef}
       className="animate-item-in motion-reduce:animate-none flex min-h-11 items-start gap-3 rounded-2xl border border-border bg-card px-3 py-2.5"
       style={{
         borderLeftWidth: 3,
         borderLeftColor: adderColor.color,
         backgroundColor: checked ? checkColor.tint : undefined,
+        ...dragStyle,
       }}
     >
       <span className="sr-only">{t("addedBy")}</span>
+
+      {dragHandleProps && (
+        <button
+          type="button"
+          ref={dragActivatorRef}
+          aria-label={t("reorderItem", { name: item.name })}
+          className="mt-0.5 flex size-5 shrink-0 cursor-grab touch-none items-center justify-center text-muted-foreground active:cursor-grabbing"
+          {...dragHandleProps.attributes}
+          {...dragHandleProps.listeners}
+        >
+          <GripVertical className="size-4" aria-hidden />
+        </button>
+      )}
 
       <button
         type="button"
@@ -77,10 +114,23 @@ export function ItemRow({
         ) : null}
 
         <div className="min-w-0 flex-1">
-          <span
-            className={cn("block text-sm text-foreground", checked && "line-through")}
-          >
-            {item.name}
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span
+              className={cn(
+                "truncate text-sm text-foreground",
+                checked && "line-through",
+              )}
+            >
+              {item.name}
+            </span>
+            {showAisle && item.aisle && (
+              <span
+                className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                aria-label={t("aisleChipLabel", { aisle: item.aisle })}
+              >
+                {item.aisle}
+              </span>
+            )}
           </span>
           {item.note && (
             <span className="mt-0.5 block truncate text-xs text-muted-foreground">{item.note}</span>
@@ -97,6 +147,16 @@ export function ItemRow({
 
         <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
       </button>
+
+      {listRecurring && item.is_extra && onEdit && (
+        <button
+          type="button"
+          onClick={() => onEdit(item, { is_extra: false })}
+          className="mt-0.5 shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          {t("oneTimeChip")}
+        </button>
+      )}
 
       <Button
         variant="ghost"
