@@ -28,16 +28,27 @@ type SmartAddProps = {
   listId: string;
   onAddBulk: (items: { name: string; note: string | null }[]) => void;
   variant?: "icon" | "menu";
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 };
 
 type Stage = "compose" | "review";
 
-export function SmartAdd({ listId, onAddBulk, variant = "icon" }: SmartAddProps) {
+export function SmartAdd({
+  listId,
+  onAddBulk,
+  variant = "icon",
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  hideTrigger = false,
+}: SmartAddProps) {
   const t = useTranslations("smartAdd");
   const tItems = useTranslations("items");
   const tCommon = useTranslations("common");
 
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
   const [stage, setStage] = useState<Stage>("compose");
   const [text, setText] = useState("");
   const [parsing, setParsing] = useState(false);
@@ -53,7 +64,7 @@ export function SmartAdd({ listId, onAddBulk, variant = "icon" }: SmartAddProps)
   }
 
   function handleOpenChange(next: boolean) {
-    setOpen(next);
+    (controlledOnOpenChange ?? setInternalOpen)(next);
     if (!next) reset();
   }
 
@@ -126,26 +137,28 @@ export function SmartAdd({ listId, onAddBulk, variant = "icon" }: SmartAddProps)
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          variant === "menu" ? (
-            <Button type="button" variant="secondary" size="sm" className="rounded-full">
-              <Sparkles className="size-4" />
-              {t("menuLabel")}
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="secondary"
-              size="icon-lg"
-              className="h-11 w-11 shrink-0 rounded-full bg-duo-coral-tint text-duo-coral hover:bg-duo-coral-tint/70"
-              aria-label={t("triggerLabel")}
-            >
-              <Sparkles />
-            </Button>
-          )
-        }
-      />
+      {!hideTrigger ? (
+        <DialogTrigger
+          render={
+            variant === "menu" ? (
+              <Button type="button" variant="secondary" size="sm" className="rounded-full">
+                <Sparkles className="size-4" />
+                {t("menuLabel")}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-lg"
+                className="h-11 w-11 shrink-0 rounded-full bg-duo-coral-tint text-duo-coral hover:bg-duo-coral-tint/70"
+                aria-label={t("triggerLabel")}
+              >
+                <Sparkles />
+              </Button>
+            )
+          }
+        />
+      ) : null}
 
       <DialogContent keyboardAware className="flex flex-col sm:max-w-md">
         <DialogHeader className="shrink-0">

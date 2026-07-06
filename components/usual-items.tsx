@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ function normalize(name: string): string {
 }
 
 export function UsualItems({ listId, currentItemNames, onAdd }: UsualItemsProps) {
+  const t = useTranslations("items");
   const supabase = useSupabaseClient();
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
@@ -58,19 +60,22 @@ export function UsualItems({ listId, currentItemNames, onAdd }: UsualItemsProps)
   }
 
   return (
-    <div className="flex flex-wrap gap-2 px-1">
-      {visibleChips.map((name) => (
-        <Button
-          key={name}
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => handleTap(name)}
-          className="rounded-full bg-duo-teal-tint text-foreground hover:bg-duo-teal-tint/70"
-        >
-          {name}
-        </Button>
-      ))}
+    <div className="px-1">
+      <h2 className="sr-only">{t("quickAddLabel")}</h2>
+      <div className="flex flex-nowrap gap-2 overflow-x-auto">
+        {visibleChips.map((name) => (
+          <Button
+            key={name}
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => handleTap(name)}
+            className="shrink-0 rounded-full bg-muted text-foreground hover:bg-muted/70"
+          >
+            {name}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 }

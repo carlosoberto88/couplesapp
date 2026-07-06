@@ -270,21 +270,28 @@ export function AllItemsView({
         />
       ) : (
         <ul className="flex flex-col gap-3">
-          {visibleItems.map((item) => (
-            <AllItemsRow
-              key={item.id}
-              item={item}
-              currentUserId={currentUserId}
-              imageUrl={primaryImageUrl(item.id)}
-              hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
-              onToggle={handleToggle}
-              onOpenDetail={setDetailItem}
-              onReserve={handleReserve}
-              onRelease={handleRelease}
-              onMarkPurchased={handleMarkPurchased}
-              onUnmarkPurchased={handleUnmarkPurchased}
-            />
-          ))}
+          {visibleItems.map((item) => {
+            const { colorMap } = getMemberMaps(item.list_id);
+            return (
+              <AllItemsRow
+                key={item.id}
+                item={item}
+                currentUserId={currentUserId}
+                adderColor={colorMap.get(item.created_by) ?? UNKNOWN_MEMBER_COLOR}
+                checkerColor={
+                  item.checked_by ? colorMap.get(item.checked_by) ?? UNKNOWN_MEMBER_COLOR : null
+                }
+                imageUrl={primaryImageUrl(item.id)}
+                hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
+                onToggle={handleToggle}
+                onOpenDetail={setDetailItem}
+                onReserve={handleReserve}
+                onRelease={handleRelease}
+                onMarkPurchased={handleMarkPurchased}
+                onUnmarkPurchased={handleUnmarkPurchased}
+              />
+            );
+          })}
         </ul>
       )}
 

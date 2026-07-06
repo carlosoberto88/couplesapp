@@ -8,7 +8,6 @@ import { useVisualViewport, type VisualViewportSize } from "@/lib/use-visual-vie
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
-const KEYBOARD_INSET_THRESHOLD = 50
 const H_PAD = 16
 const V_PAD = 8
 
@@ -19,32 +18,24 @@ function getIsMobileViewport() {
 
 function getMobileBoxStyle(
   visualViewport: VisualViewportSize,
-  keyboardOpen: boolean,
+  enableTransition: boolean,
 ): React.CSSProperties {
   const boxWidth = Math.max(visualViewport.width - H_PAD, 280)
+  const centerY = visualViewport.offsetTop + visualViewport.height / 2
+  const maxHeight = Math.max(visualViewport.height - V_PAD * 2, 200)
 
-  const base: React.CSSProperties = {
+  return {
     left: `${visualViewport.offsetLeft + H_PAD / 2}px`,
     width: `${boxWidth}px`,
     maxWidth: `${boxWidth}px`,
-    transform: "none",
     right: "auto",
-  }
-
-  if (keyboardOpen) {
-    return {
-      ...base,
-      top: "auto",
-      bottom: `${visualViewport.keyboardInset + V_PAD}px`,
-      maxHeight: `${Math.max(visualViewport.height - H_PAD, 200)}px`,
-    }
-  }
-
-  return {
-    ...base,
-    top: `${visualViewport.offsetTop + V_PAD}px`,
+    top: `${centerY}px`,
     bottom: "auto",
-    maxHeight: `${Math.max(visualViewport.height - H_PAD, 200)}px`,
+    transform: "translateY(-50%)",
+    maxHeight: `${maxHeight}px`,
+    ...(enableTransition && {
+      transition: "top 200ms ease, max-height 200ms ease",
+    }),
   }
 }
 
@@ -123,6 +114,28 @@ function DialogContent({
 
   const visualViewport = useVisualViewport(keyboardAware && isMobile)
 
+  const [positioned, setPositioned] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!keyboardAware || !isMobile) return
+
+    const id = requestAnimationFrame(() => setPositioned(true))
+    return () => cancelAnimationFrame(id)
+  }, [keyboardAware, isMobile])
+
+  const [reducedMotion, setReducedMotion] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!keyboardAware || !isMobile) return
+
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const update = () => setReducedMotion(mq.matches)
+
+    update()
+    mq.addEventListener("change", update)
+    return () => mq.removeEventListener("change", update)
+  }, [keyboardAware, isMobile])
+
   React.useEffect(() => {
     if (!keyboardAware || !isMobile) return
 
@@ -146,12 +159,9 @@ function DialogContent({
     return () => popup.removeEventListener("focusin", handleFocusIn)
   }, [keyboardAware, isMobile])
 
-  const keyboardOpen =
-    keyboardAware && isMobile && visualViewport.keyboardInset > KEYBOARD_INSET_THRESHOLD
-
   const mobileBoxStyle =
     keyboardAware && isMobile
-      ? getMobileBoxStyle(visualViewport, keyboardOpen)
+      ? getMobileBoxStyle(visualViewport, positioned && !reducedMotion)
       : undefined
 
   return (

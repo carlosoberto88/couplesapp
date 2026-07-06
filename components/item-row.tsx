@@ -35,26 +35,32 @@ export function ItemRow({
   const checkColor = checkerColor ?? UNKNOWN_MEMBER_COLOR;
 
   return (
-    <li className="animate-item-in flex min-h-11 items-start gap-3 rounded-2xl border border-border bg-card px-3 py-2.5">
-      <span
-        aria-hidden
-        title={t("addedBy")}
-        className="mt-1.5 size-2 shrink-0 rounded-full"
-        style={{ backgroundColor: adderColor.color }}
-      />
+    <li
+      className="animate-item-in motion-reduce:animate-none flex min-h-11 items-start gap-3 rounded-2xl border border-border bg-card px-3 py-2.5"
+      style={{
+        borderLeftWidth: 3,
+        borderLeftColor: adderColor.color,
+        backgroundColor: checked ? checkColor.tint : undefined,
+      }}
+    >
+      <span className="sr-only">{t("addedBy")}</span>
 
       <button
         type="button"
         aria-label={checked ? t("uncheckItem", { name: item.name }) : t("checkItem", { name: item.name })}
         className={cn(
           "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors",
-          checked ? "border-transparent text-primary-foreground animate-check-pop" : "border-input",
+          checked
+            ? "border-transparent text-primary-foreground animate-check-pop motion-reduce:animate-none"
+            : "border-input",
         )}
         style={checked ? { backgroundColor: checkColor.color } : undefined}
         onClick={() => onToggle(item)}
       >
         {checked && <Check className="size-3" />}
       </button>
+
+      {checked && <span className="sr-only">{t("completedBy")}</span>}
 
       <button
         type="button"
@@ -72,10 +78,7 @@ export function ItemRow({
 
         <div className="min-w-0 flex-1">
           <span
-            className={cn(
-              "block text-sm text-foreground",
-              checked && "text-muted-foreground line-through",
-            )}
+            className={cn("block text-sm text-foreground", checked && "line-through")}
           >
             {item.name}
           </span>

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Layers, Plus } from "lucide-react";
+import { EllipsisVertical, Plus } from "lucide-react";
 
 import type { RichAddInput } from "@/components/rich-add-item-form";
 import { AddItemDialog } from "@/components/add-item-dialog";
@@ -10,6 +10,12 @@ import { BulkAddItemsDialog } from "@/components/bulk-add-items-dialog";
 import { SmartAdd } from "@/components/smart-add";
 import { UsualItems } from "@/components/usual-items";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { isWishlist } from "@/lib/list-types";
 import type { LinkPreviewData } from "@/lib/persist-item";
 import { useStickyAddBarHeight } from "@/lib/use-sticky-add-bar-height";
@@ -55,8 +61,10 @@ export function ListAddSection({
   onAddOpenChange,
 }: ListAddSectionProps) {
   const t = useTranslations("addMenu");
+  const tSmartAdd = useTranslations("smartAdd");
   const [internalBulkOpen, setInternalBulkOpen] = useState(false);
   const [internalAddOpen, setInternalAddOpen] = useState(false);
+  const [smartAddOpen, setSmartAddOpen] = useState(false);
   const stickyBarRef = useRef<HTMLDivElement>(null);
 
   useStickyAddBarHeight(stickyBarRef);
@@ -69,32 +77,41 @@ export function ListAddSection({
 
   const addItemLabel = wishlist ? t("addItemWishlist") : t("addItem");
 
+  const addMenuItems = (
+    <>
+      <DropdownMenuItem onClick={() => setBulkOpen(true)}>{t("addMultiple")}</DropdownMenuItem>
+      {showSmartAdd ? (
+        <DropdownMenuItem onClick={() => setSmartAddOpen(true)}>
+          {tSmartAdd("menuLabel")}
+        </DropdownMenuItem>
+      ) : null}
+    </>
+  );
+
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="hidden md:flex flex-wrap items-center gap-2">
         <Button
           type="button"
           size="sm"
-          className="hidden rounded-full md:inline-flex"
+          className="rounded-full"
           onClick={() => setAddOpen(true)}
           disabled={pending}
         >
           <Plus className="size-4" />
           {addItemLabel}
         </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          className="rounded-full"
-          onClick={() => setBulkOpen(true)}
-        >
-          <Layers className="size-4" />
-          {t("addMultiple")}
-        </Button>
-        {showSmartAdd ? (
-          <SmartAdd listId={listId} onAddBulk={onSmartAddBulk} variant="menu" />
-        ) : null}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="ghost" size="icon" className="size-9 rounded-full" />}
+          >
+            <EllipsisVertical className="size-4" />
+            <span className="sr-only">{t("moreOptions")}</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="rounded-xl">
+            {addMenuItems}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {showUsualItems ? (
@@ -121,20 +138,42 @@ export function ListAddSection({
         hideTrigger
       />
 
+      {showSmartAdd ? (
+        <SmartAdd
+          listId={listId}
+          onAddBulk={onSmartAddBulk}
+          variant="menu"
+          open={smartAddOpen}
+          onOpenChange={setSmartAddOpen}
+          hideTrigger
+        />
+      ) : null}
+
       <div
         ref={stickyBarRef}
         className="sticky-add-bar pointer-events-none fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur supports-backdrop-filter:bg-background/80 md:hidden"
       >
-        <div className="pointer-events-auto mx-auto flex w-full max-w-[640px] flex-col gap-2">
+        <div className="pointer-events-auto mx-auto flex w-full max-w-[640px] items-center gap-2">
           <Button
             type="button"
-            className="h-11 w-full rounded-xl"
+            className="h-11 flex-1 rounded-xl"
             onClick={() => setAddOpen(true)}
             disabled={pending}
           >
             <Plus className="size-4" />
             {addItemLabel}
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={<Button variant="outline" size="icon" className="size-11 rounded-xl" />}
+            >
+              <EllipsisVertical className="size-4" />
+              <span className="sr-only">{t("moreOptions")}</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="end" className="rounded-xl">
+              {addMenuItems}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </>

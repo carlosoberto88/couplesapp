@@ -22,7 +22,8 @@ export function AllDoneCelebration({ active }: AllDoneCelebrationProps) {
     id: i,
     left: `${10 + ((i * 37) % 80)}%`,
     delay: `${(i % 6) * 0.04}s`,
-    color: ["#E8674C", "#2A9D8F", "#E9C46A", "#9B59B6"][i % 4],
+    // keep in sync with app/globals.css :root (--duo-coral/--duo-teal/--duo-gold + coral tint)
+    color: ["#e8674c", "#2fa39b", "#e6b54a", "#fbe3dc"][i % 4],
   }));
 
   return (

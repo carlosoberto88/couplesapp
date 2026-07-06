@@ -10,8 +10,9 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     description: t("description"),
     start_url: "/lists",
     display: "standalone",
-    background_color: "#FBF7F2",
-    theme_color: "#E8674C",
+    // keep in sync with app/globals.css :root
+    background_color: "#fbf7f2",
+    theme_color: "#e8674c",
     icons: [
       {
         src: "/icons/icon-192.png",

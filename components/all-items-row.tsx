@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 
 import type { ItemWithList } from "@/lib/types";
 import { getListTypeMeta, isWishlist } from "@/lib/list-types";
+import type { MemberColor } from "@/lib/member-colors";
+import { UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import {
   canSeeReservation,
   isPurchased,
@@ -18,6 +20,8 @@ import { cn } from "@/lib/utils";
 type AllItemsRowProps = {
   item: ItemWithList;
   currentUserId: string;
+  adderColor: MemberColor;
+  checkerColor: MemberColor | null;
   imageUrl: string | null;
   hasImages: boolean;
   onToggle: (item: ItemWithList) => void;
@@ -31,6 +35,8 @@ type AllItemsRowProps = {
 export function AllItemsRow({
   item,
   currentUserId,
+  adderColor,
+  checkerColor,
   imageUrl,
   hasImages,
   onToggle,
@@ -56,9 +62,19 @@ export function AllItemsRow({
   const canRelease = wishlist && !purchased && reserved && isReserver;
   const canMarkPurchased = wishlist && !purchased && reserved && isReserver;
   const canUnmarkPurchased = wishlist && purchased && item.checked_by === currentUserId;
+  const completerColor = checked && item.checked_by ? checkerColor ?? UNKNOWN_MEMBER_COLOR : null;
 
   return (
-    <li className="animate-item-in rounded-2xl border border-border bg-card">
+    <li
+      className="animate-item-in motion-reduce:animate-none rounded-2xl border border-border bg-card"
+      style={{
+        borderLeftWidth: 3,
+        borderLeftColor: adderColor.color,
+        backgroundColor: completerColor ? completerColor.tint : undefined,
+      }}
+    >
+      <span className="sr-only">{tItems("addedBy")}</span>
+      {completerColor && <span className="sr-only">{tItems("completedBy")}</span>}
       <div className="flex items-start gap-2 p-3">
         <div className="flex shrink-0 flex-col items-center gap-1 pt-1">
           {wishlist ? (
@@ -86,7 +102,7 @@ export function AllItemsRow({
                 <button
                   type="button"
                   aria-label={tWishlist("unmarkPurchasedItem", { name: item.name })}
-                  className="flex size-8 animate-check-pop items-center justify-center rounded-full border border-transparent bg-primary text-primary-foreground"
+                  className="flex size-8 animate-check-pop motion-reduce:animate-none items-center justify-center rounded-full border border-transparent bg-primary text-primary-foreground"
                   onClick={() => onUnmarkPurchased(item)}
                 >
                   <Check className="size-4" aria-hidden />
@@ -115,9 +131,10 @@ export function AllItemsRow({
               className={cn(
                 "flex size-8 items-center justify-center rounded-full border transition-colors",
                 checked
-                  ? "border-transparent bg-primary text-primary-foreground animate-check-pop"
+                  ? "border-transparent text-primary-foreground animate-check-pop motion-reduce:animate-none"
                   : "border-input",
               )}
+              style={checked ? { backgroundColor: (completerColor ?? UNKNOWN_MEMBER_COLOR).color } : undefined}
               onClick={() => onToggle(item)}
             >
               {checked && <Check className="size-4" />}
@@ -143,7 +160,7 @@ export function AllItemsRow({
             <p
               className={cn(
                 "font-medium text-foreground",
-                (checked || purchased) && "text-muted-foreground line-through",
+                (checked || purchased) && "line-through",
               )}
             >
               {item.name}

@@ -443,6 +443,7 @@ export function WishlistItemList({
         currentUserId={currentUserId}
         displayName={myDisplayName}
         memberIds={memberIds}
+        colorMap={colorMap}
       />
 
       <ListActivityStrip items={items} nameFor={nameFor} />
@@ -510,6 +511,9 @@ export function WishlistItemList({
               listOwnerId={listOwnerId}
               currentUserId={currentUserId}
               adderColor={colorMap.get(item.created_by) ?? UNKNOWN_MEMBER_COLOR}
+              checkerColor={
+                item.checked_by ? colorMap.get(item.checked_by) ?? UNKNOWN_MEMBER_COLOR : null
+              }
               imageUrl={primaryImageUrl(item.id)}
               hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
               onOpenDetail={setDetailItem}

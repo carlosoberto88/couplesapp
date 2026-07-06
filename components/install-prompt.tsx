@@ -46,21 +46,19 @@ export function InstallPrompt() {
   }
 
   return (
-    <div className="border-b border-border bg-duo-coral-tint/40 px-4 py-3 pt-safe">
-      <div className="mx-auto flex w-full max-w-[640px] items-start gap-3">
-        <Download className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
-        <div className="flex-1">
-          <p className="text-sm font-medium text-foreground">{t("title")}</p>
-          <p className="text-xs text-muted-foreground">{t("description")}</p>
-          <div className="mt-2 flex gap-2">
-            <Button type="button" size="sm" className="rounded-xl" onClick={() => void install()}>
-              {t("action")}
-            </Button>
-            <Button type="button" size="sm" variant="ghost" className="rounded-xl" onClick={dismiss}>
-              {t("dismiss")}
-            </Button>
-          </div>
-        </div>
+    <div className="border-b border-border bg-duo-coral-tint/40 px-4 pt-safe">
+      <div className="mx-auto flex w-full max-w-[640px] min-h-11 items-center gap-2 py-1.5">
+        <Download className="size-4 shrink-0 text-primary" aria-hidden />
+        <p className="flex-1 truncate text-sm text-foreground">{t("compactTitle")}</p>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-auto shrink-0 px-2 py-1 text-sm font-medium text-primary"
+          onClick={() => void install()}
+        >
+          {t("action")}
+        </Button>
         <Button type="button" variant="ghost" size="icon-sm" onClick={dismiss} aria-label={t("dismiss")}>
           <X />
         </Button>
