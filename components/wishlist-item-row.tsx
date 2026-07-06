@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 
 import type { Item } from "@/lib/types";
 import type { MemberColor } from "@/lib/member-colors";
+import { UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import {
   canSeeReservation,
   isPurchased,
@@ -19,6 +20,7 @@ type WishlistItemRowProps = {
   listOwnerId: string;
   currentUserId: string;
   adderColor: MemberColor;
+  checkerColor: MemberColor | null;
   imageUrl: string | null;
   hasImages: boolean;
   onOpenDetail: (item: Item) => void;
@@ -34,6 +36,7 @@ export function WishlistItemRow({
   listOwnerId,
   currentUserId,
   adderColor,
+  checkerColor,
   imageUrl,
   hasImages,
   onOpenDetail,
@@ -52,6 +55,8 @@ export function WishlistItemRow({
   const canRelease = !purchased && reserved && isReserver;
   const canMarkPurchased = !purchased && reserved && isReserver;
   const canUnmarkPurchased = purchased && item.checked_by === currentUserId;
+  const completerColor =
+    purchased && item.checked_by ? checkerColor ?? UNKNOWN_MEMBER_COLOR : null;
 
   return (
     <li
@@ -59,7 +64,14 @@ export function WishlistItemRow({
         "animate-item-in rounded-2xl border border-border bg-card transition-opacity",
         purchased && "opacity-60",
       )}
+      style={{
+        borderLeftWidth: 3,
+        borderLeftColor: adderColor.color,
+        backgroundColor: completerColor ? completerColor.tint : undefined,
+      }}
     >
+      <span className="sr-only">{t("addedBy")}</span>
+      {completerColor && <span className="sr-only">{t("completedBy")}</span>}
       <div className="flex items-start gap-2 p-3">
         <div className="flex shrink-0 flex-col items-center gap-1 pt-1">
           {canReserve ? (
@@ -120,11 +132,6 @@ export function WishlistItemRow({
 
           <div className="min-w-0 flex-1">
             <div className="flex items-start gap-2">
-              <span
-                aria-hidden
-                className="mt-1.5 size-2 shrink-0 rounded-full"
-                style={{ backgroundColor: adderColor.color }}
-              />
               <div className="min-w-0 flex-1">
                 <p className={cn("font-medium text-foreground", purchased && "line-through")}>
                   {item.name}
@@ -140,7 +147,7 @@ export function WishlistItemRow({
               </div>
             </div>
 
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-4">
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               {item.priority === "must_have" && (
                 <Badge variant="secondary">{t("priorityMustHave")}</Badge>
               )}
@@ -160,7 +167,7 @@ export function WishlistItemRow({
               )}
             </div>
 
-            <p className="mt-2 pl-4 text-xs text-primary">{t("viewDetails")}</p>
+            <p className="mt-2 text-xs text-primary">{t("viewDetails")}</p>
           </div>
         </button>
 

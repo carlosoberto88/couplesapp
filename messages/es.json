@@ -25,11 +25,13 @@
     "active": "Activas",
     "archived": "Archivadas",
     "emptyActiveTitle": "Aún no hay listas",
-    "emptyActiveDescription": "Crea tu primera lista para empezar a compartir con tu persona.",
-    "emptyActiveAction": "Crear tu primera lista",
+    "emptyActiveDescription": "Crea tu primera lista y compártela con tu persona.",
+    "emptyActiveAction": "Crear lista",
     "emptyArchivedTitle": "Nada archivado aún",
     "emptyArchivedDescription": "Las listas que archiven juntos aparecerán aquí.",
-    "memberCount": "{count, plural, one {# miembro} other {# miembros}}"
+    "memberCount": "{count, plural, one {# miembro} other {# miembros}}",
+    "membersYouAnd": "Tú y {name}",
+    "membersCount": "{count} personas"
   },
   "allItems": {
     "navLabel": "Navegación principal",
@@ -41,7 +43,7 @@
     "pending": "Pendientes",
     "done": "Hechos",
     "emptyPendingTitle": "Todo al día",
-    "emptyPendingDescription": "No queda nada por conseguir — todos los artículos de tus listas activas están marcados o comprados.",
+    "emptyPendingDescription": "Todo lo de tus listas activas está marcado o comprado.",
     "emptyDoneTitle": "Nada hecho aún",
     "emptyDoneDescription": "Los artículos marcados y comprados de tus listas aparecerán aquí."
   },
@@ -117,6 +119,7 @@
     "cancelInviteConfirm": "Cancelar invitación"
   },
   "items": {
+    "quickAddLabel": "Agregar rápido",
     "addPlaceholder": "Agregar un ítem…",
     "addAriaLabel": "Agregar un ítem",
     "itemCount": "{count, plural, one {# ítem} other {# ítems}}",
@@ -130,6 +133,7 @@
     "allDone": "Todo listo 🎉",
     "clearCheckedPrompt": "¿Limpiar marcados?",
     "addedBy": "Agregado por",
+    "completedBy": "Completado por tu pareja",
     "addNote": "Agregar nota",
     "addNotePlaceholder": "Agregar una nota…",
     "removeItem": "Quitar {name}",
@@ -213,7 +217,9 @@
     "addedByOtherBulk": "{count, plural, one {# regalo} other {# regalos}} agregados por {user}",
     "addedOtherBulk": "{count, plural, one {# regalo} other {# regalos}} agregados",
     "viewDetails": "Ver detalles",
-    "hasPhotos": "Fotos"
+    "hasPhotos": "Fotos",
+    "addedBy": "Agregado por",
+    "completedBy": "Comprado por tu pareja"
   },
   "itemDetail": {
     "description": "Descripción",
@@ -258,6 +264,7 @@
     "menuLabel": "Agregar inteligente"
   },
   "addMenu": {
+    "moreOptions": "Más formas de agregar",
     "addMultiple": "Agregar varios",
     "addItem": "Agregar ítem",
     "addItemWishlist": "Agregar regalo",
@@ -347,6 +354,7 @@
   "install": {
     "title": "Agrega Couples a tu pantalla de inicio",
     "description": "Acceso rápido y notificaciones como una app nativa.",
+    "compactTitle": "Instala Couples en tu pantalla de inicio",
     "action": "Instalar",
     "dismiss": "Ahora no"
   },

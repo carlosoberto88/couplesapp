@@ -55,6 +55,7 @@
 }
 
 :root {
+  /* Warm brand light theme (base + shadcn semantic tokens) */
   --background: #fbf7f2;
   --foreground: #2b2724;
   --card: #fffdfa;
@@ -66,7 +67,7 @@
   --secondary: #f4ede3;
   --secondary-foreground: #2b2724;
   --muted: #f4ede3;
-  --muted-foreground: #8a817a;
+  --muted-foreground: #6b6058;
   --accent: #fbe3dc;
   --accent-foreground: #2b2724;
   --destructive: #c4462f;
@@ -76,7 +77,7 @@
   --chart-1: #e8674c;
   --chart-2: #2fa39b;
   --chart-3: #e6b54a;
-  --chart-4: #8a817a;
+  --chart-4: #6b6058;
   --chart-5: #2b2724;
   --radius: 1rem;
   --sidebar: #fbf7f2;
@@ -88,7 +89,7 @@
   --sidebar-border: #ece4d8;
   --sidebar-ring: #e8674c;
 
-  /* His & Hers member accent tokens */
+  /* His & Hers member accent tokens (large-text/UI accents only — keep body copy off coral) */
   --duo-coral: #e8674c;
   --duo-coral-tint: #fbe3dc;
   --duo-teal: #2fa39b;
@@ -98,40 +99,60 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Warm brand dark theme — near-black/near-white replace generic shadcn greys */
+  --background: #1e1a17;
+  --foreground: #f3ece4;
+  --card: #26211d;
+  --card-foreground: #f3ece4;
+  --popover: #26211d;
+  --popover-foreground: #f3ece4;
+  --primary: #f08a72;
+  --primary-foreground: #26211d;
+  --secondary: #322b25;
+  --secondary-foreground: #f3ece4;
+  --muted: #322b25;
+  --muted-foreground: #a89d93;
+  --accent: #3a2a24;
+  --accent-foreground: #f3ece4;
+  --destructive: #e0725a;
+  --border: rgb(243 236 228 / 10%);
+  --input: rgb(243 236 228 / 15%);
+  --ring: #f08a72;
+  --chart-1: #f08a72;
+  --chart-2: #4fbdb3;
+  --chart-3: #e6b54a;
+  --chart-4: #a89d93;
+  --chart-5: #f3ece4;
+  --sidebar: #1e1a17;
+  --sidebar-foreground: #f3ece4;
+  --sidebar-primary: #f08a72;
+  --sidebar-primary-foreground: #26211d;
+  --sidebar-accent: #3a2a24;
+  --sidebar-accent-foreground: #f3ece4;
+  --sidebar-border: rgb(243 236 228 / 10%);
+  --sidebar-ring: #f08a72;
+
+  /* His & Hers member accent tokens — dark: tints are low-luminance washes, not pastels */
+  --duo-coral: #f08a72;
+  --duo-coral-tint: #3a2620;
+  --duo-teal: #4fbdb3;
+  --duo-teal-tint: #1f3230;
+  --duo-gold: #e6b54a;
+  --duo-gold-tint: #3a3120;
 }
 
 @layer base {
+  /*
+   * Restrained type scale: `font-display` (Bricolage Grotesque) is reserved for
+   * page titles (<h1>) and list-card names ONLY — everything else (body copy,
+   * category/meta labels, timestamps, counts) stays on `font-sans` (Inter).
+   * Do not spread the display font to other UI text.
+   *
+   * Numeric UI (item/member counts, relative timestamps) should use Tailwind's
+   * built-in `tabular-nums` utility (font-variant-numeric: tabular-nums) so
+   * digits don't jitter in width as they change — no custom utility needed,
+   * it ships with Tailwind v4 out of the box.
+   */
   * {
     @apply border-border outline-ring/50;
   }
@@ -141,15 +162,18 @@
   html {
     @apply font-sans;
   }
+  h1 {
+    @apply font-display;
+  }
 }
 
 @layer utilities {
   @keyframes check-pop {
     0% {
-      transform: scale(0.6);
+      transform: scale(0.7);
     }
-    60% {
-      transform: scale(1.08);
+    55% {
+      transform: scale(1.12);
     }
     100% {
       transform: scale(1);
@@ -168,7 +192,7 @@
   }
 
   .animate-check-pop {
-    animation: check-pop 180ms ease-out;
+    animation: check-pop 180ms cubic-bezier(0.2, 0, 0.2, 1);
   }
 
   .animate-item-in {

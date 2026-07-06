@@ -6,6 +6,7 @@ import { getLocale, getMessages, getTranslations } from "next-intl/server";
 
 import { getClerkLocalization } from "@/lib/clerk-localization";
 
+import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/sw-register";
 import { PushNotificationsSetup } from "@/components/push-notifications-setup";
@@ -38,7 +39,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#E8674C",
+  // keep in sync with app/globals.css :root / .dark
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#1e1a17" },
+    { media: "(prefers-color-scheme: light)", color: "#fbf7f2" },
+  ],
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
 };
@@ -56,18 +61,26 @@ export default async function RootLayout({
     <html
       lang={locale}
       className={`${bricolageGrotesque.variable} ${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <ClerkProvider localization={clerkLocalization}>
-          <NextIntlClientProvider messages={messages}>
-            <NavigationProgress />
-            <InstallPrompt />
-            <PushNotificationsSetup />
-            {children}
-            <Toaster richColors position="top-center" />
-            <ServiceWorkerRegister />
-          </NextIntlClientProvider>
-        </ClerkProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ClerkProvider localization={clerkLocalization}>
+            <NextIntlClientProvider messages={messages}>
+              <NavigationProgress />
+              <InstallPrompt />
+              <PushNotificationsSetup />
+              {children}
+              <Toaster richColors position="top-center" />
+              <ServiceWorkerRegister />
+            </NextIntlClientProvider>
+          </ClerkProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

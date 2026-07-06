@@ -55,7 +55,7 @@ export function ListActivityStrip({ items, nameFor }: ListActivityStripProps) {
     typeof document !== "undefined" ? document.documentElement.lang || "en" : "en";
 
   return (
-    <div className="rounded-2xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+    <div className="rounded-2xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground tabular-nums">
       <ul className="flex flex-col gap-1">
         {events.map((event) => {
           const userName = nameFor(event.userId) ?? t("someone");

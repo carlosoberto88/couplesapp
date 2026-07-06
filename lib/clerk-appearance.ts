@@ -12,8 +12,9 @@
  */
 export const clerkAppearance = {
   variables: {
+    // keep in sync with app/globals.css :root
     colorPrimary: "#e8674c",
-    colorBackground: "#FBF7F2",
+    colorBackground: "#fbf7f2",
     fontFamily: "var(--font-inter)",
     fontFamilyButtons: "var(--font-inter)",
     borderRadius: "1rem",

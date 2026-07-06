@@ -25,11 +25,13 @@
     "active": "Active",
     "archived": "Archived",
     "emptyActiveTitle": "No lists yet",
-    "emptyActiveDescription": "Create your first list to start sharing with your person.",
-    "emptyActiveAction": "Create your first list",
+    "emptyActiveDescription": "Create your first list and share it with your person.",
+    "emptyActiveAction": "Create list",
     "emptyArchivedTitle": "Nothing archived yet",
     "emptyArchivedDescription": "Lists you archive together will show up here.",
-    "memberCount": "{count, plural, one {# member} other {# members}}"
+    "memberCount": "{count, plural, one {# member} other {# members}}",
+    "membersYouAnd": "You and {name}",
+    "membersCount": "{count} people"
   },
   "allItems": {
     "navLabel": "Main navigation",
@@ -41,7 +43,7 @@
     "pending": "Pending",
     "done": "Done",
     "emptyPendingTitle": "All caught up",
-    "emptyPendingDescription": "Nothing left to get — every item on your active lists is checked off or purchased.",
+    "emptyPendingDescription": "Everything on your active lists is checked or purchased.",
     "emptyDoneTitle": "Nothing done yet",
     "emptyDoneDescription": "Checked and purchased items from your lists will show up here."
   },
@@ -117,6 +119,7 @@
     "cancelInviteConfirm": "Cancel invite"
   },
   "items": {
+    "quickAddLabel": "Quick add",
     "addPlaceholder": "Add an item…",
     "addAriaLabel": "Add an item",
     "itemCount": "{count, plural, one {# item} other {# items}}",
@@ -130,6 +133,7 @@
     "allDone": "All done 🎉",
     "clearCheckedPrompt": "Clear checked?",
     "addedBy": "Added by",
+    "completedBy": "Completed by partner",
     "addNote": "Add note",
     "addNotePlaceholder": "Add a note…",
     "removeItem": "Remove {name}",
@@ -211,7 +215,9 @@
     "purchasedByOther": "\"{name}\" was marked purchased",
     "removedByOther": "\"{name}\" was removed",
     "viewDetails": "View details",
-    "hasPhotos": "Photos"
+    "hasPhotos": "Photos",
+    "addedBy": "Added by",
+    "completedBy": "Purchased by partner"
   },
   "itemDetail": {
     "description": "Description",
@@ -256,6 +262,7 @@
     "menuLabel": "Smart add"
   },
   "addMenu": {
+    "moreOptions": "More ways to add",
     "addMultiple": "Add multiple",
     "addItem": "Add item",
     "addItemWishlist": "Add gift",
@@ -345,6 +352,7 @@
   "install": {
     "title": "Add Couples to your home screen",
     "description": "Get quick access and notifications like a native app.",
+    "compactTitle": "Install Couples on your home screen",
     "action": "Install",
     "dismiss": "Not now"
   },

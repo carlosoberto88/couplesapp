@@ -4,8 +4,8 @@ import { auth } from "@clerk/nextjs/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { getListTypeMeta } from "@/lib/list-types";
-import { DUO_PALETTE } from "@/lib/member-colors";
-import type { List } from "@/lib/types";
+import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
+import type { List, Profile } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { AppBar } from "@/components/app-bar";
 import { AppBarActions } from "@/components/app-bar-actions";
@@ -16,8 +16,15 @@ import { EmptyState } from "@/components/empty-state";
 import { ListSettingsMenu } from "@/components/list-settings-menu";
 import { ListsLiveSync } from "@/components/lists-live-sync";
 import { ListCardLink } from "@/components/list-card-link";
+import { MemberAvatar, initialsFor } from "@/components/member-avatar";
 
-type ListRow = List & { list_members: { count: number }[] };
+type ListMemberWithProfile = {
+  user_id: string;
+  created_at: string;
+  profiles: Pick<Profile, "id" | "email" | "display_name"> | null;
+};
+
+type ListRow = List & { list_members: ListMemberWithProfile[] };
 
 export default async function ListsPage({
   searchParams,
@@ -37,10 +44,12 @@ export default async function ListsPage({
 
   const { data: lists } = await supabase
     .from("lists")
-    .select("id, name, type, owner_id, archived_at, created_at, list_members(count)")
+    .select(
+      "id, name, type, owner_id, archived_at, created_at, list_members(user_id, created_at, profiles(id, email, display_name))",
+    )
     .order("created_at", { ascending: false });
 
-  const rows = (lists ?? []) as ListRow[];
+  const rows = (lists ?? []) as unknown as ListRow[];
   const activeLists = rows.filter((l) => l.archived_at === null);
   const archivedLists = rows.filter((l) => l.archived_at !== null);
   const visibleLists = showArchived ? archivedLists : activeLists;
@@ -69,10 +78,14 @@ export default async function ListsPage({
           <ul className="flex flex-col gap-3">
             {visibleLists.map((list) => {
               const meta = getListTypeMeta(list.type, (key) => tListTypes(key));
-              const memberCount = list.list_members?.[0]?.count ?? 0;
+              const members = list.list_members ?? [];
+              const memberCount = members.length;
               const isOwner = list.owner_id === userId;
               const dotCount = Math.min(memberCount, 3);
-              const extra = memberCount - dotCount;
+              const colorMap = buildMemberColorMap(members);
+              const otherMember = members.find((m) => m.user_id !== userId);
+              const otherName =
+                otherMember?.profiles?.display_name || otherMember?.profiles?.email || "?";
 
               return (
                 <li key={list.id}>
@@ -94,25 +107,31 @@ export default async function ListsPage({
                           </span>
                         </div>
                         {memberCount > 0 && (
-                          <div
-                            className="flex shrink-0 items-center gap-1"
-                            aria-label={t("memberCount", { count: memberCount })}
-                          >
+                          <div className="flex shrink-0 flex-col items-end gap-0.5">
                             <div className="flex -space-x-1.5">
-                              {Array.from({ length: dotCount }).map((_, i) => (
-                                <span
-                                  key={i}
-                                  className="size-3 rounded-full ring-2 ring-card"
-                                  style={{
-                                    backgroundColor:
-                                      DUO_PALETTE[i % DUO_PALETTE.length].color,
-                                  }}
-                                />
-                              ))}
+                              {members.slice(0, dotCount).map((member) => {
+                                const color =
+                                  colorMap.get(member.user_id) ?? UNKNOWN_MEMBER_COLOR;
+                                const name =
+                                  member.profiles?.display_name ||
+                                  member.profiles?.email ||
+                                  "?";
+                                return (
+                                  <MemberAvatar
+                                    key={member.user_id}
+                                    initials={initialsFor(member.profiles)}
+                                    color={color}
+                                    title={name}
+                                    className="size-6 text-[10px]"
+                                  />
+                                );
+                              })}
                             </div>
-                            {extra > 0 && (
+                            {memberCount >= 2 && (
                               <span className="text-xs font-medium text-muted-foreground">
-                                +{extra}
+                                {memberCount === 2
+                                  ? t("membersYouAnd", { name: otherName })
+                                  : t("membersCount", { count: memberCount })}
                               </span>
                             )}
                           </div>

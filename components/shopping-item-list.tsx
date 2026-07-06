@@ -480,6 +480,7 @@ export function ShoppingItemList({
         currentUserId={currentUserId}
         displayName={myDisplayName}
         memberIds={memberIds}
+        colorMap={colorMap}
       />
 
       <ListActivityStrip items={items} nameFor={nameFor} />
