@@ -1,8 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Item, ItemImage, ListMember, Profile } from "@/lib/types";
@@ -20,9 +38,40 @@ import { PartnerPresence } from "@/components/partner-presence";
 import { CheckedItemsSection } from "@/components/checked-items-section";
 import { useRealtimeItems } from "@/lib/use-realtime-items";
 import { ItemRow } from "@/components/item-row";
+import type { ItemRowDragHandleProps } from "@/components/item-row";
 import { ItemDetailDialog } from "@/components/item-detail-dialog";
-import { sortItems, upsertRow, removeRow } from "@/lib/item-list-utils";
+import { aisleGroupKey, sortItems, upsertRow, removeRow } from "@/lib/item-list-utils";
 import { createOtherUserAddToastDebouncer } from "@/lib/debounce-toasts";
+import { getListTypeConfig } from "@/lib/list-types";
+
+const REORDER_GAP_EPSILON = 1e-6;
+const REORDER_SPACING = 1024;
+
+type SortableItemRowProps = {
+  item: Item;
+  children: (
+    dragHandleProps: ItemRowDragHandleProps,
+    dragActivatorRef: (node: HTMLElement | null) => void,
+    dragRef: (node: HTMLLIElement | null) => void,
+    dragStyle: CSSProperties,
+  ) => ReactNode;
+};
+
+function SortableItemRow({ item, children }: SortableItemRowProps) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
+    useSortable({ id: item.id });
+
+  const style: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+    position: isDragging ? "relative" : undefined,
+  };
+
+  return (
+    <>{children({ attributes, listeners }, setActivatorNodeRef, setNodeRef, style)}</>
+  );
+}
 
 const UNDO_GRACE_MS = 5000;
 
@@ -97,8 +146,35 @@ export function ShoppingItemList({
     [sortedItems],
   );
   const hasChecked = checkedItemsList.length > 0;
+  const showAisle =
+    getListTypeConfig(listType).supportsAisles &&
+    uncheckedItems.some((item) => item.aisle !== null);
+  const supportsReorder = getListTypeConfig(listType).supportsReorder;
   const allChecked =
     sortedItems.length > 0 && hasChecked && uncheckedItems.length === 0;
+
+  // Unchecked items grouped by aisle, in display order — each group becomes
+  // its own `SortableContext` so drag can only reorder within a group
+  // (cross-aisle drag is structurally out of scope; see spec). Lists with
+  // no aisle tags collapse to a single group, giving plain reorder.
+  const uncheckedGroups = useMemo(() => {
+    const groups: { key: string | null; items: Item[] }[] = [];
+    for (const item of uncheckedItems) {
+      const key = aisleGroupKey(item.aisle);
+      const last = groups[groups.length - 1];
+      if (last && last.key === key) {
+        last.items.push(item);
+      } else {
+        groups.push({ key, items: [item] });
+      }
+    }
+    return groups;
+  }, [uncheckedItems]);
+
+  const dragSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   useEffect(() => {
     if (allChecked && !prevAllCheckedRef.current) {
@@ -115,6 +191,9 @@ export function ShoppingItemList({
   const handleFinishRef = useRef<() => void>(() => {});
   const handleUndoFinishRef = useRef<(snapshot: Item[], toastId: string | number) => void>(() => {});
   const handleEditRef = useRef<(item: Item, patch: ItemUpdatePatch) => void>(() => {});
+  const handleReorderRef = useRef<(groupItems: Item[], activeId: string, overId: string) => void>(
+    () => {},
+  );
   const locallyRemovedIdsRef = useRef<Set<string>>(new Set());
 
   const handleRichAdd = useCallback(
@@ -300,6 +379,92 @@ export function ShoppingItemList({
       updateItem(item, patch, () => handleEditRef.current(item, patch));
     },
     [updateItem],
+  );
+
+  // Reorders `groupItems` (one aisle group's unchecked items, already in
+  // display order) by moving `activeId` to where `overId` sits, then
+  // persists the moved item's new `position` — a midpoint of its new
+  // neighbors, or a full-group renumber when the gap is exhausted (see
+  // "Drag UX + position assignment" in the shopping-efficiency spec).
+  const handleReorder = useCallback(
+    (groupItems: Item[], activeId: string, overId: string) => {
+      const oldIndex = groupItems.findIndex((i) => i.id === activeId);
+      const newIndex = groupItems.findIndex((i) => i.id === overId);
+      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+
+      const reordered = arrayMove(groupItems, oldIndex, newIndex);
+      const movedIndex = reordered.findIndex((i) => i.id === activeId);
+      const prevNeighbor = reordered[movedIndex - 1] ?? null;
+      const nextNeighbor = reordered[movedIndex + 1] ?? null;
+      const prevPos = prevNeighbor?.position ?? null;
+      const nextPos = nextNeighbor?.position ?? null;
+
+      const gapExhausted =
+        prevPos !== null && nextPos !== null && nextPos - prevPos < REORDER_GAP_EPSILON;
+
+      if (gapExhausted) {
+        const renumbered = reordered.map((item, idx) => ({
+          ...item,
+          position: (idx + 1) * REORDER_SPACING,
+        }));
+
+        setItems((prev) => {
+          let next = prev;
+          for (const item of renumbered) next = upsertRow(next, item);
+          return next;
+        });
+
+        void (async () => {
+          const results = await Promise.all(
+            renumbered.map((item) =>
+              supabase.from("items").update({ position: item.position }).eq("id", item.id),
+            ),
+          );
+          if (results.some((result) => result.error)) {
+            setItems((prev) => {
+              let next = prev;
+              for (const item of groupItems) next = upsertRow(next, item);
+              return next;
+            });
+            toast.error(t("saveError"), {
+              action: {
+                label: tCommon("retry"),
+                onClick: () => handleReorderRef.current(groupItems, activeId, overId),
+              },
+            });
+          }
+        })();
+        return;
+      }
+
+      const newPosition =
+        prevPos === null && nextPos === null
+          ? REORDER_SPACING
+          : prevPos === null
+            ? (nextPos as number) - 1
+            : nextPos === null
+              ? prevPos + 1
+              : (prevPos + nextPos) / 2;
+
+      const movedItem = groupItems[oldIndex];
+      updateItem(movedItem, { position: newPosition }, () =>
+        handleReorderRef.current(groupItems, activeId, overId),
+      );
+    },
+    [supabase, t, tCommon, updateItem],
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const group = uncheckedGroups.find((g) => g.items.some((i) => i.id === active.id));
+      if (!group) return;
+      const overInGroup = group.items.some((i) => i.id === over.id);
+      if (!overInGroup) return;
+      handleReorder(group.items, String(active.id), String(over.id));
+    },
+    [uncheckedGroups, handleReorder],
   );
 
   const handleUndoRemove = useCallback((item: Item, toastId: string | number) => {
@@ -512,6 +677,7 @@ export function ShoppingItemList({
     handleFinishRef.current = handleFinish;
     handleUndoFinishRef.current = handleUndoFinish;
     handleEditRef.current = handleEdit;
+    handleReorderRef.current = handleReorder;
   });
 
   const refetchAll = useCallback(() => {
@@ -645,23 +811,89 @@ export function ShoppingItemList({
             </div>
           )}
           <ul className="flex flex-col gap-2">
-            {uncheckedItems.map((item) => (
-              <ItemRow
-                key={item.id}
-                item={item}
-                adderColor={colorMap.get(item.created_by) ?? UNKNOWN_MEMBER_COLOR}
-                checkerColor={
-                  item.checked_by ? colorMap.get(item.checked_by) ?? UNKNOWN_MEMBER_COLOR : null
-                }
-                imageUrl={primaryImageUrl(item.id)}
-                hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
-                listRecurring={listRecurring}
-                onToggle={handleToggleChecked}
-                onOpenDetail={setDetailItem}
-                onRemove={handleRemove}
-                onEdit={handleEdit}
-              />
-            ))}
+            {supportsReorder ? (
+              <DndContext
+                sensors={dragSensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                {uncheckedGroups.map((group) => (
+                  <Fragment key={group.key ?? "__no_aisle__"}>
+                    {showAisle && (
+                      <li className="px-1 pt-2 text-xs font-medium text-muted-foreground first:pt-0">
+                        {group.key === null ? t("noAisle") : group.items[0].aisle?.trim()}
+                      </li>
+                    )}
+                    <SortableContext
+                      items={group.items.map((item) => item.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {group.items.map((item) => (
+                        <SortableItemRow key={item.id} item={item}>
+                          {(dragHandleProps, dragActivatorRef, dragRef, dragStyle) => (
+                            <ItemRow
+                              item={item}
+                              adderColor={colorMap.get(item.created_by) ?? UNKNOWN_MEMBER_COLOR}
+                              checkerColor={
+                                item.checked_by
+                                  ? colorMap.get(item.checked_by) ?? UNKNOWN_MEMBER_COLOR
+                                  : null
+                              }
+                              imageUrl={primaryImageUrl(item.id)}
+                              hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
+                              listRecurring={listRecurring}
+                              showAisle={showAisle}
+                              dragHandleProps={dragHandleProps}
+                              dragActivatorRef={dragActivatorRef}
+                              dragRef={dragRef}
+                              dragStyle={dragStyle}
+                              onToggle={handleToggleChecked}
+                              onOpenDetail={setDetailItem}
+                              onRemove={handleRemove}
+                              onEdit={handleEdit}
+                            />
+                          )}
+                        </SortableItemRow>
+                      ))}
+                    </SortableContext>
+                  </Fragment>
+                ))}
+              </DndContext>
+            ) : (
+              (() => {
+                let lastAisleGroup: string | null | undefined;
+                return uncheckedItems.map((item) => {
+                  const aisleGroup = aisleGroupKey(item.aisle);
+                  const showHeader = showAisle && aisleGroup !== lastAisleGroup;
+                  lastAisleGroup = aisleGroup;
+
+                  return (
+                    <Fragment key={item.id}>
+                      {showHeader && (
+                        <li className="px-1 pt-2 text-xs font-medium text-muted-foreground first:pt-0">
+                          {aisleGroup === null ? t("noAisle") : item.aisle?.trim()}
+                        </li>
+                      )}
+                      <ItemRow
+                        item={item}
+                        adderColor={colorMap.get(item.created_by) ?? UNKNOWN_MEMBER_COLOR}
+                        checkerColor={
+                          item.checked_by ? colorMap.get(item.checked_by) ?? UNKNOWN_MEMBER_COLOR : null
+                        }
+                        imageUrl={primaryImageUrl(item.id)}
+                        hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
+                        listRecurring={listRecurring}
+                        showAisle={showAisle}
+                        onToggle={handleToggleChecked}
+                        onOpenDetail={setDetailItem}
+                        onRemove={handleRemove}
+                        onEdit={handleEdit}
+                      />
+                    </Fragment>
+                  );
+                });
+              })()
+            )}
           </ul>
           <CheckedItemsSection
             items={checkedItemsList}

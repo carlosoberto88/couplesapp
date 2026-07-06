@@ -25,6 +25,7 @@ export function buildNewItem(listId: string, userId: string, input: RichAddInput
     currency: input.price !== null ? input.currency : null,
     priority: input.priority,
     position: 0,
+    aisle: null,
     created_by: userId,
     created_at: new Date().toISOString(),
     checked_at: null,

@@ -177,7 +177,11 @@
     "finishShopping": "Finish shopping",
     "oneTimeChip": "One-time",
     "resetToast": "List reset for next trip",
-    "finishedToast": "Finished — {count, plural, one {# one-time item} other {# one-time items}} removed"
+    "finishedToast": "Finished — {count, plural, one {# one-time item} other {# one-time items}} removed",
+    "noAisle": "No aisle",
+    "aislePlaceholder": "e.g. 3 or Dairy",
+    "aisleChipLabel": "Aisle {aisle}",
+    "reorderItem": "Reorder {name}"
   },
   "wishlist": {
     "itemCount": "{count, plural, one {# gift} other {# gifts}}",
@@ -243,7 +247,8 @@
     "editTitle": "Edit item",
     "save": "Save",
     "cancel": "Cancel",
-    "saved": "Changes saved"
+    "saved": "Changes saved",
+    "aisle": "Aisle"
   },
   "bulkAdd": {
     "trigger": "Add items",

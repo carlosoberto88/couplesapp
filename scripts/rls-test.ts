@@ -415,6 +415,22 @@ async function main() {
         undoErr?.message ?? removedCleared,
       );
 
+      // aisle + position (0013): items_update_member has no column
+      // restrictions, so non-owner B can update both on A's item.
+      const { data: aisleAndPositionUpdated, error: aisleErr } = await clientB
+        .from("items")
+        .update({ aisle: "Dairy", position: 2 })
+        .eq("id", itemId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Non-owner B can update aisle and position on partner-created item",
+        !aisleErr &&
+          aisleAndPositionUpdated?.aisle === "Dairy" &&
+          aisleAndPositionUpdated?.position === 2,
+        aisleErr?.message ?? aisleAndPositionUpdated,
+      );
+
       // lists.recurring: owner-only, same as rename/archive.
       const { data: recurringByB } = await clientB
         .from("lists")

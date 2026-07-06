@@ -177,7 +177,11 @@
     "finishShopping": "Finalizar compra",
     "oneTimeChip": "Solo esta vez",
     "resetToast": "Lista lista para la próxima compra",
-    "finishedToast": "Finalizado — {count, plural, one {# artículo de un solo uso eliminado} other {# artículos de un solo uso eliminados}}"
+    "finishedToast": "Finalizado — {count, plural, one {# artículo de un solo uso eliminado} other {# artículos de un solo uso eliminados}}",
+    "noAisle": "Sin pasillo",
+    "aislePlaceholder": "p. ej. 3 o Lácteos",
+    "aisleChipLabel": "Pasillo {aisle}",
+    "reorderItem": "Reordenar {name}"
   },
   "wishlist": {
     "itemCount": "{count, plural, one {# regalo} other {# regalos}}",
@@ -245,7 +249,8 @@
     "editTitle": "Editar ítem",
     "save": "Guardar",
     "cancel": "Cancelar",
-    "saved": "Cambios guardados"
+    "saved": "Cambios guardados",
+    "aisle": "Pasillo"
   },
   "bulkAdd": {
     "trigger": "Agregar ítems",

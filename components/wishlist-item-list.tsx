@@ -141,6 +141,7 @@ export function WishlistItemList({
         currency: preview.price !== null ? (preview.currency ?? "USD") : null,
         priority,
         position: 0,
+        aisle: null,
         created_by: currentUserId,
         created_at: new Date().toISOString(),
         checked_at: null,

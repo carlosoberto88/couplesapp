@@ -40,6 +40,7 @@ export type Item = {
   name: string;
   note: string | null;
   position: number;
+  aisle: string | null;
   created_by: string;
   created_at: string;
   checked_at: string | null;
