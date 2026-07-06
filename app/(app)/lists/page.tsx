@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { auth } from "@clerk/nextjs/server";
@@ -10,7 +11,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AppBar } from "@/components/app-bar";
 import { AppBarActions } from "@/components/app-bar-actions";
 import { CreateListDialog } from "@/components/create-list-dialog";
-import { ListFilter } from "@/components/list-filter";
 import { ListsEmptyActive } from "@/components/lists-empty-active";
 import { EmptyState } from "@/components/empty-state";
 import { ListSettingsMenu } from "@/components/list-settings-menu";
@@ -45,7 +45,7 @@ export default async function ListsPage({
   const { data: lists } = await supabase
     .from("lists")
     .select(
-      "id, name, type, owner_id, archived_at, created_at, list_members(user_id, created_at, profiles(id, email, display_name))",
+      "id, name, type, recurring, owner_id, archived_at, created_at, list_members(user_id, created_at, profiles(id, email, display_name))",
     )
     .order("created_at", { ascending: false });
 
@@ -62,8 +62,6 @@ export default async function ListsPage({
         <AppBarActions />
       </AppBar>
       <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 p-4 pb-bottom-nav">
-        <ListFilter showArchived={showArchived} />
-
         {visibleLists.length === 0 ? (
           showArchived ? (
             <EmptyState
@@ -144,6 +142,24 @@ export default async function ListsPage({
               );
             })}
           </ul>
+        )}
+
+        {showArchived ? (
+          <Link
+            href="/lists"
+            className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            {t("active")}
+          </Link>
+        ) : (
+          archivedLists.length > 0 && (
+            <Link
+              href="/lists?filter=archived"
+              className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              {t("archivedCount", { count: archivedLists.length })}
+            </Link>
+          )
         )}
       </main>
     </>

@@ -10,7 +10,6 @@ import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { type ItemUpdatePatch } from "@/lib/item-mutations";
 import { buildNewItem, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
 import { useItemImages } from "@/lib/use-item-images";
-import { deleteItemImages } from "@/lib/upload-item-image";
 import { Button } from "@/components/ui/button";
 import type { RichAddInput } from "@/components/rich-add-item-form";
 import { ListAddSection } from "@/components/list-add-section";
@@ -39,6 +38,7 @@ type ShoppingItemListProps = {
   initialItems: Item[];
   initialImages: ItemImage[];
   members: MemberWithProfile[];
+  listRecurring: boolean;
 };
 
 export function ShoppingItemList({
@@ -49,6 +49,7 @@ export function ShoppingItemList({
   initialItems,
   initialImages,
   members,
+  listRecurring,
 }: ShoppingItemListProps) {
   const supabase = useSupabaseClient();
   const t = useTranslations("items");
@@ -111,7 +112,8 @@ export function ShoppingItemList({
   const handleToggleCheckedRef = useRef<(item: Item) => void>(() => {});
   const handleRemoveRef = useRef<(item: Item) => void>(() => {});
   const handleUndoRemoveRef = useRef<(item: Item, toastId: string | number) => void>(() => {});
-  const handleClearCheckedRef = useRef<() => void>(() => {});
+  const handleFinishRef = useRef<() => void>(() => {});
+  const handleUndoFinishRef = useRef<(snapshot: Item[], toastId: string | number) => void>(() => {});
   const handleEditRef = useRef<(item: Item, patch: ItemUpdatePatch) => void>(() => {});
   const locallyRemovedIdsRef = useRef<Set<string>>(new Set());
 
@@ -304,22 +306,7 @@ export function ShoppingItemList({
     setItems((prev) => upsertRow(prev, item));
 
     void (async () => {
-      const { error } = await supabase.from("items").insert({
-        id: item.id,
-        list_id: item.list_id,
-        name: item.name,
-        note: item.note,
-        url: item.url,
-        position: item.position,
-        created_by: item.created_by,
-        checked_at: item.checked_at,
-        checked_by: item.checked_by,
-        reserved_by: item.reserved_by,
-        reserved_at: item.reserved_at,
-        price: item.price,
-        currency: item.currency,
-        priority: item.priority,
-      });
+      const { error } = await supabase.from("items").update({ removed_at: null }).eq("id", item.id);
 
       if (error) {
         setItems((prev) => removeRow(prev, item.id));
@@ -334,7 +321,6 @@ export function ShoppingItemList({
   }, [supabase, t, tCommon]);
 
   const handleRemove = useCallback((item: Item) => {
-    const images = imagesByItemId.get(item.id) ?? [];
     locallyRemovedIdsRef.current.add(item.id);
     setTimeout(() => locallyRemovedIdsRef.current.delete(item.id), 3000);
 
@@ -342,8 +328,11 @@ export function ShoppingItemList({
     if (detailItem?.id === item.id) setDetailItem(null);
 
     void (async () => {
-      await deleteItemImages(supabase, images);
-      const { error } = await supabase.from("items").delete().eq("id", item.id);
+      const { error } = await supabase
+        .from("items")
+        .update({ removed_at: new Date().toISOString() })
+        .eq("id", item.id)
+        .is("removed_at", null);
 
       if (error) {
         setItems((prev) => upsertRow(prev, item));
@@ -361,14 +350,87 @@ export function ShoppingItemList({
         },
       });
     })();
-  }, [imagesByItemId, supabase, t, tCommon, detailItem?.id]);
+  }, [supabase, t, tCommon, detailItem?.id]);
 
-  const handleClearChecked = useCallback(() => {
+  // Optimistic local mirror of the server-side finish/checkout branch — shared
+  // by handleFinish (initial apply) and handleUndoFinish (rollback on error).
+  const applyOptimisticFinish = useCallback(
+    (checkedItems: Item[]) => {
+      setItems((prev) => {
+        let next = prev;
+        for (const item of checkedItems) {
+          if (listRecurring && !item.is_extra) {
+            next = upsertRow(next, { ...item, checked_at: null, checked_by: null });
+          } else {
+            next = removeRow(next, item.id);
+          }
+        }
+        return next;
+      });
+    },
+    [listRecurring],
+  );
+
+  const handleUndoFinish = useCallback(
+    (snapshot: Item[], toastId: string | number) => {
+      setItems((prev) => {
+        let next = prev;
+        for (const item of snapshot) next = upsertRow(next, item);
+        return next;
+      });
+
+      void (async () => {
+        let hasError = false;
+
+        if (listRecurring) {
+          const extraIds = snapshot.filter((item) => item.is_extra).map((item) => item.id);
+          const staples = snapshot.filter((item) => !item.is_extra);
+
+          const results = await Promise.all([
+            extraIds.length > 0
+              ? supabase.from("items").update({ removed_at: null }).in("id", extraIds)
+              : Promise.resolve({ error: null }),
+            ...staples.map((item) =>
+              supabase
+                .from("items")
+                .update({ checked_at: item.checked_at, checked_by: item.checked_by })
+                .eq("id", item.id),
+            ),
+          ]);
+          hasError = results.some((result) => result.error);
+        } else {
+          const { error } = await supabase
+            .from("items")
+            .update({ removed_at: null })
+            .in("id", snapshot.map((item) => item.id));
+          hasError = !!error;
+        }
+
+        if (hasError) {
+          applyOptimisticFinish(snapshot);
+          toast.error(t("undoError"), {
+            action: {
+              label: tCommon("retry"),
+              onClick: () => handleUndoFinishRef.current(snapshot, toastId),
+            },
+          });
+          return;
+        }
+
+        toast.dismiss(toastId);
+      })();
+    },
+    [applyOptimisticFinish, listRecurring, supabase, t, tCommon],
+  );
+
+  const handleFinish = useCallback(() => {
     const checkedItems = items.filter((item) => item.checked_at !== null);
     if (checkedItems.length === 0) return;
 
     for (const item of checkedItems) {
-      locallyRemovedIdsRef.current.add(item.id);
+      if (!listRecurring || item.is_extra) {
+        locallyRemovedIdsRef.current.add(item.id);
+      }
     }
     setTimeout(() => {
       for (const item of checkedItems) {
@@ -376,33 +438,79 @@ export function ShoppingItemList({
       }
     }, 3000);
 
-    setItems((prev) => prev.filter((item) => item.checked_at === null));
+    applyOptimisticFinish(checkedItems);
 
     void (async () => {
-      const { error } = await supabase
-        .from("items")
-        .delete()
-        .eq("list_id", listId)
-        .not("checked_at", "is", null);
+      let hasError = false;
+      const now = new Date().toISOString();
 
-      if (error) {
-        setItems((prev) => [...prev, ...checkedItems]);
+      if (listRecurring) {
+        const results = await Promise.all([
+          supabase
+            .from("items")
+            .update({ removed_at: now })
+            .eq("list_id", listId)
+            .eq("is_extra", true)
+            .not("checked_at", "is", null)
+            .is("removed_at", null),
+          supabase
+            .from("items")
+            .update({ checked_at: null, checked_by: null })
+            .eq("list_id", listId)
+            .eq("is_extra", false)
+            .not("checked_at", "is", null)
+            .is("removed_at", null),
+        ]);
+        hasError = results.some((result) => result.error);
+      } else {
+        const { error } = await supabase
+          .from("items")
+          .update({ removed_at: now })
+          .eq("list_id", listId)
+          .not("checked_at", "is", null)
+          .is("removed_at", null);
+        hasError = !!error;
+      }
+
+      if (hasError) {
+        setItems((prev) => {
+          let next = prev;
+          for (const item of checkedItems) next = upsertRow(next, item);
+          return next;
+        });
         toast.error(t("clearCheckedError"), {
-          action: { label: tCommon("retry"), onClick: () => handleClearCheckedRef.current() },
+          action: { label: tCommon("retry"), onClick: () => handleFinishRef.current() },
         });
         return;
       }
 
-      toast.success(t("clearedChecked", { count: checkedItems.length }));
+      const removedExtrasCount = listRecurring
+        ? checkedItems.filter((item) => item.is_extra).length
+        : checkedItems.length;
+
+      const message = listRecurring
+        ? removedExtrasCount > 0
+          ? t("finishedToast", { count: removedExtrasCount })
+          : t("resetToast")
+        : t("clearedChecked", { count: checkedItems.length });
+
+      const toastId = toast(message, {
+        duration: UNDO_GRACE_MS,
+        action: {
+          label: tCommon("undo"),
+          onClick: () => handleUndoFinishRef.current(checkedItems, toastId),
+        },
+      });
     })();
-  }, [items, listId, supabase, t, tCommon]);
+  }, [applyOptimisticFinish, items, listId, listRecurring, supabase, t, tCommon]);
 
   useEffect(() => {
     handleRichAddRef.current = handleRichAdd;
     handleToggleCheckedRef.current = handleToggleChecked;
     handleRemoveRef.current = handleRemove;
     handleUndoRemoveRef.current = handleUndoRemove;
-    handleClearCheckedRef.current = handleClearChecked;
+    handleFinishRef.current = handleFinish;
+    handleUndoFinishRef.current = handleUndoFinish;
     handleEditRef.current = handleEdit;
   });
 
@@ -412,6 +520,7 @@ export function ShoppingItemList({
         .from("items")
         .select("*")
         .eq("list_id", listId)
+        .is("removed_at", null)
         .order("created_at", { ascending: true });
 
       if (!error && data) {
@@ -472,6 +581,7 @@ export function ShoppingItemList({
 
   const currentItemNames = useMemo(() => items.map((item) => item.name), [items]);
   const detailImages = detailItem ? imagesByItemId.get(detailItem.id) ?? [] : [];
+  const finishLabel = listRecurring ? t("finishShopping") : t("clearChecked");
 
   return (
     <div className="flex flex-1 flex-col gap-3 pb-sticky-add-bar md:pb-0">
@@ -508,10 +618,10 @@ export function ShoppingItemList({
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleClearChecked}
+            onClick={handleFinish}
             className="text-muted-foreground hover:text-destructive"
           >
-            {t("clearChecked")}
+            {finishLabel}
           </Button>
         )}
       </div>
@@ -529,8 +639,8 @@ export function ShoppingItemList({
           {allChecked && (
             <div className="flex items-center justify-between gap-2 rounded-2xl bg-duo-gold-tint px-3 py-2.5 text-sm text-foreground">
               <span>{t("allDone")}</span>
-              <Button variant="secondary" size="sm" onClick={handleClearChecked}>
-                {t("clearCheckedPrompt")}
+              <Button variant="secondary" size="sm" onClick={handleFinish}>
+                {finishLabel}
               </Button>
             </div>
           )}
@@ -545,9 +655,11 @@ export function ShoppingItemList({
                 }
                 imageUrl={primaryImageUrl(item.id)}
                 hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
+                listRecurring={listRecurring}
                 onToggle={handleToggleChecked}
                 onOpenDetail={setDetailItem}
                 onRemove={handleRemove}
+                onEdit={handleEdit}
               />
             ))}
           </ul>
@@ -574,6 +686,7 @@ export function ShoppingItemList({
         listType={listType}
         listOwnerId={listOwnerId}
         currentUserId={currentUserId}
+        listRecurring={listRecurring}
         imageUrls={detailItem ? imageUrlsForItem(detailItem.id) : []}
         imageCount={detailImages.length}
         existingImages={detailImages}

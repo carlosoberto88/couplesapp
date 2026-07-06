@@ -79,7 +79,8 @@ export function useItemImages(listId: string, initialImages: ItemImage[]) {
             const { data: items } = await supabase
               .from("items")
               .select("id")
-              .eq("list_id", listId);
+              .eq("list_id", listId)
+              .is("removed_at", null);
             await refetchImages((items ?? []).map((row) => row.id));
           })();
         },

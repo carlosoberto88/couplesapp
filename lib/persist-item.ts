@@ -31,6 +31,8 @@ export function buildNewItem(listId: string, userId: string, input: RichAddInput
     checked_by: null,
     reserved_by: null,
     reserved_at: null,
+    is_extra: false,
+    removed_at: null,
   };
 }
 

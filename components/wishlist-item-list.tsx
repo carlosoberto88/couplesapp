@@ -12,7 +12,6 @@ import { buildNewItem, insertItemFromLink, insertItemWithImages, insertItemsBulk
 import type { LinkPreviewData } from "@/lib/persist-item";
 import { useItemImages } from "@/lib/use-item-images";
 import { upsertRow, removeRow } from "@/lib/item-list-utils";
-import { deleteItemImages } from "@/lib/upload-item-image";
 import { sortWishlistItems } from "@/lib/wishlist-utils";
 import { useRealtimeItems } from "@/lib/use-realtime-items";
 import { createOtherUserAddToastDebouncer } from "@/lib/debounce-toasts";
@@ -148,6 +147,8 @@ export function WishlistItemList({
         checked_by: null,
         reserved_by: null,
         reserved_at: null,
+        is_extra: false,
+        removed_at: null,
       };
 
       setItems((prev) => upsertRow(prev, optimisticItem));
@@ -299,37 +300,21 @@ export function WishlistItemList({
   );
 
   const handleUndoRemove = useCallback(
-    (item: Item, images: ItemImage[], toastId: string | number) => {
+    (item: Item, toastId: string | number) => {
       setItems((prev) => upsertRow(prev, item));
 
       void (async () => {
-        const { error } = await supabase.from("items").insert({
-          id: item.id,
-          list_id: item.list_id,
-          name: item.name,
-          note: item.note,
-          url: item.url,
-          price: item.price,
-          currency: item.currency,
-          priority: item.priority,
-          position: item.position,
-          created_by: item.created_by,
-          checked_at: item.checked_at,
-          checked_by: item.checked_by,
-          reserved_by: item.reserved_by,
-          reserved_at: item.reserved_at,
-        });
+        const { error } = await supabase
+          .from("items")
+          .update({ removed_at: null })
+          .eq("id", item.id);
 
         if (error) {
           setItems((prev) => removeRow(prev, item.id));
           toast.error(t("undoError"), {
-            action: { label: tCommon("retry"), onClick: () => handleUndoRemove(item, images, toastId) },
+            action: { label: tCommon("retry"), onClick: () => handleUndoRemove(item, toastId) },
           });
           return;
-        }
-
-        for (const img of images) {
-          await supabase.from("item_images").insert(img);
         }
 
         toast.dismiss(toastId);
@@ -340,7 +325,6 @@ export function WishlistItemList({
 
   const handleRemove = useCallback(
     (item: Item) => {
-      const images = imagesByItemId.get(item.id) ?? [];
       locallyRemovedIdsRef.current.add(item.id);
       setTimeout(() => locallyRemovedIdsRef.current.delete(item.id), 3000);
 
@@ -348,8 +332,10 @@ export function WishlistItemList({
       if (detailItem?.id === item.id) setDetailItem(null);
 
       void (async () => {
-        await deleteItemImages(supabase, images);
-        const { error } = await supabase.from("items").delete().eq("id", item.id);
+        const { error } = await supabase
+          .from("items")
+          .update({ removed_at: new Date().toISOString() })
+          .eq("id", item.id);
 
         if (error) {
           setItems((prev) => upsertRow(prev, item));
@@ -363,12 +349,12 @@ export function WishlistItemList({
           duration: UNDO_GRACE_MS,
           action: {
             label: tCommon("undo"),
-            onClick: () => handleUndoRemove(item, images, toastId),
+            onClick: () => handleUndoRemove(item, toastId),
           },
         });
       })();
     },
-    [imagesByItemId, supabase, t, tCommon, handleUndoRemove, detailItem?.id],
+    [supabase, t, tCommon, handleUndoRemove, detailItem?.id],
   );
 
   const refetchAll = useCallback(() => {
@@ -377,6 +363,7 @@ export function WishlistItemList({
         .from("items")
         .select("*")
         .eq("list_id", listId)
+        .is("removed_at", null)
         .order("created_at");
 
       if (itemRows) {

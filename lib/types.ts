@@ -13,6 +13,7 @@ export type List = {
   owner_id: string;
   created_at: string;
   archived_at: string | null;
+  recurring: boolean;
 };
 
 export type ListMember = {
@@ -49,6 +50,8 @@ export type Item = {
   price: number | null;
   currency: string | null;
   priority: ItemPriority | null;
+  is_extra: boolean;
+  removed_at: string | null;
 };
 
 export type ItemImage = {

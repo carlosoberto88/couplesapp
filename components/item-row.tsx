@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Check, ChevronRight, Link2, X } from "lucide-react";
 
 import type { Item } from "@/lib/types";
+import type { ItemUpdatePatch } from "@/lib/item-mutations";
 import type { MemberColor } from "@/lib/member-colors";
 import { UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { Button } from "@/components/ui/button";
@@ -15,9 +16,11 @@ type ItemRowProps = {
   checkerColor: MemberColor | null;
   imageUrl: string | null;
   hasImages: boolean;
+  listRecurring?: boolean;
   onToggle: (item: Item) => void;
   onOpenDetail: (item: Item) => void;
   onRemove: (item: Item) => void;
+  onEdit?: (item: Item, patch: ItemUpdatePatch) => void;
 };
 
 export function ItemRow({
@@ -26,9 +29,11 @@ export function ItemRow({
   checkerColor,
   imageUrl,
   hasImages,
+  listRecurring = false,
   onToggle,
   onOpenDetail,
   onRemove,
+  onEdit,
 }: ItemRowProps) {
   const t = useTranslations("items");
   const checked = item.checked_at !== null;
@@ -97,6 +102,16 @@ export function ItemRow({
 
         <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
       </button>
+
+      {listRecurring && item.is_extra && onEdit && (
+        <button
+          type="button"
+          onClick={() => onEdit(item, { is_extra: false })}
+          className="mt-0.5 shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          {t("oneTimeChip")}
+        </button>
+      )}
 
       <Button
         variant="ghost"

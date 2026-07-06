@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ExternalLink, ImagePlus, Pencil } from "lucide-react";
+import { Switch } from "@base-ui/react/switch";
 import { toast } from "sonner";
 
 import type { Item, ItemImage, ItemPriority } from "@/lib/types";
@@ -42,6 +43,7 @@ type ItemDetailDialogProps = {
   listType: string;
   listOwnerId: string;
   currentUserId: string;
+  listRecurring?: boolean;
   imageUrls: string[];
   imageCount: number;
   existingImages?: ItemImage[];
@@ -76,6 +78,7 @@ export function ItemDetailDialog({
   listType,
   listOwnerId,
   currentUserId,
+  listRecurring = false,
   imageUrls,
   imageCount,
   existingImages = [],
@@ -511,6 +514,22 @@ export function ItemDetailDialog({
                 </div>
               )}
             </dl>
+
+            {listRecurring && onSave && (
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-3 py-2.5">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground">{t("justThisTrip")}</span>
+                  <span className="text-xs text-muted-foreground">{t("justThisTripHint")}</span>
+                </div>
+                <Switch.Root
+                  checked={currentItem.is_extra}
+                  onCheckedChange={(checked) => onSave(currentItem, { is_extra: checked })}
+                  className="relative inline-flex h-6 w-10 shrink-0 items-center rounded-full bg-input transition-colors data-[checked]:bg-primary"
+                >
+                  <Switch.Thumb className="block size-4 translate-x-1 rounded-full bg-background shadow transition-transform data-[checked]:translate-x-5" />
+                </Switch.Root>
+              </div>
+            )}
 
             {wishlist && (
               <div className="flex flex-wrap gap-1.5">

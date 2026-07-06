@@ -31,7 +31,8 @@
     "emptyArchivedDescription": "Lists you archive together will show up here.",
     "memberCount": "{count, plural, one {# member} other {# members}}",
     "membersYouAnd": "You and {name}",
-    "membersCount": "{count} people"
+    "membersCount": "{count} people",
+    "archivedCount": "Archived ({count})"
   },
   "allItems": {
     "navLabel": "Main navigation",
@@ -64,12 +65,16 @@
     "description": "Give it a name and pick a type to help you find it later.",
     "namePlaceholder": "Weekly groceries",
     "typeLabel": "Type",
+    "recurringLabel": "Recurring list",
+    "recurringHint": "Keeps its items between shopping trips",
     "creating": "Creating…",
     "submit": "Create list",
     "error": "Could not create list"
   },
   "listSettings": {
     "menuLabel": "List settings",
+    "recurring": "Recurring list",
+    "recurringHint": "Keeps its items between shopping trips",
     "rename": "Rename",
     "archive": "Archive",
     "unarchive": "Unarchive",
@@ -168,7 +173,11 @@
     "uncheckItem": "Uncheck {name}",
     "uploadError": "Couldn't upload photos — try again",
     "imageInvalidType": "Only JPEG, PNG, and WebP images are allowed",
-    "imageTooLarge": "Each photo must be under 5 MB"
+    "imageTooLarge": "Each photo must be under 5 MB",
+    "finishShopping": "Finish shopping",
+    "oneTimeChip": "One-time",
+    "resetToast": "List reset for next trip",
+    "finishedToast": "Finished — {count, plural, one {# one-time item} other {# one-time items}} removed"
   },
   "wishlist": {
     "itemCount": "{count, plural, one {# gift} other {# gifts}}",
@@ -228,6 +237,8 @@
     "checkedOff": "Checked off",
     "checkOff": "Check off",
     "uncheck": "Uncheck",
+    "justThisTrip": "Just this trip",
+    "justThisTripHint": "Removed when you finish shopping",
     "edit": "Edit",
     "editTitle": "Edit item",
     "save": "Save",

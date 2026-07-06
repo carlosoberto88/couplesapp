@@ -50,6 +50,12 @@ export function useRealtimeAllItems({
         (payload) => {
           if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
             const row = payload.new as Item;
+
+            if (row.removed_at !== null) {
+              handlersRef.current.onRemove(row.id);
+              return;
+            }
+
             const withList = attachListToItem(row, listsByIdRef.current);
             if (!withList) {
               handlersRef.current.onRefetch();

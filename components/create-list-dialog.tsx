@@ -36,6 +36,7 @@ export function CreateListDialog({
   const open = controlledOpen ?? internalOpen;
   const [name, setName] = useState("");
   const [type, setType] = useState<ListTypeKey>("shopping");
+  const [recurring, setRecurring] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   function handleOpenChange(next: boolean) {
@@ -46,6 +47,7 @@ export function CreateListDialog({
   function resetForm() {
     setName("");
     setType("shopping");
+    setRecurring(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -57,6 +59,7 @@ export function CreateListDialog({
     const { data, error } = await supabase.rpc("create_list", {
       p_name: trimmed,
       p_type: type,
+      p_recurring: recurring,
     });
     setSubmitting(false);
 
@@ -88,6 +91,8 @@ export function CreateListDialog({
             onNameChange={setName}
             type={type}
             onTypeChange={setType}
+            recurring={recurring}
+            onRecurringChange={setRecurring}
             autoFocus
           />
           <DialogFooter>

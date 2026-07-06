@@ -30,6 +30,7 @@ export default async function AllItemsPage({
     .from("items")
     .select("*, lists!inner(id, name, type, owner_id, archived_at)")
     .is("lists.archived_at", null)
+    .is("removed_at", null)
     .order("created_at", { ascending: true });
 
   const items = (itemRows ?? []) as ItemWithList[];
