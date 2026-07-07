@@ -140,6 +140,7 @@ export function AddItemDialog({
                 ) : (
                   <RichAddItemForm
                     key={manualFormKey}
+                    listId={listId}
                     listType={listType}
                     onAdd={handleRichAdd}
                     pending={pending}
@@ -150,7 +151,12 @@ export function AddItemDialog({
               </div>
             </>
           ) : (
-            <RichAddItemForm listType={listType} onAdd={handleRichAdd} pending={pending} />
+            <RichAddItemForm
+              listId={listId}
+              listType={listType}
+              onAdd={handleRichAdd}
+              pending={pending}
+            />
           )}
         </div>
       </DialogContent>

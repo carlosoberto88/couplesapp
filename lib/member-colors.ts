@@ -22,18 +22,23 @@ export type MemberColor = {
 };
 
 /**
- * Ordered accent palette. Person-A (coral) and person-B (teal) are the
- * primary two-person palette; gold and the extra fallbacks cover lists
- * with more than two members.
+ * Ordered accent palette. Person-A (coral slot, now marigold) and person-B
+ * (teal slot, now indigo) are the primary two-person palette; gold (now
+ * rose) and the extra fallbacks cover lists with more than two members.
  */
 export const DUO_PALETTE: MemberColor[] = [
   { key: "coral", color: "var(--duo-coral)", tint: "var(--duo-coral-tint)" },
   { key: "teal", color: "var(--duo-teal)", tint: "var(--duo-teal-tint)" },
   { key: "gold", color: "var(--duo-gold)", tint: "var(--duo-gold-tint)" },
   // Fallback accents for >3 members. These reuse existing token values
-  // (no new CSS variables introduced in this foundation task).
-  { key: "plum", color: "var(--destructive)", tint: "var(--duo-coral-tint)" },
-  { key: "sky", color: "var(--duo-teal)", tint: "var(--duo-teal-tint)" },
+  // (no new CSS variables introduced in this foundation task). Under the
+  // Bold Indigo & Marigold palette `--destructive` is literally the same
+  // rose hue as `--duo-gold`, so `plum` can no longer borrow it without
+  // rendering identical to the `gold` slot — both fallbacks use neutral
+  // ink/muted pairings instead so a 4th/5th member never silently matches
+  // an existing member's color.
+  { key: "plum", color: "var(--foreground)", tint: "var(--muted)" },
+  { key: "sky", color: "var(--muted-foreground)", tint: "var(--secondary)" },
 ];
 
 /** Fallback for a user_id that can't be resolved (e.g. departed member, null checked_by). */

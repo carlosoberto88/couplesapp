@@ -803,8 +803,8 @@ export function ShoppingItemList({
       ) : (
         <>
           {allChecked && (
-            <div className="flex items-center justify-between gap-2 rounded-2xl bg-duo-gold-tint px-3 py-2.5 text-sm text-foreground">
-              <span>{t("allDone")}</span>
+            <div className="flex items-center justify-between gap-2 rounded-2xl bg-duo-teal-tint px-3 py-2.5 text-sm text-foreground">
+              <span className="font-medium text-duo-teal">{t("allDone")}</span>
               <Button variant="secondary" size="sm" onClick={handleFinish}>
                 {finishLabel}
               </Button>
@@ -820,8 +820,9 @@ export function ShoppingItemList({
                 {uncheckedGroups.map((group) => (
                   <Fragment key={group.key ?? "__no_aisle__"}>
                     {showAisle && (
-                      <li className="px-1 pt-2 text-xs font-medium text-muted-foreground first:pt-0">
-                        {group.key === null ? t("noAisle") : group.items[0].aisle?.trim()}
+                      <li className="flex items-center gap-2 px-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-duo-teal first:pt-0">
+                        <span>{group.key === null ? t("noAisle") : group.items[0].aisle?.trim()}</span>
+                        <span className="h-px flex-1 bg-duo-teal/15" aria-hidden />
                       </li>
                     )}
                     <SortableContext
@@ -870,8 +871,9 @@ export function ShoppingItemList({
                   return (
                     <Fragment key={item.id}>
                       {showHeader && (
-                        <li className="px-1 pt-2 text-xs font-medium text-muted-foreground first:pt-0">
-                          {aisleGroup === null ? t("noAisle") : item.aisle?.trim()}
+                        <li className="flex items-center gap-2 px-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-duo-teal first:pt-0">
+                          <span>{aisleGroup === null ? t("noAisle") : item.aisle?.trim()}</span>
+                          <span className="h-px flex-1 bg-duo-teal/15" aria-hidden />
                         </li>
                       )}
                       <ItemRow

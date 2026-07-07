@@ -491,7 +491,7 @@ export function WishlistItemList({
           onAction={() => setAddOpen(true)}
         />
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="grid grid-cols-2 gap-4">
           {sortedItems.map((item) => (
             <WishlistItemRow
               key={item.id}

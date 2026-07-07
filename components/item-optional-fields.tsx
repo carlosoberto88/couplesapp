@@ -2,7 +2,7 @@
 
 import { useRef, type RefObject } from "react";
 import { useTranslations } from "next-intl";
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, Loader2 } from "lucide-react";
 
 import { MAX_IMAGES_PER_ITEM, validateImageFile } from "@/lib/upload-item-image";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,10 @@ type ItemOptionalFieldsProps = {
   compact?: boolean;
   visibleFields?: OptionalFieldKey[];
   fileInputRef?: RefObject<HTMLInputElement | null>;
+  /** Fired on paste and on blur so the parent can auto-enrich http(s) URLs. */
+  onUrlCommit?: (url: string) => void;
+  urlEnriching?: boolean;
+  urlEnrichFailed?: boolean;
   onUrlChange: (url: string) => void;
   onNoteChange: (note: string) => void;
   onFilesChange: (files: File[]) => void;
@@ -37,6 +41,9 @@ export function ItemOptionalFields({
   compact = false,
   visibleFields,
   fileInputRef: externalFileInputRef,
+  onUrlCommit,
+  urlEnriching = false,
+  urlEnrichFailed = false,
   onUrlChange,
   onNoteChange,
   onFilesChange,
@@ -71,14 +78,29 @@ export function ItemOptionalFields({
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       {showUrl ? (
-        <Input
-          className={cn("rounded-xl", compact ? "h-10" : "h-11")}
-          type="url"
-          placeholder={tItems("urlPlaceholder")}
-          value={url}
-          onChange={(e) => onUrlChange(e.target.value)}
-          disabled={pending}
-        />
+        <div className="flex flex-col gap-1">
+          <Input
+            className={cn("rounded-xl", compact ? "h-10" : "h-11")}
+            type="url"
+            placeholder={tItems("urlPlaceholder")}
+            value={url}
+            onChange={(e) => onUrlChange(e.target.value)}
+            onPaste={(e) => {
+              const pasted = e.clipboardData.getData("text");
+              if (pasted.trim()) onUrlCommit?.(pasted);
+            }}
+            onBlur={(e) => onUrlCommit?.(e.target.value)}
+            disabled={pending}
+          />
+          {urlEnriching ? (
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="size-3 animate-spin" aria-hidden />
+              {tItems("enrichingLink")}
+            </p>
+          ) : urlEnrichFailed ? (
+            <p className="text-xs text-muted-foreground">{tItems("enrichFailed")}</p>
+          ) : null}
+        </div>
       ) : null}
       {showNote ? (
         <textarea

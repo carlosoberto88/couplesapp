@@ -6,6 +6,7 @@ import { AlignLeft, ImagePlus, Link2 } from "lucide-react";
 
 import type { ItemPriority } from "@/lib/types";
 import { isWishlist } from "@/lib/list-types";
+import { fetchLinkPreview, fetchPreviewImageAsFile } from "@/lib/persist-item";
 import { MAX_IMAGES_PER_ITEM, validateImageFile } from "@/lib/upload-item-image";
 import { ItemDetailsToggle } from "@/components/item-details-toggle";
 import {
@@ -28,6 +29,7 @@ export type RichAddInput = {
 };
 
 type RichAddItemFormProps = {
+  listId: string;
   listType: string;
   onAdd: (input: RichAddInput) => void;
   pending?: boolean;
@@ -35,6 +37,10 @@ type RichAddItemFormProps = {
   initialUrl?: string | null;
   autoExpandDetails?: boolean;
 };
+
+function looksLikeUrl(value: string): boolean {
+  return /^https?:\/\/.+/i.test(value.trim());
+}
 
 type StickyOptionalField = OptionalFieldKey | null;
 
@@ -95,6 +101,7 @@ function StickyOptionalChips({
 }
 
 export function RichAddItemForm({
+  listId,
   listType,
   onAdd,
   pending = false,
@@ -120,6 +127,10 @@ export function RichAddItemForm({
   const [priority, setPriority] = useState<ItemPriority | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [enriching, setEnriching] = useState(false);
+  const [enrichFailed, setEnrichFailed] = useState(false);
+  const lastEnrichedUrlRef = useRef<string | null>(null);
+  const enrichRequestIdRef = useRef(0);
 
   function reset() {
     setName("");
@@ -131,7 +142,48 @@ export function RichAddItemForm({
     setFileError(null);
     setExpanded(false);
     setActiveField(null);
+    setEnriching(false);
+    setEnrichFailed(false);
+    lastEnrichedUrlRef.current = null;
+    enrichRequestIdRef.current += 1;
     nameInputRef.current?.focus();
+  }
+
+  function handleUrlChange(nextUrl: string) {
+    setUrl(nextUrl);
+    if (nextUrl.trim() !== lastEnrichedUrlRef.current) setEnrichFailed(false);
+  }
+
+  async function handleUrlCommit(candidate: string) {
+    const trimmed = candidate.trim();
+    if (!looksLikeUrl(trimmed) || trimmed === lastEnrichedUrlRef.current) return;
+    lastEnrichedUrlRef.current = trimmed;
+
+    const requestId = ++enrichRequestIdRef.current;
+    setEnriching(true);
+    setEnrichFailed(false);
+
+    const { preview, error } = await fetchLinkPreview(listId, trimmed);
+    if (requestId !== enrichRequestIdRef.current) return;
+    setEnriching(false);
+
+    if (error || !preview) {
+      setEnrichFailed(true);
+      return;
+    }
+
+    setName((current) => (current.trim() ? current : preview.name));
+    if (wishlist && preview.price !== null) {
+      setPrice((current) => (current.trim() ? current : String(preview.price)));
+    }
+
+    if (preview.imageUrl) {
+      const imageFile = await fetchPreviewImageAsFile(preview.imageUrl);
+      if (requestId !== enrichRequestIdRef.current) return;
+      if (imageFile && !validateImageFile(imageFile)) {
+        setFiles((current) => (current.length > 0 ? current : [imageFile]));
+      }
+    }
   }
 
   function toggleStickyField(field: "url" | "note") {
@@ -254,7 +306,10 @@ export function RichAddItemForm({
               compact
               visibleFields={stickyVisibleFields}
               fileInputRef={fileInputRef}
-              onUrlChange={setUrl}
+              onUrlChange={handleUrlChange}
+              onUrlCommit={(candidate) => void handleUrlCommit(candidate)}
+              urlEnriching={enriching}
+              urlEnrichFailed={enrichFailed}
               onNoteChange={setNote}
               onFilesChange={setFiles}
               onFileErrorChange={setFileError}
@@ -283,7 +338,10 @@ export function RichAddItemForm({
                 files={files}
                 fileError={fileError}
                 pending={pending}
-                onUrlChange={setUrl}
+                onUrlChange={handleUrlChange}
+                onUrlCommit={(candidate) => void handleUrlCommit(candidate)}
+                urlEnriching={enriching}
+                urlEnrichFailed={enrichFailed}
                 onNoteChange={setNote}
                 onFilesChange={setFiles}
                 onFileErrorChange={setFileError}

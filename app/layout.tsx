@@ -41,8 +41,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export const viewport: Viewport = {
   // keep in sync with app/globals.css :root / .dark
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#1e1a17" },
-    { media: "(prefers-color-scheme: light)", color: "#fbf7f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#15161c" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f4f2" },
   ],
   viewportFit: "cover",
   interactiveWidget: "resizes-content",

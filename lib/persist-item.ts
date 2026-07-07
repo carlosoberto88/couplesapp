@@ -163,6 +163,30 @@ export async function fetchLinkPreview(
   };
 }
 
+function extFromMime(mime: string): "jpg" | "png" | "webp" {
+  if (mime === "image/png") return "png";
+  if (mime === "image/webp") return "webp";
+  return "jpg";
+}
+
+/**
+ * Downloads a link-preview's signed image URL client-side and wraps it as a
+ * File so it can flow through the existing manual-upload path (uploadItemImages),
+ * without a dedicated preview-token insert route.
+ */
+export async function fetchPreviewImageAsFile(imageUrl: string): Promise<File | null> {
+  try {
+    const res = await fetch(imageUrl);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    if (!blob.size) return null;
+    const ext = extFromMime(blob.type);
+    return new File([blob], `link-preview.${ext}`, { type: blob.type || "image/jpeg" });
+  } catch {
+    return null;
+  }
+}
+
 export async function insertItemFromLink(
   listId: string,
   previewToken: string,

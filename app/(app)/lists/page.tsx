@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@clerk/nextjs/server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getListTypeMeta } from "@/lib/list-types";
+import { getListTypeMeta, isWishlist } from "@/lib/list-types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import type { List, Profile } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,10 +29,14 @@ type ListRow = List & { list_members: ListMemberWithProfile[] };
 export default async function ListsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; room?: string }>;
 }) {
-  const { filter } = await searchParams;
+  const { filter, room: roomParam } = await searchParams;
   const showArchived = filter === "archived";
+  const room = roomParam === "wishlist" ? "wishlist" : "shopping";
+  const roomQuery = room === "wishlist" ? "room=wishlist" : "";
+  const archivedHref = `/lists?${[roomQuery, "filter=archived"].filter(Boolean).join("&")}`;
+  const activeHref = roomQuery ? `/lists?${roomQuery}` : "/lists";
 
   const { userId } = await auth();
   const t = await getTranslations("lists");
@@ -50,8 +54,9 @@ export default async function ListsPage({
     .order("created_at", { ascending: false });
 
   const rows = (lists ?? []) as unknown as ListRow[];
-  const activeLists = rows.filter((l) => l.archived_at === null);
-  const archivedLists = rows.filter((l) => l.archived_at !== null);
+  const roomRows = rows.filter((l) => isWishlist(l.type) === (room === "wishlist"));
+  const activeLists = roomRows.filter((l) => l.archived_at === null);
+  const archivedLists = roomRows.filter((l) => l.archived_at !== null);
   const visibleLists = showArchived ? archivedLists : activeLists;
 
   return (
@@ -146,7 +151,7 @@ export default async function ListsPage({
 
         {showArchived ? (
           <Link
-            href="/lists"
+            href={activeHref}
             className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             {t("active")}
@@ -154,7 +159,7 @@ export default async function ListsPage({
         ) : (
           archivedLists.length > 0 && (
             <Link
-              href="/lists?filter=archived"
+              href={archivedHref}
               className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             >
               {t("archivedCount", { count: archivedLists.length })}

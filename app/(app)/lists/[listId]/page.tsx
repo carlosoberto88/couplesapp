@@ -6,7 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@clerk/nextjs/server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getListTypeMeta } from "@/lib/list-types";
+import { getListTypeMeta, isWishlist } from "@/lib/list-types";
 import { buildMemberColorMap } from "@/lib/member-colors";
 import type { Item, ItemImage, List, ListMember, Profile } from "@/lib/types";
 import { ItemList } from "@/components/item-list";
@@ -86,7 +86,7 @@ export default async function ListDetailPage({
       </AppBar>
       <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 px-4 pt-4">
         <Link
-          href="/lists"
+          href={isWishlist(typedList.type) ? "/lists?room=wishlist" : "/lists?room=shopping"}
           className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="size-4" />
