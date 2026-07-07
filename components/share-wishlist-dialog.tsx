@@ -102,7 +102,7 @@ export function ShareWishlistDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-2xl bg-card">
+      <DialogContent className="rounded-2xl bg-card [&>*]:min-w-0">
         <DialogHeader>
           <DialogTitle className="font-display text-lg">
             {tShare("sharePublicly")}
@@ -113,10 +113,10 @@ export function ShareWishlistDialog({
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={`share-link-${listId}`}>{tShare("shareLinkLabel")}</Label>
-              <div className="flex items-center gap-2 rounded-xl bg-muted px-3 py-2">
+              <div className="flex min-w-0 items-center gap-2 rounded-xl bg-muted px-3 py-2">
                 <span
                   id={`share-link-${listId}`}
-                  className="flex-1 truncate text-xs text-muted-foreground"
+                  className="min-w-0 flex-1 truncate text-xs text-muted-foreground"
                 >
                   {shareUrl}
                 </span>
