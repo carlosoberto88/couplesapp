@@ -92,6 +92,16 @@
     "unarchivedToast": "List unarchived",
     "deletedToast": "List deleted"
   },
+  "shareLink": {
+    "shareButton": "Share",
+    "sharePublicly": "Share publicly",
+    "shareDescription": "Anyone with this link can view and reserve items on this list, no account needed.",
+    "shareLinkLabel": "Share link",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied",
+    "stopSharing": "Stop sharing",
+    "sharedStatus": "This list is being shared publicly."
+  },
   "invite": {
     "panelTitle": "People on {listName}",
     "membersHeading": "Members",
@@ -234,6 +244,23 @@
     "hasPhotos": "Photos",
     "addedBy": "Added by",
     "completedBy": "Purchased by partner"
+  },
+  "publicWishlist": {
+    "ogDescription": "See {name}'s wishlist and reserve something special.",
+    "poweredBy": "Made with Couples",
+    "notAvailableTitle": "This wishlist isn't available",
+    "notAvailableBody": "This link may have expired, or the list may no longer be shared. Ask the person who sent it for a fresh one.",
+    "guestLabelPlaceholder": "Your name (optional)",
+    "reserveCta": "Reserve",
+    "reservedByYou": "Reserved by you",
+    "reserved": "Reserved",
+    "releaseCta": "Release",
+    "reserveSuccess": "Reserved — your secret is safe with this browser",
+    "reserveFailed": "Couldn't reserve this — tap to retry",
+    "alreadyReserved": "Someone already reserved this",
+    "releaseFailed": "Couldn't release this — tap to retry",
+    "priorityMustHave": "Must have",
+    "hasPhotos": "Photos"
   },
   "itemDetail": {
     "description": "Description",

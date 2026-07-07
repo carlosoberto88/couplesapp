@@ -10,6 +10,7 @@ import type { Item, ItemImage, ItemPriority } from "@/lib/types";
 import type { MemberColor } from "@/lib/member-colors";
 import { getListTypeConfig, isWishlist } from "@/lib/list-types";
 import { buildEditPatch, type ItemUpdatePatch } from "@/lib/item-mutations";
+import { safeExternalUrl } from "@/lib/safe-url";
 import {
   canSeeReservation,
   isPurchased,
@@ -212,7 +213,7 @@ export function ItemDetailDialog({
     const parsedPrice = price.trim() ? Number.parseFloat(price.trim()) : null;
     const editInput = {
       name: trimmedName,
-      url: url.trim() || null,
+      url: safeExternalUrl(url.trim()),
       note: note.trim() || null,
       price: wishlist && parsedPrice !== null && !Number.isNaN(parsedPrice) ? parsedPrice : null,
       currency: "USD" as const,
@@ -495,15 +496,22 @@ export function ItemDetailDialog({
                 <div>
                   <dt className="text-xs font-medium text-muted-foreground">{t("link")}</dt>
                   <dd className="mt-0.5">
-                    <a
-                      href={currentItem.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-primary hover:underline"
-                    >
-                      {currentItem.url}
-                      <ExternalLink className="size-3.5 shrink-0" aria-hidden />
-                    </a>
+                    {(() => {
+                      const safeUrl = safeExternalUrl(currentItem.url);
+                      return safeUrl ? (
+                        <a
+                          href={safeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-primary hover:underline"
+                        >
+                          {currentItem.url}
+                          <ExternalLink className="size-3.5 shrink-0" aria-hidden />
+                        </a>
+                      ) : (
+                        <span className="text-foreground">{currentItem.url}</span>
+                      );
+                    })()}
                   </dd>
                 </div>
               )}

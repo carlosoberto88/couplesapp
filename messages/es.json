@@ -92,6 +92,16 @@
     "unarchivedToast": "Lista desarchivada",
     "deletedToast": "Lista eliminada"
   },
+  "shareLink": {
+    "shareButton": "Compartir",
+    "sharePublicly": "Compartir públicamente",
+    "shareDescription": "Cualquier persona con este enlace podrá ver y reservar los artículos de esta lista, sin necesidad de una cuenta.",
+    "shareLinkLabel": "Enlace para compartir",
+    "copyLink": "Copiar enlace",
+    "linkCopied": "Enlace copiado",
+    "stopSharing": "Dejar de compartir",
+    "sharedStatus": "Esta lista se está compartiendo públicamente."
+  },
   "invite": {
     "panelTitle": "Personas en {listName}",
     "membersHeading": "Miembros",
@@ -236,6 +246,23 @@
     "hasPhotos": "Fotos",
     "addedBy": "Agregado por",
     "completedBy": "Comprado por tu pareja"
+  },
+  "publicWishlist": {
+    "ogDescription": "Mira la lista de regalos de {name} y reserva algo especial.",
+    "poweredBy": "Hecho con Couples",
+    "notAvailableTitle": "Esta lista no está disponible",
+    "notAvailableBody": "Este enlace pudo haber vencido, o la lista ya no se comparte. Pídele uno nuevo a quien te lo envió.",
+    "guestLabelPlaceholder": "Tu nombre (opcional)",
+    "reserveCta": "Reservar",
+    "reservedByYou": "Reservado por ti",
+    "reserved": "Reservado",
+    "releaseCta": "Liberar",
+    "reserveSuccess": "Reservado — tu secreto está a salvo en este navegador",
+    "reserveFailed": "No se pudo reservar — toca para reintentar",
+    "alreadyReserved": "Alguien ya reservó esto",
+    "releaseFailed": "No se pudo liberar — toca para reintentar",
+    "priorityMustHave": "Imprescindible",
+    "hasPhotos": "Fotos"
   },
   "itemDetail": {
     "description": "Descripción",

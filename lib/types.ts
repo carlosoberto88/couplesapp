@@ -14,6 +14,7 @@ export type List = {
   created_at: string;
   archived_at: string | null;
   recurring: boolean;
+  share_token: string | null;
 };
 
 export type ListMember = {

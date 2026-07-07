@@ -5,6 +5,9 @@ const isPublicRoute = createRouteMatcher([
   "/signup(.*)",
   // Supabase Database Webhook — authenticated via SUPABASE_WEBHOOK_SECRET in the route.
   "/api/push/send",
+  // Public shareable wishlist gallery + guest reserve/release — no Clerk session required.
+  "/w/(.*)",
+  "/api/public/(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {

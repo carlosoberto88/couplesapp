@@ -7,6 +7,7 @@ import { AlignLeft, ImagePlus, Link2 } from "lucide-react";
 import type { ItemPriority } from "@/lib/types";
 import { isWishlist } from "@/lib/list-types";
 import { fetchLinkPreview, fetchPreviewImageAsFile } from "@/lib/persist-item";
+import { safeExternalUrl } from "@/lib/safe-url";
 import { MAX_IMAGES_PER_ITEM, validateImageFile } from "@/lib/upload-item-image";
 import { ItemDetailsToggle } from "@/components/item-details-toggle";
 import {
@@ -221,7 +222,7 @@ export function RichAddItemForm({
 
     onAdd({
       name: trimmed,
-      url: url.trim() || null,
+      url: safeExternalUrl(url.trim()),
       note: note.trim() || null,
       price: wishlist && parsedPrice !== null && !Number.isNaN(parsedPrice) ? parsedPrice : null,
       currency: "USD",

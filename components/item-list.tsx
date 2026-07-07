@@ -14,6 +14,7 @@ type ItemListProps = {
   listType: string;
   listOwnerId: string;
   currentUserId: string;
+  listShareToken?: string | null;
   initialItems: Item[];
   initialImages?: ItemImage[];
   members: MemberWithProfile[];
@@ -25,6 +26,7 @@ export function ItemList({
   listType,
   listOwnerId,
   currentUserId,
+  listShareToken = null,
   initialItems,
   initialImages = [],
   members,
@@ -36,6 +38,7 @@ export function ItemList({
         listId={listId}
         listOwnerId={listOwnerId}
         currentUserId={currentUserId}
+        listShareToken={listShareToken}
         initialItems={initialItems}
         initialImages={initialImages}
         members={members}

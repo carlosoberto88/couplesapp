@@ -141,6 +141,7 @@ export default async function ListDetailPage({
           listType={typedList.type}
           listOwnerId={typedList.owner_id}
           currentUserId={userId}
+          listShareToken={typedList.share_token}
           initialItems={typedItems}
           initialImages={initialImages}
           members={typedMembers}

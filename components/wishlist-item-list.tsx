@@ -33,6 +33,7 @@ type WishlistItemListProps = {
   listId: string;
   listOwnerId: string;
   currentUserId: string;
+  listShareToken: string | null;
   initialItems: Item[];
   initialImages: ItemImage[];
   members: MemberWithProfile[];
@@ -42,6 +43,7 @@ export function WishlistItemList({
   listId,
   listOwnerId,
   currentUserId,
+  listShareToken,
   initialItems,
   initialImages,
   members,
@@ -259,13 +261,34 @@ export function WishlistItemList({
 
   const handleReserve = useCallback(
     (item: Item) => {
-      updateItem(
-        item,
-        { reserved_by: currentUserId, reserved_at: new Date().toISOString() },
-        () => handleReserve(item),
-      );
+      const nextItem = {
+        ...item,
+        reserved_by: currentUserId,
+        reserved_at: new Date().toISOString(),
+      };
+      setItems((prev) => upsertRow(prev, nextItem));
+      setDetailItem((current) => (current?.id === item.id ? nextItem : current));
+
+      void (async () => {
+        const { data, error } = await supabase.rpc("reserve_item_as_member", {
+          p_item_id: item.id,
+        });
+
+        if (error || !data) {
+          setItems((prev) => upsertRow(prev, item));
+          setDetailItem((current) => (current?.id === item.id ? item : current));
+
+          if (!error) {
+            toast(t("reservedByOther", { name: item.name }));
+          } else {
+            toast.error(t("saveError"), {
+              action: { label: tCommon("retry"), onClick: () => handleReserve(item) },
+            });
+          }
+        }
+      })();
     },
-    [currentUserId, updateItem],
+    [currentUserId, supabase, t, tCommon],
   );
 
   const handleRelease = useCallback(
@@ -408,6 +431,7 @@ export function WishlistItemList({
     },
     onOtherUserReserve: (row) => {
       if (row.reserved_by === currentUserId) return;
+      if (currentUserId === listOwnerId) return;
       toast(t("reservedByOther", { name: row.name }));
     },
     onOtherUserPurchase: (row) => {
@@ -443,6 +467,8 @@ export function WishlistItemList({
         currentItemNames={items.map((item) => item.name)}
         showUsualItems
         showSmartAdd
+        isOwner={currentUserId === listOwnerId}
+        shareToken={listShareToken}
         onRichAdd={handleRichAdd}
         onQuickAdd={(name) =>
           handleRichAdd({

@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { MoreVertical, Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Archive, ArchiveRestore, Trash2, Share2 } from "lucide-react";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { List } from "@/lib/types";
-import { getListTypeConfig } from "@/lib/list-types";
+import { getListTypeConfig, isWishlist } from "@/lib/list-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,9 +27,13 @@ import {
   DropdownMenuItem,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
+import { ShareWishlistDialog } from "@/components/share-wishlist-dialog";
 
 type ListSettingsMenuProps = {
-  list: Pick<List, "id" | "name" | "archived_at" | "type" | "recurring">;
+  list: Pick<
+    List,
+    "id" | "name" | "archived_at" | "type" | "recurring" | "share_token"
+  >;
 };
 
 export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
@@ -37,14 +41,21 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
   const supabase = useSupabaseClient();
   const t = useTranslations("listSettings");
   const tCommon = useTranslations("common");
+  const tShare = useTranslations("shareLink");
 
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [name, setName] = useState(list.name);
   const [pending, setPending] = useState(false);
 
   const isArchived = list.archived_at !== null;
   const canRecur = getListTypeConfig(list.type).supportsRecurring;
+  // Ownership isn't re-checked here: the only render site (app/(app)/lists/page.tsx)
+  // already mounts <ListSettingsMenu> only when `isOwner`. RLS also blocks the
+  // share writes for non-owners, but a blocked update still returns `error: null`
+  // with 0 affected rows — see ShareWishlistDialog for the row-count check.
+  const canShare = isWishlist(list.type);
 
   async function handleRename(e: React.FormEvent) {
     e.preventDefault();
@@ -148,6 +159,17 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
               </div>
             </DropdownMenuCheckboxItem>
           ) : null}
+          {canShare ? (
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setShareOpen(true);
+              }}
+            >
+              <Share2 />
+              {tShare("sharePublicly")}
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
@@ -221,6 +243,15 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {canShare ? (
+        <ShareWishlistDialog
+          listId={list.id}
+          initialShareToken={list.share_token}
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+        />
+      ) : null}
     </>
   );
 }
