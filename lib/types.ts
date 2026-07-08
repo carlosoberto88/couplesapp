@@ -3,6 +3,7 @@ export type Profile = {
   email: string;
   display_name: string | null;
   onboarding_completed_at: string | null;
+  onboarding_version: number;
   created_at: string;
 };
 
