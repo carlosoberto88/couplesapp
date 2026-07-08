@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import { type ListTypeKey } from "@/lib/list-types";
+import { ONBOARDING_VERSION } from "@/lib/onboarding";
 import { CreateListForm } from "@/components/create-list-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 type OnboardingWizardProps = {
   show: boolean;
@@ -49,7 +50,10 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
     setSubmitting(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ onboarding_completed_at: new Date().toISOString() })
+      .update({
+        onboarding_completed_at: new Date().toISOString(),
+        onboarding_version: ONBOARDING_VERSION,
+      })
       .eq("id", user.id);
     setSubmitting(false);
 
@@ -103,6 +107,10 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
       setStep(4);
       return;
     }
+    if (step === 4) {
+      setStep(5);
+      return;
+    }
     void completeOnboarding();
   }
 
@@ -117,7 +125,9 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
         ? t("createTitle")
         : step === 3
           ? t("inviteTitle")
-          : t("itemsTitle");
+          : step === 4
+            ? t("itemsTitle")
+            : t("shareTitle");
 
   const stepDescription =
     step === 1
@@ -126,14 +136,24 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
         ? t("createDescription")
         : step === 3
           ? t("inviteDescription")
-          : t("itemsDescription");
+          : step === 4
+            ? t("itemsDescription")
+            : t("shareDescription");
 
   const stepIcon =
-    step === 1 ? "💑" : step === 2 ? "📋" : step === 3 ? "✉️" : "✅";
+    step === 1
+      ? "💑"
+      : step === 2
+        ? "📋"
+        : step === 3
+          ? "✉️"
+          : step === 4
+            ? "✅"
+            : "🎁";
 
   const nextDisabled = submitting || (step === 2 && !name.trim());
   const nextLabel =
-    step === 4 ? t("getStarted") : step === 2 && submitting ? tCreate("creating") : t("next");
+    step === 5 ? t("getStarted") : step === 2 && submitting ? tCreate("creating") : t("next");
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

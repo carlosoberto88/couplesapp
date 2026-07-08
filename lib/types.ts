@@ -3,6 +3,7 @@ export type Profile = {
   email: string;
   display_name: string | null;
   onboarding_completed_at: string | null;
+  onboarding_version: number;
   created_at: string;
 };
 
@@ -14,6 +15,7 @@ export type List = {
   created_at: string;
   archived_at: string | null;
   recurring: boolean;
+  share_token: string | null;
 };
 
 export type ListMember = {

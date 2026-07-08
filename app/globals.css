@@ -55,90 +55,90 @@
 }
 
 :root {
-  /* Warm brand light theme (base + shadcn semantic tokens) */
-  --background: #fbf7f2;
-  --foreground: #2b2724;
-  --card: #fffdfa;
-  --card-foreground: #2b2724;
-  --popover: #fffdfa;
-  --popover-foreground: #2b2724;
-  --primary: #e8674c;
-  --primary-foreground: #fffdfa;
-  --secondary: #f4ede3;
-  --secondary-foreground: #2b2724;
-  --muted: #f4ede3;
-  --muted-foreground: #6b6058;
-  --accent: #fbe3dc;
-  --accent-foreground: #2b2724;
-  --destructive: #c4462f;
-  --border: #ece4d8;
-  --input: #ece4d8;
-  --ring: #e8674c;
-  --chart-1: #e8674c;
-  --chart-2: #2fa39b;
-  --chart-3: #e6b54a;
-  --chart-4: #6b6058;
-  --chart-5: #2b2724;
+  /* Bold brand light theme — Indigo & Marigold (base + shadcn semantic tokens) */
+  --background: #f4f4f2;
+  --foreground: #22232a;
+  --card: #ffffff;
+  --card-foreground: #22232a;
+  --popover: #ffffff;
+  --popover-foreground: #22232a;
+  --primary: #5b5be0;
+  --primary-foreground: #ffffff;
+  --secondary: #eeeeeb;
+  --secondary-foreground: #22232a;
+  --muted: #e9e9e6;
+  --muted-foreground: #63656f;
+  --accent: #eaeaf3;
+  --accent-foreground: #22232a;
+  --destructive: #d8446b;
+  --border: #e6e6e2;
+  --input: #e6e6e2;
+  --ring: #5b5be0;
+  --chart-1: #5b5be0;
+  --chart-2: #a36b0b;
+  --chart-3: #d8446b;
+  --chart-4: #63656f;
+  --chart-5: #22232a;
   --radius: 1rem;
-  --sidebar: #fbf7f2;
-  --sidebar-foreground: #2b2724;
-  --sidebar-primary: #e8674c;
-  --sidebar-primary-foreground: #fffdfa;
-  --sidebar-accent: #fbe3dc;
-  --sidebar-accent-foreground: #2b2724;
-  --sidebar-border: #ece4d8;
-  --sidebar-ring: #e8674c;
+  --sidebar: #f4f4f2;
+  --sidebar-foreground: #22232a;
+  --sidebar-primary: #5b5be0;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eaeaf3;
+  --sidebar-accent-foreground: #22232a;
+  --sidebar-border: #e6e6e2;
+  --sidebar-ring: #5b5be0;
 
-  /* His & Hers member accent tokens (large-text/UI accents only — keep body copy off coral) */
-  --duo-coral: #e8674c;
-  --duo-coral-tint: #fbe3dc;
-  --duo-teal: #2fa39b;
-  --duo-teal-tint: #d9efec;
-  --duo-gold: #e6b54a;
-  --duo-gold-tint: #f9eed6;
+  /* His & Hers member accent tokens (large-text/UI accents only — keep body copy off marigold) */
+  --duo-coral: #a36b0b;
+  --duo-coral-tint: #fbeecb;
+  --duo-teal: #5b5be0;
+  --duo-teal-tint: #e6e6fb;
+  --duo-gold: #d8446b;
+  --duo-gold-tint: #fbe0e8;
 }
 
 .dark {
-  /* Warm brand dark theme — near-black/near-white replace generic shadcn greys */
-  --background: #1e1a17;
-  --foreground: #f3ece4;
-  --card: #26211d;
-  --card-foreground: #f3ece4;
-  --popover: #26211d;
-  --popover-foreground: #f3ece4;
-  --primary: #f08a72;
-  --primary-foreground: #26211d;
-  --secondary: #322b25;
-  --secondary-foreground: #f3ece4;
-  --muted: #322b25;
-  --muted-foreground: #a89d93;
-  --accent: #3a2a24;
-  --accent-foreground: #f3ece4;
-  --destructive: #e0725a;
-  --border: rgb(243 236 228 / 10%);
-  --input: rgb(243 236 228 / 15%);
-  --ring: #f08a72;
-  --chart-1: #f08a72;
-  --chart-2: #4fbdb3;
-  --chart-3: #e6b54a;
-  --chart-4: #a89d93;
-  --chart-5: #f3ece4;
-  --sidebar: #1e1a17;
-  --sidebar-foreground: #f3ece4;
-  --sidebar-primary: #f08a72;
-  --sidebar-primary-foreground: #26211d;
-  --sidebar-accent: #3a2a24;
-  --sidebar-accent-foreground: #f3ece4;
-  --sidebar-border: rgb(243 236 228 / 10%);
-  --sidebar-ring: #f08a72;
+  /* Bold brand dark theme — near-black/near-white replace generic shadcn greys */
+  --background: #15161c;
+  --foreground: #edeef2;
+  --card: #1e2029;
+  --card-foreground: #edeef2;
+  --popover: #1e2029;
+  --popover-foreground: #edeef2;
+  --primary: #7b7bf0;
+  --primary-foreground: #15161c;
+  --secondary: #23252f;
+  --secondary-foreground: #edeef2;
+  --muted: #101116;
+  --muted-foreground: #9599a6;
+  --accent: #23252f;
+  --accent-foreground: #edeef2;
+  --destructive: #e0577f;
+  --border: rgb(237 238 242 / 10%);
+  --input: rgb(237 238 242 / 15%);
+  --ring: #7b7bf0;
+  --chart-1: #7b7bf0;
+  --chart-2: #f2a922;
+  --chart-3: #e0577f;
+  --chart-4: #9599a6;
+  --chart-5: #edeef2;
+  --sidebar: #15161c;
+  --sidebar-foreground: #edeef2;
+  --sidebar-primary: #7b7bf0;
+  --sidebar-primary-foreground: #15161c;
+  --sidebar-accent: #23252f;
+  --sidebar-accent-foreground: #edeef2;
+  --sidebar-border: rgb(237 238 242 / 10%);
+  --sidebar-ring: #7b7bf0;
 
   /* His & Hers member accent tokens — dark: tints are low-luminance washes, not pastels */
-  --duo-coral: #f08a72;
-  --duo-coral-tint: #3a2620;
-  --duo-teal: #4fbdb3;
-  --duo-teal-tint: #1f3230;
-  --duo-gold: #e6b54a;
-  --duo-gold-tint: #3a3120;
+  --duo-coral: #f2a922;
+  --duo-coral-tint: #2c2410;
+  --duo-teal: #7b7bf0;
+  --duo-teal-tint: #20223a;
+  --duo-gold: #e0577f;
+  --duo-gold-tint: #331a22;
 }
 
 @layer base {

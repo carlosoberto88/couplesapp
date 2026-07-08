@@ -2,13 +2,14 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { EllipsisVertical, Plus } from "lucide-react";
+import { EllipsisVertical, Plus, Share2 } from "lucide-react";
 
 import type { RichAddInput } from "@/components/rich-add-item-form";
 import { AddItemDialog } from "@/components/add-item-dialog";
 import { BulkAddItemsDialog } from "@/components/bulk-add-items-dialog";
 import { SmartAdd } from "@/components/smart-add";
 import { UsualItems } from "@/components/usual-items";
+import { ShareWishlistDialog } from "@/components/share-wishlist-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -28,6 +29,8 @@ type ListAddSectionProps = {
   currentItemNames: string[];
   showUsualItems?: boolean;
   showSmartAdd?: boolean;
+  isOwner?: boolean;
+  shareToken?: string | null;
   onRichAdd: (input: RichAddInput) => void;
   onQuickAdd: (name: string) => void;
   onBulkAdd: (inputs: RichAddInput[]) => void;
@@ -50,6 +53,8 @@ export function ListAddSection({
   currentItemNames,
   showUsualItems = true,
   showSmartAdd = true,
+  isOwner = false,
+  shareToken = null,
   onRichAdd,
   onQuickAdd,
   onBulkAdd,
@@ -62,14 +67,17 @@ export function ListAddSection({
 }: ListAddSectionProps) {
   const t = useTranslations("addMenu");
   const tSmartAdd = useTranslations("smartAdd");
+  const tShare = useTranslations("shareLink");
   const [internalBulkOpen, setInternalBulkOpen] = useState(false);
   const [internalAddOpen, setInternalAddOpen] = useState(false);
   const [smartAddOpen, setSmartAddOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const stickyBarRef = useRef<HTMLDivElement>(null);
 
   useStickyAddBarHeight(stickyBarRef);
 
   const wishlist = isWishlist(listType);
+  const canShare = wishlist && isOwner;
   const isBulkOpen = bulkOpen ?? internalBulkOpen;
   const setBulkOpen = onBulkOpenChange ?? setInternalBulkOpen;
   const isAddOpen = addOpen ?? internalAddOpen;
@@ -112,6 +120,18 @@ export function ListAddSection({
             {addMenuItems}
           </DropdownMenuContent>
         </DropdownMenu>
+        {canShare ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-9 rounded-full"
+            onClick={() => setShareOpen(true)}
+          >
+            <Share2 className="size-4" />
+            <span className="sr-only">{tShare("shareButton")}</span>
+          </Button>
+        ) : null}
       </div>
 
       {showUsualItems ? (
@@ -174,8 +194,29 @@ export function ListAddSection({
               {addMenuItems}
             </DropdownMenuContent>
           </DropdownMenu>
+          {canShare ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-11 rounded-xl"
+              onClick={() => setShareOpen(true)}
+            >
+              <Share2 className="size-4" />
+              <span className="sr-only">{tShare("shareButton")}</span>
+            </Button>
+          ) : null}
         </div>
       </div>
+
+      {canShare ? (
+        <ShareWishlistDialog
+          listId={listId}
+          initialShareToken={shareToken}
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+        />
+      ) : null}
     </>
   );
 }

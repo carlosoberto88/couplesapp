@@ -36,7 +36,7 @@ export function CheckedItemsSection({
   if (items.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 border-t border-duo-teal/15 pt-2">
       <button
         type="button"
         className="flex items-center gap-2 px-1 text-xs font-medium text-muted-foreground hover:text-foreground"

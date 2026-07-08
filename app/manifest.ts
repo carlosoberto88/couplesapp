@@ -11,8 +11,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     start_url: "/lists",
     display: "standalone",
     // keep in sync with app/globals.css :root
-    background_color: "#fbf7f2",
-    theme_color: "#e8674c",
+    background_color: "#f4f4f2",
+    theme_color: "#5b5be0",
     icons: [
       {
         src: "/icons/icon-192.png",

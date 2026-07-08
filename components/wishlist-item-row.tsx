@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronRight, X } from "lucide-react";
+import { Check, Star, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type { Item } from "@/lib/types";
@@ -61,7 +61,7 @@ export function WishlistItemRow({
   return (
     <li
       className={cn(
-        "animate-item-in rounded-2xl border border-border bg-card transition-opacity",
+        "animate-item-in overflow-hidden rounded-2xl border border-border bg-card transition-opacity",
         purchased && "opacity-60",
       )}
       style={{
@@ -72,14 +72,76 @@ export function WishlistItemRow({
     >
       <span className="sr-only">{t("addedBy")}</span>
       {completerColor && <span className="sr-only">{t("completedBy")}</span>}
-      <div className="flex items-start gap-2 p-3">
-        <div className="flex shrink-0 flex-col items-center gap-1 pt-1">
+
+      <button
+        type="button"
+        className="block w-full text-left"
+        onClick={() => onOpenDetail(item)}
+      >
+        <div className="relative aspect-square w-full">
+          {imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={imageUrl} alt="" className="size-full object-cover" />
+          ) : (
+            <div className="flex size-full items-center justify-center bg-duo-coral-tint text-3xl">
+              🎁
+            </div>
+          )}
+
+          {item.priority === "must_have" && (
+            <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full border border-duo-coral bg-duo-coral-tint px-2 py-0.5 text-[11px] font-semibold text-foreground shadow-sm">
+              <Star className="size-3 fill-duo-coral text-duo-coral" aria-hidden />
+              {t("priorityMustHave")}
+            </span>
+          )}
+
+          {(purchased || (showReservation && reserved)) && (
+            <div className="absolute inset-x-0 bottom-0 flex justify-start bg-gradient-to-t from-foreground/60 to-transparent p-2 pt-6">
+              <Badge>
+                {purchased
+                  ? currentUserId === listOwnerId
+                    ? t("obtained")
+                    : t("purchased")
+                  : isReserver
+                    ? t("reservedByYou")
+                    : t("reserved")}
+              </Badge>
+            </div>
+          )}
+        </div>
+
+        <div className="p-2.5">
+          <p
+            className={cn(
+              "line-clamp-2 font-medium text-foreground",
+              purchased && "line-through",
+            )}
+          >
+            {item.name}
+          </p>
+          {item.price !== null && (
+            <p className="mt-1 text-sm font-medium tabular-nums text-foreground">
+              {item.currency ?? "USD"} {item.price.toFixed(2)}
+            </p>
+          )}
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            {item.priority === "nice_to_have" && (
+              <Badge variant="outline">{t("priorityNiceToHave")}</Badge>
+            )}
+            {hasImages && !imageUrl && <Badge variant="outline">{t("hasPhotos")}</Badge>}
+          </div>
+          <p className="mt-1.5 text-xs text-duo-coral">{t("viewDetails")}</p>
+        </div>
+      </button>
+
+      <div className="flex items-center justify-between gap-2 border-t border-border px-2.5 py-2">
+        <div className="flex min-w-0 items-center gap-2">
           {canReserve ? (
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="sm"
-              className="h-8 rounded-lg px-2 text-xs"
+              className="h-8 rounded-lg border-duo-coral px-2 text-xs hover:bg-duo-coral-tint"
               onClick={() => onReserve(item)}
             >
               {t("reserve")}
@@ -102,88 +164,29 @@ export function WishlistItemRow({
             >
               <Check className="size-4" aria-hidden />
             </button>
-          ) : (
-            <span className="size-8 shrink-0" aria-hidden />
-          )}
-          {canRelease ? (
+          ) : null}
+
+          {canRelease && (
             <button
               type="button"
-              className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              className="truncate text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
               onClick={() => onRelease(item)}
             >
               {t("release")}
             </button>
-          ) : null}
-        </div>
-
-        <button
-          type="button"
-          className="flex min-w-0 flex-1 items-start gap-3 text-left"
-          onClick={() => onOpenDetail(item)}
-        >
-          {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt="" className="size-16 shrink-0 rounded-xl object-cover" />
-          ) : (
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-muted text-xl">
-              🎁
-            </div>
           )}
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start gap-2">
-              <div className="min-w-0 flex-1">
-                <p className={cn("font-medium text-foreground", purchased && "line-through")}>
-                  {item.name}
-                </p>
-                {item.note && (
-                  <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{item.note}</p>
-                )}
-                {item.price !== null && (
-                  <p className="mt-0.5 text-sm font-medium text-foreground">
-                    {item.currency ?? "USD"} {item.price.toFixed(2)}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              {item.priority === "must_have" && (
-                <Badge variant="secondary">{t("priorityMustHave")}</Badge>
-              )}
-              {item.priority === "nice_to_have" && (
-                <Badge variant="outline">{t("priorityNiceToHave")}</Badge>
-              )}
-              {purchased && (
-                <Badge>{currentUserId === listOwnerId ? t("obtained") : t("purchased")}</Badge>
-              )}
-              {!purchased && showReservation && reserved && (
-                <Badge variant="secondary">
-                  {isReserver ? t("reservedByYou") : t("reserved")}
-                </Badge>
-              )}
-              {hasImages && !imageUrl && (
-                <Badge variant="outline">{t("hasPhotos")}</Badge>
-              )}
-            </div>
-
-            <p className="mt-2 text-xs text-primary">{t("viewDetails")}</p>
-          </div>
-        </button>
-
-        <div className="flex shrink-0 flex-col gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="text-muted-foreground hover:text-destructive"
-            aria-label={t("removeGift", { name: item.name })}
-            onClick={() => onRemove(item)}
-          >
-            <X className="size-4" />
-          </Button>
-          <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
         </div>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className="shrink-0 text-muted-foreground hover:text-destructive"
+          aria-label={t("removeGift", { name: item.name })}
+          onClick={() => onRemove(item)}
+        >
+          <X className="size-4" />
+        </Button>
       </div>
     </li>
   );

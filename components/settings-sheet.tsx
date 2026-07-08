@@ -115,7 +115,7 @@ export function SettingsSheet({ currentLocale }: SettingsSheetProps) {
     setTutorialPending(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ onboarding_completed_at: null })
+      .update({ onboarding_version: 0 })
       .eq("id", user.id);
     setTutorialPending(false);
 

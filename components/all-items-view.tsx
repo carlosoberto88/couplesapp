@@ -54,6 +54,7 @@ export function AllItemsView({
   const supabase = useSupabaseClient();
   const t = useTranslations("allItems");
   const tItems = useTranslations("items");
+  const tWishlist = useTranslations("wishlist");
   const tCommon = useTranslations("common");
   const [items, setItems] = useState<ItemWithList[]>(initialItems);
   const [detailItem, setDetailItem] = useState<ItemWithList | null>(null);
@@ -134,9 +135,30 @@ export function AllItemsView({
 
   const handleReserve = useCallback(
     (item: ItemWithList) => {
-      updateItem(item, buildReservePatch(currentUserId), () => handleReserveRef.current(item));
+      const nextItem = { ...item, ...buildReservePatch(currentUserId) };
+      setItems((prev) => upsertItemWithList(prev, nextItem));
+      setDetailItem((current) => (current?.id === item.id ? nextItem : current));
+
+      void (async () => {
+        const { data, error } = await supabase.rpc("reserve_item_as_member", {
+          p_item_id: item.id,
+        });
+
+        if (error || !data) {
+          setItems((prev) => upsertItemWithList(prev, item));
+          setDetailItem((current) => (current?.id === item.id ? item : current));
+
+          if (!error) {
+            toast(tWishlist("reservedByOther", { name: item.name }));
+          } else {
+            toast.error(tItems("saveError"), {
+              action: { label: tCommon("retry"), onClick: () => handleReserveRef.current(item) },
+            });
+          }
+        }
+      })();
     },
-    [currentUserId, updateItem],
+    [currentUserId, supabase, tItems, tCommon, tWishlist],
   );
 
   const handleRelease = useCallback(

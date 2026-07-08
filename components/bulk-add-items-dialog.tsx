@@ -6,6 +6,7 @@ import { Plus, Trash2 } from "lucide-react";
 
 import type { ItemPriority } from "@/lib/types";
 import { isWishlist } from "@/lib/list-types";
+import { safeExternalUrl } from "@/lib/safe-url";
 import type { RichAddInput } from "@/components/rich-add-item-form";
 import { ItemDetailsToggle } from "@/components/item-details-toggle";
 import { ItemOptionalFields } from "@/components/item-optional-fields";
@@ -187,7 +188,7 @@ export function BulkAddItemsDialog({
       const parsedPrice = row.price.trim() ? Number.parseFloat(row.price.trim()) : null;
       return {
         name: row.name.trim(),
-        url: row.url.trim() || null,
+        url: safeExternalUrl(row.url.trim()),
         note: row.note.trim() || null,
         price:
           wishlist && parsedPrice !== null && !Number.isNaN(parsedPrice) ? parsedPrice : null,
