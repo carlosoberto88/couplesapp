@@ -93,6 +93,16 @@ export function InvitePanel({
     };
   }, [open, listId, supabase]);
 
+  useEffect(() => {
+    function openIfHashMatches() {
+      if (window.location.hash === "#personas-panel") setOpen(true);
+    }
+
+    openIfHashMatches();
+    window.addEventListener("hashchange", openIfHashMatches);
+    return () => window.removeEventListener("hashchange", openIfHashMatches);
+  }, []);
+
   function memberLabel(member: MemberWithProfile) {
     return member.profiles?.display_name || member.profiles?.email || tCommon("unknown");
   }
@@ -233,7 +243,7 @@ export function InvitePanel({
 
   return (
     <>
-      <div className="rounded-2xl border border-border bg-card">
+      <div id="personas-panel" className="rounded-2xl border border-border bg-card">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}

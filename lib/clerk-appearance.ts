@@ -1,8 +1,13 @@
+import { dark } from "@clerk/themes";
+
 /**
  * Shared "His & Hers" theming for embedded Clerk components (SignIn, SignUp,
  * UserButton). Uses the `appearance` prop's `variables`/`elements` escape
  * hatches rather than the `@clerk/ui` shadcn theme package — this repo's
  * shadcn primitives are base-ui flavored, which that theme doesn't target.
+ *
+ * `isDark` should mirror next-themes' resolved theme so the popover follows
+ * the app's OS-driven light/dark mode instead of always rendering light.
  *
  * Untyped here (inferred structurally) — Clerk's `Appearance`/`Theme` type is
  * supplied via global module augmentation from `@clerk/react`, which isn't a
@@ -10,11 +15,12 @@
  * callsites (which do import from `@clerk/nextjs`) type-check this object
  * against the real `appearance` prop shape.
  */
-export const clerkAppearance = {
+export const clerkAppearance = (isDark: boolean) => ({
+  baseTheme: isDark ? dark : undefined,
   variables: {
-    // keep in sync with app/globals.css :root
+    // keep in sync with app/globals.css :root / .dark
     colorPrimary: "#5b5be0",
-    colorBackground: "#f4f4f2",
+    colorBackground: isDark ? "#15161c" : "#f4f4f2",
     fontFamily: "var(--font-inter)",
     fontFamilyButtons: "var(--font-inter)",
     borderRadius: "1rem",
@@ -34,4 +40,4 @@ export const clerkAppearance = {
     userButtonPopoverFooter: "rounded-b-xl bg-popover",
     userButtonPopoverActionButton: "rounded-lg hover:bg-accent",
   },
-};
+});

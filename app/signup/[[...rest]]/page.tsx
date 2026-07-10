@@ -1,8 +1,7 @@
-import { SignUp } from "@clerk/nextjs";
 import { getTranslations } from "next-intl/server";
 
-import { clerkAppearance } from "@/lib/clerk-appearance";
 import { sanitizeRedirect } from "@/lib/sanitize-redirect";
+import { SignUpForm } from "./sign-up-form";
 
 export default async function SignUpPage({
   searchParams,
@@ -23,14 +22,7 @@ export default async function SignUpPage({
         </span>
         <p className="text-sm text-muted-foreground">{t("tagline")}</p>
       </div>
-      <SignUp
-        routing="path"
-        path="/signup"
-        signInUrl="/login"
-        forceRedirectUrl={redirectUrl}
-        initialValues={email ? { emailAddress: email } : undefined}
-        appearance={clerkAppearance}
-      />
+      <SignUpForm email={email} redirectUrl={redirectUrl} />
       <p className="max-w-[400px] text-center text-sm text-muted-foreground">
         {t("signUpPasswordHint")}
       </p>

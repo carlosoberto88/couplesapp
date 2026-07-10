@@ -86,9 +86,6 @@ export default async function ListsPage({
               const isOwner = list.owner_id === userId;
               const dotCount = Math.min(memberCount, 3);
               const colorMap = buildMemberColorMap(members);
-              const otherMember = members.find((m) => m.user_id !== userId);
-              const otherName =
-                otherMember?.profiles?.display_name || otherMember?.profiles?.email || "?";
 
               return (
                 <li key={list.id}>
@@ -101,8 +98,8 @@ export default async function ListsPage({
                         >
                           {meta.icon}
                         </span>
-                        <div className="flex flex-1 flex-col gap-0.5">
-                          <span className="font-display text-base font-semibold text-foreground">
+                        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <span className="truncate font-display text-base font-semibold text-foreground">
                             {list.name}
                           </span>
                           <span className="text-xs text-muted-foreground">
@@ -130,13 +127,6 @@ export default async function ListsPage({
                                 );
                               })}
                             </div>
-                            {memberCount >= 2 && (
-                              <span className="text-xs font-medium text-muted-foreground">
-                                {memberCount === 2
-                                  ? t("membersYouAnd", { name: otherName })
-                                  : t("membersCount", { count: memberCount })}
-                              </span>
-                            )}
                           </div>
                         )}
                       </ListCardLink>
