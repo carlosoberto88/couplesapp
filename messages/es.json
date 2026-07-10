@@ -30,8 +30,6 @@
     "emptyArchivedTitle": "Nada archivado aún",
     "emptyArchivedDescription": "Las listas que archiven juntos aparecerán aquí.",
     "memberCount": "{count, plural, one {# miembro} other {# miembros}}",
-    "membersYouAnd": "Tú y {name}",
-    "membersCount": "{count} personas",
     "archivedCount": "Archivadas ({count})"
   },
   "allItems": {
@@ -51,7 +49,8 @@
   },
   "listDetail": {
     "backToLists": "Listas",
-    "memberCount": "{count, plural, one {# miembro} other {# miembros}}"
+    "memberCount": "{count, plural, one {# miembro} other {# miembros}}",
+    "sharedWith": "Compartida con {name}"
   },
   "listTypes": {
     "shopping": "Compras",

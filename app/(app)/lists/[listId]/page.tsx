@@ -65,6 +65,9 @@ export default async function ListDetailPage({
   const typedItems = (items ?? []) as Item[];
   const colorMap = buildMemberColorMap(typedMembers);
 
+  const otherMember = typedMembers.find((m) => m.user_id !== userId);
+  const otherName = otherMember?.profiles?.display_name || otherMember?.profiles?.email || "?";
+
   let initialImages: ItemImage[] = [];
   if (typedItems.length > 0) {
     const { data: imageRows } = await supabase
@@ -100,14 +103,21 @@ export default async function ListDetailPage({
           >
             {meta.icon}
           </span>
-          <div className="flex flex-1 flex-col gap-0.5">
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <h1 className="font-display text-lg font-semibold text-foreground">
               {typedList.name}
             </h1>
-            <span className="text-xs text-muted-foreground">{meta.label}</span>
+            <span
+              className="truncate text-xs text-muted-foreground"
+              title={typedMembers.length >= 2 ? otherName : undefined}
+            >
+              {meta.label}
+              {typedMembers.length >= 2 && ` · ${t("sharedWith", { name: otherName })}`}
+            </span>
           </div>
           {typedMembers.length > 0 && (
-            <div
+            <a
+              href="#personas-panel"
               className="flex shrink-0 -space-x-2"
               aria-label={t("memberCount", { count: typedMembers.length })}
             >
@@ -124,7 +134,7 @@ export default async function ListDetailPage({
                   />
                 );
               })}
-            </div>
+            </a>
           )}
         </div>
 
