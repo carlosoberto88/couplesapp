@@ -503,6 +503,227 @@ async function main() {
       fail("Assertion 4.5 skipped — no listId/itemId from Assertion 1");
     }
 
+    // ---------- 4.6. assigned_to (0023) ----------
+    console.log("\n--- Assertion 4.6: assigned_to (0023) ---");
+    if (listId && itemId) {
+      // Non-owner B can assign a partner-created item to self.
+      const { data: selfAssigned, error: selfAssignErr } = await clientB
+        .from("items")
+        .update({ assigned_to: userBId })
+        .eq("id", itemId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Non-owner B can assign partner-created item to self",
+        !selfAssignErr && selfAssigned?.assigned_to === userBId,
+        selfAssignErr?.message ?? selfAssigned,
+      );
+
+      // Non-owner B can also assign it to the other list member (A).
+      const { data: partnerAssigned, error: partnerAssignErr } = await clientB
+        .from("items")
+        .update({ assigned_to: userAId })
+        .eq("id", itemId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Non-owner B can assign partner-created item to the other list member",
+        !partnerAssignErr && partnerAssigned?.assigned_to === userAId,
+        partnerAssignErr?.message ?? partnerAssigned,
+      );
+
+      // A real profiles row that is NOT a member of this list — the
+      // tightened WITH CHECK must reject it even though the FK alone would
+      // allow it (a real profile exists, just not scoped to this list).
+      const outsiderId = `test-outsider-${crypto.randomUUID()}`;
+      const { error: outsiderProfileErr } = await serviceClient
+        .from("profiles")
+        .insert({ id: outsiderId, email: "outsider@example.com" });
+      assert(
+        "Seeded an outsider profile that is not a member of this list",
+        !outsiderProfileErr,
+        outsiderProfileErr?.message,
+      );
+
+      const { data: outsiderAssigned, error: outsiderAssignErr } = await clientB
+        .from("items")
+        .update({ assigned_to: outsiderId })
+        .eq("id", itemId)
+        .select();
+      assert(
+        "B cannot assign an item to a profile that is not a member of this list",
+        !!outsiderAssignErr || (outsiderAssigned ?? []).length === 0,
+        outsiderAssignErr?.message ?? outsiderAssigned,
+      );
+
+      await serviceClient.from("profiles").delete().eq("id", outsiderId);
+
+      // Regression: the tightened WITH CHECK re-validates on every update,
+      // so a check, a rename and a reorder on the same (still-assigned) row
+      // must still succeed — assigned_to is unchanged, so the new clause is
+      // a no-op.
+      const { data: checkedAfterAssign, error: checkAfterAssignErr } = await clientB
+        .from("items")
+        .update({ checked_at: new Date().toISOString(), checked_by: userBId })
+        .eq("id", itemId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Check still succeeds on an item with assigned_to set",
+        !checkAfterAssignErr && !!checkedAfterAssign?.checked_at,
+        checkAfterAssignErr?.message ?? checkedAfterAssign,
+      );
+
+      const { data: renamedAfterAssign, error: renameAfterAssignErr } = await clientB
+        .from("items")
+        .update({ name: "Milk (2%)" })
+        .eq("id", itemId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Rename still succeeds on an item with assigned_to set",
+        !renameAfterAssignErr && renamedAfterAssign?.name === "Milk (2%)",
+        renameAfterAssignErr?.message ?? renamedAfterAssign,
+      );
+
+      const { data: reorderedAfterAssign, error: reorderAfterAssignErr } = await clientB
+        .from("items")
+        .update({ position: 5 })
+        .eq("id", itemId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Reorder still succeeds on an item with assigned_to set",
+        !reorderAfterAssignErr && reorderedAfterAssign?.position === 5,
+        reorderAfterAssignErr?.message ?? reorderedAfterAssign,
+      );
+
+      // Clear assignment back to unassigned before the item is deleted below.
+      await clientB.from("items").update({ assigned_to: null }).eq("id", itemId);
+    } else {
+      fail("Assertion 4.6 skipped — no listId/itemId from Assertion 1");
+    }
+
+    // ---------- 4.6b. assigned_to on INSERT (0023 items_insert_member) ----------
+    console.log("\n--- Assertion 4.6b: assigned_to on insert (0023) ---");
+    if (listId) {
+      // Same non-member outsider as 4.6 — the tightened items_insert_member
+      // WITH CHECK must reject an insert that assigns straight to them.
+      const insertOutsiderId = `test-outsider-${crypto.randomUUID()}`;
+      const { error: insertOutsiderProfileErr } = await serviceClient
+        .from("profiles")
+        .insert({ id: insertOutsiderId, email: "outsider-insert@example.com" });
+      assert(
+        "Seeded an outsider profile for the insert-path check",
+        !insertOutsiderProfileErr,
+        insertOutsiderProfileErr?.message,
+      );
+
+      const { data: outsiderInsertedItem, error: outsiderInsertErr } = await clientB
+        .from("items")
+        .insert({
+          list_id: listId,
+          name: "Bad Assign",
+          created_by: userBId,
+          assigned_to: insertOutsiderId,
+        })
+        .select();
+      assert(
+        "B cannot insert an item pre-assigned to a profile that is not a member of this list",
+        !!outsiderInsertErr || (outsiderInsertedItem ?? []).length === 0,
+        outsiderInsertErr?.message ?? outsiderInsertedItem,
+      );
+
+      // Control: the same insert with assigned_to left null still succeeds —
+      // proves the WITH CHECK blocks non-members, not inserts in general.
+      const { data: nullAssignedInsertedItem, error: nullAssignedInsertErr } = await clientB
+        .from("items")
+        .insert({
+          list_id: listId,
+          name: "Good Assign",
+          created_by: userBId,
+          assigned_to: null,
+        })
+        .select()
+        .maybeSingle();
+      assert(
+        "B can still insert an item with assigned_to left null",
+        !nullAssignedInsertErr && !!nullAssignedInsertedItem,
+        nullAssignedInsertErr?.message ?? nullAssignedInsertedItem,
+      );
+
+      if (nullAssignedInsertedItem?.id) {
+        await serviceClient.from("items").delete().eq("id", nullAssignedInsertedItem.id as string);
+      }
+      await serviceClient.from("profiles").delete().eq("id", insertOutsiderId);
+    } else {
+      fail("Assertion 4.6b skipped — no listId from Assertion 1");
+    }
+
+    // ---------- 4.7. assigned_to cleared on member removal (0023 trigger) ----------
+    console.log("\n--- Assertion 4.7: assigned_to cleared on member removal (0023) ---");
+    if (listId && itemId) {
+      // Re-assign to B so the removal below has something to clear.
+      const { error: reassignErr } = await clientB
+        .from("items")
+        .update({ assigned_to: userBId })
+        .eq("id", itemId);
+      assert("B can re-assign item to self ahead of removal test", !reassignErr, reassignErr?.message);
+
+      // Owner A removes B from the list (temporary — B is re-added below so
+      // Assertion 5's own removal test still has B as a member).
+      const { data: removedByA, error: removeErr } = await clientA
+        .from("list_members")
+        .delete()
+        .eq("list_id", listId)
+        .eq("user_id", userBId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Owner A can remove member B ahead of assigned_to cleanup check",
+        !removeErr && removedByA?.user_id === userBId,
+        removeErr?.message ?? removedByA,
+      );
+
+      // B lost list access, so read the item via the service-role client.
+      const { data: itemAfterRemoval, error: itemAfterRemovalErr } = await serviceClient
+        .from("items")
+        .select("assigned_to")
+        .eq("id", itemId)
+        .maybeSingle();
+      assert(
+        "Trigger clears assigned_to after the assignee is removed from the list",
+        !itemAfterRemovalErr && itemAfterRemoval?.assigned_to === null,
+        itemAfterRemovalErr?.message ?? itemAfterRemoval,
+      );
+
+      // The tightened items_update_member WITH CHECK must not brick the
+      // item — a remaining member can still update it (e.g. check it off).
+      const { data: checkedAfterRemoval, error: checkAfterRemovalErr } = await clientA
+        .from("items")
+        .update({ checked_at: new Date().toISOString(), checked_by: userAId })
+        .eq("id", itemId)
+        .select()
+        .maybeSingle();
+      assert(
+        "Remaining member A can still update the item after the assignee is removed",
+        !checkAfterRemovalErr && !!checkedAfterRemoval?.checked_at,
+        checkAfterRemovalErr?.message ?? checkedAfterRemoval,
+      );
+
+      // Undo the check-off and re-add B so Assertion 5 (real member removal)
+      // still finds B as a member.
+      await clientA.from("items").update({ checked_at: null, checked_by: null }).eq("id", itemId);
+      const { error: reAddErr } = await serviceClient.from("list_members").insert({
+        list_id: listId,
+        user_id: userBId,
+        role: "member",
+      });
+      assert("B re-added to list ahead of Assertion 5", !reAddErr, reAddErr?.message);
+    } else {
+      fail("Assertion 4.7 skipped — no listId/itemId from Assertion 1");
+    }
+
     // ---------- 7. Wishlist fields + reservation + item_images ----------
     console.log("\n--- Assertion 7: wishlist fields + reservation ---");
     if (listId) {

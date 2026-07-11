@@ -8,6 +8,7 @@ export type ItemUpdatePatch = Partial<
     Item,
     | "checked_at"
     | "checked_by"
+    | "assigned_to"
     | "reserved_by"
     | "reserved_at"
     | "note"
@@ -48,6 +49,20 @@ export function buildReservePatch(
 
 export function buildReleasePatch(): Pick<Item, "reserved_by" | "reserved_at"> {
   return { reserved_by: null, reserved_at: null };
+}
+
+export function buildAssignPatch(userId: string | null): Pick<Item, "assigned_to"> {
+  return { assigned_to: userId };
+}
+
+export function nextAssignee(
+  current: string | null,
+  currentUserId: string,
+  memberIds: string[],
+): string | null {
+  if (current === null) return currentUserId;
+  if (current === currentUserId) return memberIds.find((id) => id !== currentUserId) ?? null;
+  return null;
 }
 
 export function buildMarkPurchasedPatch(

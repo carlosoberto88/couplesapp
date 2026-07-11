@@ -25,10 +25,11 @@ import { CSS } from "@dnd-kit/utilities";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Item, ItemImage, ListMember, Profile } from "@/lib/types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
-import { type ItemUpdatePatch } from "@/lib/item-mutations";
+import { buildAssignPatch, type ItemUpdatePatch } from "@/lib/item-mutations";
 import { buildNewItem, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
 import { useItemImages } from "@/lib/use-item-images";
 import { Button } from "@/components/ui/button";
+import { initialsFor } from "@/components/member-avatar";
 import type { RichAddInput } from "@/components/rich-add-item-form";
 import { ListAddSection } from "@/components/list-add-section";
 import { EmptyState } from "@/components/empty-state";
@@ -136,6 +137,17 @@ export function ShoppingItemList({
   const memberIds = useMemo(() => members.map((m) => m.user_id), [members]);
   const myDisplayName = nameFor(currentUserId) ?? "You";
 
+  const assignMembers = useMemo(
+    () =>
+      members.map((m) => ({
+        id: m.user_id,
+        name: nameFor(m.user_id) ?? m.user_id,
+        initials: initialsFor(m.profiles),
+        color: colorMap.get(m.user_id) ?? UNKNOWN_MEMBER_COLOR,
+      })),
+    [members, nameFor, colorMap],
+  );
+
   const sortedItems = useMemo(() => sortItems(items), [items]);
   const uncheckedItems = useMemo(
     () => sortedItems.filter((item) => item.checked_at === null),
@@ -191,6 +203,7 @@ export function ShoppingItemList({
   const handleFinishRef = useRef<() => void>(() => {});
   const handleUndoFinishRef = useRef<(snapshot: Item[], toastId: string | number) => void>(() => {});
   const handleEditRef = useRef<(item: Item, patch: ItemUpdatePatch) => void>(() => {});
+  const handleAssignRef = useRef<(item: Item, userId: string | null) => void>(() => {});
   const handleReorderRef = useRef<(groupItems: Item[], activeId: string, overId: string) => void>(
     () => {},
   );
@@ -377,6 +390,13 @@ export function ShoppingItemList({
   const handleEdit = useCallback(
     (item: Item, patch: ItemUpdatePatch) => {
       updateItem(item, patch, () => handleEditRef.current(item, patch));
+    },
+    [updateItem],
+  );
+
+  const handleAssign = useCallback(
+    (item: Item, userId: string | null) => {
+      updateItem(item, buildAssignPatch(userId), () => handleAssignRef.current(item, userId));
     },
     [updateItem],
   );
@@ -677,6 +697,7 @@ export function ShoppingItemList({
     handleFinishRef.current = handleFinish;
     handleUndoFinishRef.current = handleUndoFinish;
     handleEditRef.current = handleEdit;
+    handleAssignRef.current = handleAssign;
     handleReorderRef.current = handleReorder;
   });
 
@@ -852,6 +873,9 @@ export function ShoppingItemList({
                               onOpenDetail={setDetailItem}
                               onRemove={handleRemove}
                               onEdit={handleEdit}
+                              assignMembers={assignMembers.length >= 2 ? assignMembers : undefined}
+                              currentUserId={currentUserId}
+                              onAssign={handleAssign}
                             />
                           )}
                         </SortableItemRow>
@@ -890,6 +914,9 @@ export function ShoppingItemList({
                         onOpenDetail={setDetailItem}
                         onRemove={handleRemove}
                         onEdit={handleEdit}
+                        assignMembers={assignMembers.length >= 2 ? assignMembers : undefined}
+                        currentUserId={currentUserId}
+                        onAssign={handleAssign}
                       />
                     </Fragment>
                   );

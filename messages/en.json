@@ -323,7 +323,13 @@
     "noAisle": "No aisle",
     "aislePlaceholder": "e.g. 3 or Dairy",
     "aisleChipLabel": "Aisle {aisle}",
-    "reorderItem": "Reorder {name}"
+    "reorderItem": "Reorder {name}",
+    "assign": "Assign",
+    "assignItem": "Assign {name}",
+    "assignedTo": "Assigned to {name}",
+    "assignedToYou": "Assigned to you",
+    "unassign": "Unassign",
+    "assignMenuLabel": "Assign to"
   },
   "wishlist": {
     "itemCount": "{count, plural, one {# gift} other {# gifts}}",

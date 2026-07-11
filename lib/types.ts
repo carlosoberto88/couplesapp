@@ -66,6 +66,7 @@ export type Item = {
   created_at: string;
   checked_at: string | null;
   checked_by: string | null;
+  assigned_to: string | null;
   url: string | null;
   reserved_by: string | null;
   reserved_at: string | null;
