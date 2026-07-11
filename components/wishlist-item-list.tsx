@@ -12,7 +12,7 @@ import { buildNewItem, insertItemFromLink, insertItemWithImages, insertItemsBulk
 import type { LinkPreviewData } from "@/lib/persist-item";
 import { useItemImages } from "@/lib/use-item-images";
 import { upsertRow, removeRow } from "@/lib/item-list-utils";
-import { sortWishlistItems } from "@/lib/wishlist-utils";
+import { hasPriorityContrast, sortWishlistItems } from "@/lib/wishlist-utils";
 import { useRealtimeItems } from "@/lib/use-realtime-items";
 import { createOtherUserAddToastDebouncer } from "@/lib/debounce-toasts";
 import type { RichAddInput } from "@/components/rich-add-item-form";
@@ -80,6 +80,7 @@ export function WishlistItemList({
   );
 
   const sortedItems = useMemo(() => sortWishlistItems(items), [items]);
+  const showPriorityBadge = useMemo(() => hasPriorityContrast(items), [items]);
   const memberIds = useMemo(() => members.map((m) => m.user_id), [members]);
   const myDisplayName = nameFor(currentUserId) ?? "You";
   const locallyRemovedIdsRef = useRef<Set<string>>(new Set());
@@ -530,6 +531,7 @@ export function WishlistItemList({
               }
               imageUrl={primaryImageUrl(item.id)}
               hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
+              showPriorityBadge={showPriorityBadge}
               onOpenDetail={setDetailItem}
               onRemove={handleRemove}
               onReserve={handleReserve}

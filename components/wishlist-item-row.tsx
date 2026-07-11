@@ -1,13 +1,14 @@
 "use client";
 
 import { Check, Star, X } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import type { Item } from "@/lib/types";
 import type { MemberColor } from "@/lib/member-colors";
 import { UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import {
   canSeeReservation,
+  formatPrice,
   isPurchased,
   isReserved,
 } from "@/lib/wishlist-utils";
@@ -29,6 +30,7 @@ type WishlistItemRowProps = {
   onRelease: (item: Item) => void;
   onMarkPurchased: (item: Item) => void;
   onUnmarkPurchased: (item: Item) => void;
+  showPriorityBadge: boolean;
 };
 
 export function WishlistItemRow({
@@ -45,8 +47,10 @@ export function WishlistItemRow({
   onRelease,
   onMarkPurchased,
   onUnmarkPurchased,
+  showPriorityBadge,
 }: WishlistItemRowProps) {
   const t = useTranslations("wishlist");
+  const locale = useLocale();
   const purchased = isPurchased(item);
   const reserved = isReserved(item);
   const showReservation = canSeeReservation(item, currentUserId, listOwnerId);
@@ -88,7 +92,7 @@ export function WishlistItemRow({
             </div>
           )}
 
-          {item.priority === "must_have" && (
+          {showPriorityBadge && item.priority === "must_have" && (
             <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full border border-duo-coral bg-duo-coral-tint px-2 py-0.5 text-[11px] font-semibold text-foreground shadow-sm">
               <Star className="size-3 fill-duo-coral text-duo-coral" aria-hidden />
               {t("priorityMustHave")}
@@ -97,7 +101,13 @@ export function WishlistItemRow({
 
           {(purchased || (showReservation && reserved)) && (
             <div className="absolute inset-x-0 bottom-0 flex justify-start bg-gradient-to-t from-foreground/60 to-transparent p-2 pt-6">
-              <Badge>
+              <Badge
+                variant={!purchased && !isReserver ? "secondary" : undefined}
+                className={cn(
+                  purchased && "border-duo-gold bg-duo-gold-tint text-foreground",
+                  !purchased && isReserver && "border-duo-coral bg-duo-coral-tint text-foreground",
+                )}
+              >
                 {purchased
                   ? currentUserId === listOwnerId
                     ? t("obtained")
@@ -120,12 +130,12 @@ export function WishlistItemRow({
             {item.name}
           </p>
           {item.price !== null && (
-            <p className="mt-1 text-sm font-medium tabular-nums text-foreground">
-              {item.currency ?? "USD"} {item.price.toFixed(2)}
+            <p className="mt-1 text-base font-semibold tabular-nums text-foreground">
+              {formatPrice(item.price, item.currency, locale)}
             </p>
           )}
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            {item.priority === "nice_to_have" && (
+            {showPriorityBadge && item.priority === "nice_to_have" && (
               <Badge variant="outline">{t("priorityNiceToHave")}</Badge>
             )}
             {hasImages && !imageUrl && <Badge variant="outline">{t("hasPhotos")}</Badge>}
