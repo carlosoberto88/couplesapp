@@ -65,6 +65,20 @@ export function sortItems(items: Item[]): Item[] {
   });
 }
 
+/**
+ * Counts `createdAts` strictly newer than `seenIso`. Returns 0 when
+ * `seenIso` is null/empty so a first-ever visit never floods "new" badges.
+ * Compares parsed timestamps (`Date.parse`), not raw strings, since
+ * `created_at` arrives as ISO with a `+00:00` offset while the stored
+ * "seen" value uses `Date.toISOString()` (`Z` suffix) — lexical comparison
+ * of those two formats is not reliable.
+ */
+export function countNewItems(createdAts: string[], seenIso: string | null): number {
+  if (!seenIso) return 0;
+  const seenTime = Date.parse(seenIso);
+  return createdAts.filter((createdAt) => Date.parse(createdAt) > seenTime).length;
+}
+
 export function upsertRow(items: Item[], row: Item): Item[] {
   const idx = items.findIndex((i) => i.id === row.id);
   if (idx === -1) return [...items, row];

@@ -30,7 +30,9 @@
     "emptyArchivedTitle": "Nothing archived yet",
     "emptyArchivedDescription": "Lists you archive together will show up here.",
     "memberCount": "{count, plural, one {# member} other {# members}}",
-    "archivedCount": "Archived ({count})"
+    "archivedCount": "Archived ({count})",
+    "pendingItems": "{count, plural, one {# pending} other {# pending}}",
+    "newItems": "{count, plural, one {# new} other {# new}}"
   },
   "allItems": {
     "navLabel": "Main navigation",
