@@ -6,7 +6,7 @@ import { z } from "zod";
 import { formatItemsAddedBody } from "@/lib/format-item-push-body";
 import { getApiTranslator } from "@/lib/api-translator";
 import { verifyPreviewToken } from "@/lib/link-preview/preview-token";
-import { sendPushToUserIds } from "@/lib/send-push";
+import { notifyUsers } from "@/lib/notify";
 import { createClient } from "@/lib/supabase/server";
 import type { Item } from "@/lib/types";
 import {
@@ -175,8 +175,9 @@ export async function POST(request: NextRequest) {
 
   if (recipientIds.length > 0) {
     const pushBody = formatItemsAddedBody([payload.name], list.name, list.type === "wishlist");
-    await sendPushToUserIds({
+    await notifyUsers({
       userIds: recipientIds,
+      type: "item_added",
       title: "Couples",
       body: pushBody,
       url: `/lists/${listId}`,

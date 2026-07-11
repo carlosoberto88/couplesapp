@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@supabase/supabase-js";
 
 import { formatItemsAddedBody } from "@/lib/format-item-push-body";
-import { sendPushToUserIds } from "@/lib/send-push";
+import { notifyUsers } from "@/lib/notify";
 import { configureWebPush } from "@/lib/web-push";
 
 type WebhookPayload = {
@@ -85,8 +85,9 @@ export async function POST(request: NextRequest) {
   const isWishlist = list?.type === "wishlist";
   const body = formatItemsAddedBody([itemName], listName, isWishlist);
 
-  const { sent } = await sendPushToUserIds({
+  const { sent } = await notifyUsers({
     userIds: recipientIds,
+    type: "item_added",
     title: "Couples",
     body,
     url: `/lists/${listId}`,

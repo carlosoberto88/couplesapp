@@ -3,7 +3,7 @@ import { createClient as createServerClient } from "@supabase/supabase-js";
 
 import { getApiTranslator } from "@/lib/api-translator";
 import { daysUntilOccasion, isReminderDay } from "@/lib/occasion-utils";
-import { sendPushToUserIds } from "@/lib/send-push";
+import { notifyUsers } from "@/lib/notify";
 import type { Occasion } from "@/lib/types";
 
 type OccasionWithPartnership = Occasion & {
@@ -95,8 +95,9 @@ export async function GET(request: NextRequest) {
 
       remindersSent++;
 
-      const { sent } = await sendPushToUserIds({
+      const { sent } = await notifyUsers({
         userIds: recipientIds,
+        type: "occasion_reminder",
         title: "Couples",
         body,
         url: "/dates",

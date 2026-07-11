@@ -4,7 +4,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 
 import { getApiTranslator } from "@/lib/api-translator";
-import { sendPushToUserIds } from "@/lib/send-push";
+import { notifyUsers } from "@/lib/notify";
 import { createClient } from "@/lib/supabase/server";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -187,8 +187,9 @@ export async function POST(request: NextRequest) {
       inviterProfile?.email ||
       sessionClaims.email;
 
-    const { sent } = await sendPushToUserIds({
+    const { sent } = await notifyUsers({
       userIds: [inviteeUserId],
+      type: "list_invite",
       title: "Couples",
       body: `${inviterName} invited you to join ${list.name}`,
       url: `/lists/${listId}`,
@@ -253,8 +254,9 @@ export async function POST(request: NextRequest) {
             inviterProfile?.email ||
             sessionClaims.email;
 
-          const { sent } = await sendPushToUserIds({
+          const { sent } = await notifyUsers({
             userIds: [inviteeUserId],
+            type: "list_invite",
             title: "Couples",
             body: `${inviterName} invited you to join ${list.name}`,
             url: `/lists/${listId}`,

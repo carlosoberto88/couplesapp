@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { formatItemsAddedBody } from "@/lib/format-item-push-body";
 import { getApiTranslator } from "@/lib/api-translator";
-import { sendPushToUserIds } from "@/lib/send-push";
+import { notifyUsers } from "@/lib/notify";
 import { createClient } from "@/lib/supabase/server";
 import type { Item } from "@/lib/types";
 
@@ -98,8 +98,9 @@ export async function POST(request: NextRequest) {
       isWishlist,
     );
 
-    await sendPushToUserIds({
+    await notifyUsers({
       userIds: recipientIds,
+      type: "item_added",
       title: "Couples",
       body: pushBody,
       url: `/lists/${listId}`,

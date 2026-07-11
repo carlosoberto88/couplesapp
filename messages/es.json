@@ -256,6 +256,12 @@
     "unpairConfirm": "Separar",
     "unpaired": "Ya no estás en pareja"
   },
+  "notifications": {
+    "bellLabel": "Notificaciones",
+    "title": "Notificaciones",
+    "empty": "Estás al día",
+    "markAllRead": "Marcar todo como leído"
+  },
   "items": {
     "quickAddLabel": "Agregar rápido",
     "addPlaceholder": "Agregar un ítem…",

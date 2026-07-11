@@ -256,6 +256,12 @@
     "unpairConfirm": "Unpair",
     "unpaired": "You're unpaired"
   },
+  "notifications": {
+    "bellLabel": "Notifications",
+    "title": "Notifications",
+    "empty": "You're all caught up",
+    "markAllRead": "Mark all read"
+  },
   "items": {
     "quickAddLabel": "Quick add",
     "addPlaceholder": "Add an item…",

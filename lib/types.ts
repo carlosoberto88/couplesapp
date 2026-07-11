@@ -109,3 +109,14 @@ export type Occasion = {
   created_by: string;
   created_at: string;
 };
+
+export type Notification = {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  url: string | null;
+  read_at: string | null;
+  created_at: string;
+};
