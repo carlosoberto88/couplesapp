@@ -177,7 +177,7 @@ export function OccasionDialog({
               value={celebrantId}
               onChange={(e) => setCelebrantId(e.target.value)}
             >
-              <option value="">{t("celebrantNone")}</option>
+              <option value="">{t("celebrantBoth")}</option>
               {members.map((m) => (
                 <option key={m.userId} value={m.userId}>
                   {m.label}

@@ -178,7 +178,9 @@ function OccasionRow({
             </div>
             <span className="text-xs text-muted-foreground">
               {formatOccasionDate(occasion.occasion_date)} · {t(`category.${occasion.category}`)}
-              {celebrant ? ` · ${t("forCelebrant", { name: celebrant.label })}` : ""}
+              {celebrant
+                ? ` · ${t("forCelebrant", { name: celebrant.label })}`
+                : ` · ${t("forBoth")}`}
             </span>
             {linkedList ? (
               <span className="truncate text-xs text-muted-foreground">

@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import { SettingsSheet } from "@/components/settings-sheet";
+import { DuoChip } from "@/components/duo-chip";
 
 export function AppBarActions() {
   const locale = useLocale();
@@ -13,6 +14,7 @@ export function AppBarActions() {
 
   return (
     <>
+      <DuoChip />
       <SettingsSheet currentLocale={locale} />
       <UserButton appearance={clerkAppearance(resolvedTheme === "dark")} />
     </>

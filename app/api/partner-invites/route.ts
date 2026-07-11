@@ -133,8 +133,16 @@ export async function POST(request: NextRequest) {
   if (existingUsers.length > 0) {
     const { sent } = await notifyExistingUser(existingUsers[0].id);
 
+    if (sent > 0) {
+      return NextResponse.json({
+        status: "invited_push_sent",
+        invite_id: inviteId,
+        inviteUrl,
+      });
+    }
+
     return NextResponse.json({
-      status: sent > 0 ? "invited_push_sent" : "invited_copy_link",
+      status: "invited_copy_link",
       invite_id: inviteId,
       inviteUrl,
     });

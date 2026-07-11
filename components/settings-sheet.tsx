@@ -11,7 +11,6 @@ import { locales, type Locale } from "@/i18n/config";
 import { isPushSupported, urlBase64ToUint8Array } from "@/lib/push-client";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import { FeedbackForm } from "@/components/feedback-form";
-import { PartnerPanel } from "@/components/partner-panel";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -152,95 +151,105 @@ export function SettingsSheet({ currentLocale }: SettingsSheetProps) {
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          <PartnerPanel />
+          <div className="flex flex-col gap-4">
+            <h2 className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t("groupPreferences")}
+            </h2>
 
-          <section className="flex flex-col gap-2">
-            <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <Bell className="size-4" />
-              {t("notifications")}
-            </h3>
-            {pushStatus === "unsupported" ? (
-              <p className="text-sm text-muted-foreground">{t("pushUnsupported")}</p>
-            ) : pushStatus === "granted" ? (
-              <p className="text-sm text-muted-foreground">{t("pushEnabled")}</p>
-            ) : (
+            <section className="flex flex-col gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Bell className="size-4" />
+                {t("notifications")}
+              </h3>
+              {pushStatus === "unsupported" ? (
+                <p className="text-sm text-muted-foreground">{t("pushUnsupported")}</p>
+              ) : pushStatus === "granted" ? (
+                <p className="text-sm text-muted-foreground">{t("pushEnabled")}</p>
+              ) : (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-fit rounded-xl"
+                  disabled={pushPending}
+                  onClick={() => void enablePush()}
+                >
+                  {pushPending ? t("pushEnabling") : t("pushEnable")}
+                </Button>
+              )}
+            </section>
+
+            <section className="flex flex-col gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Globe className="size-4" />
+                {t("language")}
+              </h3>
+              <div className="inline-flex w-fit gap-1 rounded-full bg-muted p-1">
+                {locales.map((locale) => (
+                  <button
+                    key={locale}
+                    type="button"
+                    disabled={localePending}
+                    aria-pressed={currentLocale === locale}
+                    onClick={() => void changeLocale(locale)}
+                    className={cn(
+                      "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                      currentLocale === locale
+                        ? "bg-duo-coral-tint text-primary"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {locale === "en" ? t("english") : t("spanish")}
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <h2 className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t("groupHelp")}
+            </h2>
+
+            <section className="flex flex-col gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <BookOpen className="size-4" />
+                {t("showTutorial")}
+              </h3>
+              <p className="text-sm text-muted-foreground">{t("showTutorialHint")}</p>
               <Button
                 type="button"
                 variant="secondary"
                 className="w-fit rounded-xl"
-                disabled={pushPending}
-                onClick={() => void enablePush()}
+                disabled={tutorialPending}
+                onClick={() => void replayTutorial()}
               >
-                {pushPending ? t("pushEnabling") : t("pushEnable")}
+                {t("showTutorial")}
               </Button>
-            )}
-          </section>
+            </section>
 
-          <section className="flex flex-col gap-2">
-            <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <Globe className="size-4" />
-              {t("language")}
-            </h3>
-            <div className="inline-flex w-fit gap-1 rounded-full bg-muted p-1">
-              {locales.map((locale) => (
-                <button
-                  key={locale}
-                  type="button"
-                  disabled={localePending}
-                  aria-pressed={currentLocale === locale}
-                  onClick={() => void changeLocale(locale)}
-                  className={cn(
-                    "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                    currentLocale === locale
-                      ? "bg-duo-coral-tint text-primary"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {locale === "en" ? t("english") : t("spanish")}
-                </button>
-              ))}
-            </div>
-          </section>
+            <section className="flex flex-col gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <MessageSquare className="size-4" />
+                {t("feedback.title")}
+              </h3>
+              <p className="text-sm text-muted-foreground">{t("feedback.description")}</p>
+              <FeedbackForm />
+            </section>
 
-          <section className="flex flex-col gap-2">
-            <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <MessageSquare className="size-4" />
-              {t("feedback.title")}
-            </h3>
-            <p className="text-sm text-muted-foreground">{t("feedback.description")}</p>
-            <FeedbackForm />
-          </section>
-
-          <section className="flex flex-col gap-2">
-            <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <BookOpen className="size-4" />
-              {t("showTutorial")}
-            </h3>
-            <p className="text-sm text-muted-foreground">{t("showTutorialHint")}</p>
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-fit rounded-xl"
-              disabled={tutorialPending}
-              onClick={() => void replayTutorial()}
-            >
-              {t("showTutorial")}
-            </Button>
-          </section>
-
-          <section className="flex flex-col gap-2">
-            <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <Download className="size-4" />
-              {t("install")}
-            </h3>
-            {installEvent ? (
-              <Button type="button" className="w-fit rounded-xl" onClick={() => void installApp()}>
-                {t("installAction")}
-              </Button>
-            ) : (
-              <p className="text-sm text-muted-foreground">{t("installHint")}</p>
-            )}
-          </section>
+            <section className="flex flex-col gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Download className="size-4" />
+                {t("install")}
+              </h3>
+              {installEvent ? (
+                <Button type="button" className="w-fit rounded-xl" onClick={() => void installApp()}>
+                  {t("installAction")}
+                </Button>
+              ) : (
+                <p className="text-sm text-muted-foreground">{t("installHint")}</p>
+              )}
+            </section>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

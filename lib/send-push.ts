@@ -60,5 +60,13 @@ export async function sendPushToUserIds({
     await admin.from("push_subscriptions").delete().in("endpoint", staleEndpoints);
   }
 
+  if (sent === 0) {
+    console.warn("[send-push] no push notification delivered", {
+      userIds,
+      subscriptionCount: subscriptions?.length ?? 0,
+      title,
+    });
+  }
+
   return { sent };
 }
