@@ -139,6 +139,10 @@
     "forCelebrant": "for {name}",
     "linkedListHint": "Gifts on \"{name}\""
   },
+  "occasion": {
+    "reminderBody": "{label} in {days, plural, one {# day} other {# days}}",
+    "reminderBodyWithIdeas": "{label} in {days, plural, one {# day} other {# days}} — gift ideas: {ideas}"
+  },
   "shareLink": {
     "shareButton": "Share",
     "sharePublicly": "Share publicly",
