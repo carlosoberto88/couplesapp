@@ -5,6 +5,8 @@ const isPublicRoute = createRouteMatcher([
   "/signup(.*)",
   // Supabase Database Webhook — authenticated via SUPABASE_WEBHOOK_SECRET in the route.
   "/api/push/send",
+  // Vercel Cron — authenticated via CRON_SECRET in the route.
+  "/api/cron/occasion-reminders",
   // Public shareable wishlist gallery + guest reserve/release — no Clerk session required.
   "/w/(.*)",
   "/api/public/(.*)",
