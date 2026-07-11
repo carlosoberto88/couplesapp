@@ -45,7 +45,7 @@ function BottomNavTabs() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80 md:inset-x-auto md:left-1/2 md:w-full md:max-w-[var(--app-frame)] md:-translate-x-1/2 md:border-x"
       role="navigation"
       aria-label={t("navLabel")}
     >

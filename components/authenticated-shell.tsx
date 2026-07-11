@@ -42,7 +42,11 @@ export async function AuthenticatedShell({
       <Suspense fallback={null}>
         <OnboardingGate />
       </Suspense>
-      {children}
+      <div className="flex flex-1 flex-col md:[background:var(--app-backdrop)]">
+        <div className="flex flex-1 flex-col md:mx-auto md:w-full md:max-w-[var(--app-frame)] md:border-x md:border-border md:bg-background md:shadow-[0_0_60px_-15px_var(--app-frame-shadow)]">
+          {children}
+        </div>
+      </div>
       <TabShell />
     </>
   );

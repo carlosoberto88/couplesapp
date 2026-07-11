@@ -37,6 +37,7 @@ function makeItem(overrides: Partial<Item>): Item {
     created_at: "2026-01-01T00:00:00.000Z",
     checked_at: null,
     checked_by: null,
+    assigned_to: null,
     url: null,
     reserved_by: null,
     reserved_at: null,

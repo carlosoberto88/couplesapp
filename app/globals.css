@@ -89,6 +89,11 @@
   --sidebar-border: #e6e6e2;
   --sidebar-ring: #5b5be0;
 
+  /* Desktop frame: --app-frame is theme-agnostic — single source of truth for the framed column width (640px) */
+  --app-frame: 40rem;
+  --app-backdrop: linear-gradient(180deg, #ededf2 0%, #e7e7ee 100%);
+  --app-frame-shadow: rgb(38 40 51 / 0.16);
+
   /* His & Hers member accent tokens (large-text/UI accents only — keep body copy off marigold) */
   --duo-coral: #a36b0b;
   --duo-coral-tint: #fbeecb;
@@ -131,6 +136,10 @@
   --sidebar-accent-foreground: #edeef2;
   --sidebar-border: rgb(237 238 242 / 10%);
   --sidebar-ring: #7b7bf0;
+
+  /* Desktop frame */
+  --app-backdrop: linear-gradient(180deg, #101117 0%, #0b0c11 100%);
+  --app-frame-shadow: rgb(0 0 0 / 0.55);
 
   /* His & Hers member accent tokens — dark: tints are low-luminance washes, not pastels */
   --duo-coral: #f2a922;
