@@ -139,6 +139,7 @@
     "quickAddLabel": "Quick add",
     "addPlaceholder": "Add an item…",
     "addAriaLabel": "Add an item",
+    "multiAddHint": "Separate with commas or new lines to add several",
     "itemCount": "{count, plural, one {# item} other {# items}}",
     "clearChecked": "Clear checked",
     "empty": "No items yet — add your first item above.",

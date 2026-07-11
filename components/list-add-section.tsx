@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { EllipsisVertical, Plus, Share2 } from "lucide-react";
+import { ListPlus, Plus, Share2, Sparkles } from "lucide-react";
 
 import type { RichAddInput } from "@/components/rich-add-item-form";
 import { AddItemDialog } from "@/components/add-item-dialog";
@@ -11,12 +11,6 @@ import { SmartAdd } from "@/components/smart-add";
 import { UsualItems } from "@/components/usual-items";
 import { ShareWishlistDialog } from "@/components/share-wishlist-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { isWishlist } from "@/lib/list-types";
 import type { LinkPreviewData } from "@/lib/persist-item";
 import { useStickyAddBarHeight } from "@/lib/use-sticky-add-bar-height";
@@ -85,17 +79,6 @@ export function ListAddSection({
 
   const addItemLabel = wishlist ? t("addItemWishlist") : t("addItem");
 
-  const addMenuItems = (
-    <>
-      <DropdownMenuItem onClick={() => setBulkOpen(true)}>{t("addMultiple")}</DropdownMenuItem>
-      {showSmartAdd ? (
-        <DropdownMenuItem onClick={() => setSmartAddOpen(true)}>
-          {tSmartAdd("menuLabel")}
-        </DropdownMenuItem>
-      ) : null}
-    </>
-  );
-
   return (
     <>
       <div className="hidden md:flex flex-wrap items-center gap-2">
@@ -109,17 +92,32 @@ export function ListAddSection({
           <Plus className="size-4" />
           {addItemLabel}
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant="ghost" size="icon" className="size-9 rounded-full" />}
+        {showSmartAdd ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-9 rounded-full"
+            onClick={() => setSmartAddOpen(true)}
+            disabled={pending}
+            title={tSmartAdd("menuLabel")}
+            aria-label={tSmartAdd("menuLabel")}
           >
-            <EllipsisVertical className="size-4" />
-            <span className="sr-only">{t("moreOptions")}</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="rounded-xl">
-            {addMenuItems}
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <Sparkles className="size-4" />
+          </Button>
+        ) : null}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-9 rounded-full"
+          onClick={() => setBulkOpen(true)}
+          disabled={pending}
+          title={t("addMultiple")}
+          aria-label={t("addMultiple")}
+        >
+          <ListPlus className="size-4" />
+        </Button>
         {canShare ? (
           <Button
             type="button"
@@ -146,6 +144,7 @@ export function ListAddSection({
         onOpenChange={setAddOpen}
         hideTrigger
         onRichAdd={onRichAdd}
+        onAddMany={(names) => onSmartAddBulk(names.map((name) => ({ name, note: null })))}
         onAddFromLink={onAddFromLink}
       />
 
@@ -183,17 +182,32 @@ export function ListAddSection({
             <Plus className="size-4" />
             {addItemLabel}
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<Button variant="outline" size="icon" className="size-11 rounded-xl" />}
+          {showSmartAdd ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-11 rounded-xl"
+              onClick={() => setSmartAddOpen(true)}
+              disabled={pending}
+              title={tSmartAdd("menuLabel")}
+              aria-label={tSmartAdd("menuLabel")}
             >
-              <EllipsisVertical className="size-4" />
-              <span className="sr-only">{t("moreOptions")}</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="end" className="rounded-xl">
-              {addMenuItems}
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <Sparkles className="size-4" />
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-11 rounded-xl"
+            onClick={() => setBulkOpen(true)}
+            disabled={pending}
+            title={t("addMultiple")}
+            aria-label={t("addMultiple")}
+          >
+            <ListPlus className="size-4" />
+          </Button>
           {canShare ? (
             <Button
               type="button"

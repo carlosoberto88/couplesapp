@@ -29,6 +29,7 @@ type AddItemDialogProps = {
   onOpenChange?: (open: boolean) => void;
   hideTrigger?: boolean;
   onRichAdd: (input: RichAddInput) => void;
+  onAddMany?: (names: string[]) => void | Promise<void>;
   onAddFromLink?: (
     previewToken: string,
     preview: LinkPreviewData,
@@ -44,6 +45,7 @@ export function AddItemDialog({
   onOpenChange: controlledOnOpenChange,
   hideTrigger = false,
   onRichAdd,
+  onAddMany,
   onAddFromLink,
 }: AddItemDialogProps) {
   const t = useTranslations("addMenu");
@@ -87,6 +89,11 @@ export function AddItemDialog({
 
   function handleRichAdd(input: RichAddInput) {
     onRichAdd(input);
+    handleOpenChange(false);
+  }
+
+  function handleAddMany(names: string[]) {
+    void onAddMany?.(names);
     handleOpenChange(false);
   }
 
@@ -143,6 +150,7 @@ export function AddItemDialog({
                     listId={listId}
                     listType={listType}
                     onAdd={handleRichAdd}
+                    onAddMany={onAddMany ? handleAddMany : undefined}
                     pending={pending}
                     initialUrl={manualPrefillUrl}
                     autoExpandDetails={Boolean(manualPrefillUrl)}
@@ -155,6 +163,7 @@ export function AddItemDialog({
               listId={listId}
               listType={listType}
               onAdd={handleRichAdd}
+              onAddMany={onAddMany ? handleAddMany : undefined}
               pending={pending}
             />
           )}
