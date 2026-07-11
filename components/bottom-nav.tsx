@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CalendarHeart, Gift, ListChecks, ShoppingCart } from "lucide-react";
+import { CalendarHeart, Gift, ShoppingCart } from "lucide-react";
 
 import { LinkPendingIndicator } from "@/components/link-pending-indicator";
 import { cn } from "@/lib/utils";
@@ -27,14 +27,6 @@ const tabs = [
       pathname === "/lists" && room === "wishlist",
     activeText: "text-duo-coral",
     activeBg: "bg-duo-coral-tint",
-  },
-  {
-    href: "/items",
-    icon: ListChecks,
-    labelKey: "allTab" as const,
-    isActive: (pathname: string) => pathname === "/items",
-    activeText: "text-primary",
-    activeBg: "bg-muted",
   },
   {
     href: "/dates",

@@ -38,17 +38,7 @@
     "navLabel": "Main navigation",
     "shoppingTab": "Shopping",
     "wishlistsTab": "Wishlists",
-    "allTab": "All",
-    "datesTab": "Dates",
-    "title": "All items",
-    "subtitle": "Everything across your active lists in one place.",
-    "filterLabel": "Filter items",
-    "pending": "Pending",
-    "done": "Done",
-    "emptyPendingTitle": "All caught up",
-    "emptyPendingDescription": "Everything on your active lists is checked or purchased.",
-    "emptyDoneTitle": "Nothing done yet",
-    "emptyDoneDescription": "Checked and purchased items from your lists will show up here."
+    "datesTab": "Dates"
   },
   "listDetail": {
     "backToLists": "Lists",
