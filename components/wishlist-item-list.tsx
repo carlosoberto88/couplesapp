@@ -148,6 +148,7 @@ export function WishlistItemList({
         created_at: new Date().toISOString(),
         checked_at: null,
         checked_by: null,
+        assigned_to: null,
         reserved_by: null,
         reserved_at: null,
         is_extra: false,

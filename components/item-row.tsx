@@ -2,19 +2,36 @@
 
 import type { CSSProperties } from "react";
 import { useTranslations } from "next-intl";
-import { Check, ChevronRight, GripVertical, Link2, X } from "lucide-react";
+import { Check, ChevronRight, GripVertical, Link2, UserPlus, X } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 
 import type { Item } from "@/lib/types";
 import type { ItemUpdatePatch } from "@/lib/item-mutations";
+import { nextAssignee } from "@/lib/item-mutations";
 import type { MemberColor } from "@/lib/member-colors";
 import { UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { Button } from "@/components/ui/button";
+import { MemberAvatar } from "@/components/member-avatar";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 export type ItemRowDragHandleProps = {
   attributes: DraggableAttributes;
   listeners: DraggableSyntheticListeners;
+};
+
+export type ItemRowAssignMember = {
+  id: string;
+  name: string;
+  initials: string;
+  color: MemberColor;
 };
 
 type ItemRowProps = {
@@ -33,6 +50,9 @@ type ItemRowProps = {
   onOpenDetail: (item: Item) => void;
   onRemove: (item: Item) => void;
   onEdit?: (item: Item, patch: ItemUpdatePatch) => void;
+  assignMembers?: ItemRowAssignMember[];
+  currentUserId?: string;
+  onAssign?: (item: Item, userId: string | null) => void;
 };
 
 export function ItemRow({
@@ -51,10 +71,17 @@ export function ItemRow({
   onOpenDetail,
   onRemove,
   onEdit,
+  assignMembers,
+  currentUserId,
+  onAssign,
 }: ItemRowProps) {
   const t = useTranslations("items");
   const checked = item.checked_at !== null;
   const checkColor = checkerColor ?? UNKNOWN_MEMBER_COLOR;
+  const assignEnabled = !!(onAssign && assignMembers && currentUserId);
+  const assignee = item.assigned_to
+    ? (assignMembers?.find((m) => m.id === item.assigned_to) ?? null)
+    : null;
 
   return (
     <li
@@ -63,7 +90,7 @@ export function ItemRow({
       style={{
         borderLeftWidth: 3,
         borderLeftColor: adderColor.color,
-        backgroundColor: checked ? checkColor.tint : undefined,
+        backgroundColor: checked ? checkColor.tint : assignee ? assignee.color.tint : undefined,
         ...dragStyle,
       }}
     >
@@ -157,6 +184,78 @@ export function ItemRow({
           {t("oneTimeChip")}
         </button>
       )}
+
+      {assignEnabled &&
+        onAssign &&
+        assignMembers &&
+        currentUserId &&
+        (() => {
+          const members = assignMembers;
+          const userId = currentUserId;
+          const assign = onAssign;
+          const label = assignee
+            ? assignee.id === userId
+              ? t("assignedToYou")
+              : t("assignedTo", { name: assignee.name })
+            : t("assignItem", { name: item.name });
+          const chip = assignee ? (
+            <MemberAvatar initials={assignee.initials} color={assignee.color} title={label} />
+          ) : (
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-dashed border-muted-foreground/50 text-muted-foreground">
+              <UserPlus className="size-3.5" aria-hidden />
+            </span>
+          );
+
+          if (members.length > 2) {
+            return (
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<button type="button" aria-label={label} className="mt-0.5 shrink-0" />}>
+                  {chip}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="rounded-xl">
+                  <DropdownMenuLabel>{t("assignMenuLabel")}</DropdownMenuLabel>
+                  {members.map((member) => (
+                    <DropdownMenuItem key={member.id} onClick={() => assign(item, member.id)}>
+                      <MemberAvatar
+                        initials={member.initials}
+                        color={member.color}
+                        title={member.name}
+                        className="size-5 text-[10px]"
+                      />
+                      {member.name}
+                    </DropdownMenuItem>
+                  ))}
+                  {assignee && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => assign(item, null)}>{t("unassign")}</DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            );
+          }
+
+          return (
+            <button
+              type="button"
+              aria-label={label}
+              className="mt-0.5 shrink-0"
+              onClick={() =>
+                assign(
+                  item,
+                  nextAssignee(
+                    item.assigned_to,
+                    userId,
+                    members.map((member) => member.id),
+                  ),
+                )
+              }
+            >
+              {chip}
+            </button>
+          );
+        })()}
 
       <Button
         variant="ghost"

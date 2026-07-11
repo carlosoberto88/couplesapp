@@ -323,7 +323,13 @@
     "noAisle": "Sin pasillo",
     "aislePlaceholder": "p. ej. 3 o Lácteos",
     "aisleChipLabel": "Pasillo {aisle}",
-    "reorderItem": "Reordenar {name}"
+    "reorderItem": "Reordenar {name}",
+    "assign": "Asignar",
+    "assignItem": "Asignar {name}",
+    "assignedTo": "Asignado a {name}",
+    "assignedToYou": "Asignado a ti",
+    "unassign": "Quitar asignación",
+    "assignMenuLabel": "Asignar a"
   },
   "wishlist": {
     "itemCount": "{count, plural, one {# regalo} other {# regalos}}",
