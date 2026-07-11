@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ListSettingsMenu } from "@/components/list-settings-menu";
 import { ListsLiveSync } from "@/components/lists-live-sync";
 import { ListCardLink } from "@/components/list-card-link";
+import { ListNewBadge } from "@/components/list-new-badge";
 import { MemberAvatar, initialsFor } from "@/components/member-avatar";
 
 type ListMemberWithProfile = {
@@ -59,6 +60,24 @@ export default async function ListsPage({
   const archivedLists = roomRows.filter((l) => l.archived_at !== null);
   const visibleLists = showArchived ? archivedLists : activeLists;
 
+  const { data: items } = await supabase
+    .from("items")
+    .select("list_id, checked_at, created_at")
+    .is("removed_at", null)
+    .in(
+      "list_id",
+      roomRows.map((l) => l.id),
+    );
+
+  const pendingCount = new Map<string, number>();
+  const createdAts = new Map<string, string[]>();
+  for (const item of items ?? []) {
+    if (item.checked_at === null) {
+      pendingCount.set(item.list_id, (pendingCount.get(item.list_id) ?? 0) + 1);
+    }
+    createdAts.set(item.list_id, [...(createdAts.get(item.list_id) ?? []), item.created_at]);
+  }
+
   return (
     <>
       <ListsLiveSync userId={userId} />
@@ -86,6 +105,8 @@ export default async function ListsPage({
               const isOwner = list.owner_id === userId;
               const dotCount = Math.min(memberCount, 3);
               const colorMap = buildMemberColorMap(members);
+              const listPendingCount = pendingCount.get(list.id) ?? 0;
+              const listCreatedAts = createdAts.get(list.id) ?? [];
 
               return (
                 <li key={list.id}>
@@ -104,10 +125,13 @@ export default async function ListsPage({
                           </span>
                           <span className="text-xs text-muted-foreground">
                             {meta.label}
+                            {!isWishlist(list.type) && listPendingCount > 0 &&
+                              ` · ${t("pendingItems", { count: listPendingCount })}`}
                           </span>
                         </div>
-                        {memberCount > 0 && (
-                          <div className="flex shrink-0 flex-col items-end gap-0.5">
+                        <div className="flex shrink-0 flex-col items-end gap-0.5">
+                          <ListNewBadge listId={list.id} createdAts={listCreatedAts} />
+                          {memberCount > 0 && (
                             <div className="flex -space-x-1.5">
                               {members.slice(0, dotCount).map((member) => {
                                 const color =
@@ -127,8 +151,8 @@ export default async function ListsPage({
                                 );
                               })}
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </ListCardLink>
                       {isOwner && <ListSettingsMenu list={list} />}
                     </CardContent>

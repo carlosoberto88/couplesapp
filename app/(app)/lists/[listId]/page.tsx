@@ -15,6 +15,7 @@ import { AppBarActions } from "@/components/app-bar-actions";
 import { MemberAvatar, initialsFor } from "@/components/member-avatar";
 import { InvitePanel } from "@/components/invite-panel";
 import { ListDetailLiveSync } from "@/components/list-detail-live-sync";
+import { MarkListSeen } from "@/components/mark-list-seen";
 
 type MemberWithProfile = ListMember & {
   profiles: Pick<Profile, "id" | "email" | "display_name"> | null;
@@ -84,6 +85,7 @@ export default async function ListDetailPage({
   return (
     <>
       <ListDetailLiveSync listId={typedList.id} />
+      <MarkListSeen listId={typedList.id} />
       <AppBar>
         <AppBarActions />
       </AppBar>
