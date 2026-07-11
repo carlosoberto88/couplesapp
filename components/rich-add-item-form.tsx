@@ -33,6 +33,7 @@ type RichAddItemFormProps = {
   listId: string;
   listType: string;
   onAdd: (input: RichAddInput) => void;
+  onAddMany?: (names: string[]) => void | Promise<void>;
   pending?: boolean;
   variant?: "default" | "sticky";
   initialUrl?: string | null;
@@ -41,6 +42,23 @@ type RichAddItemFormProps = {
 
 function looksLikeUrl(value: string): boolean {
   return /^https?:\/\/.+/i.test(value.trim());
+}
+
+// Splits pasted/typed text on newlines and commas into distinct item names,
+// trimming whitespace and de-duping case-insensitively while keeping the
+// first-seen casing and order.
+function splitMultipleNames(raw: string): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const part of raw.split(/[\n,]+/)) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    names.push(trimmed);
+  }
+  return names;
 }
 
 type StickyOptionalField = OptionalFieldKey | null;
@@ -105,6 +123,7 @@ export function RichAddItemForm({
   listId,
   listType,
   onAdd,
+  onAddMany,
   pending = false,
   variant = "default",
   initialUrl = null,
@@ -215,9 +234,18 @@ export function RichAddItemForm({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed || pending) return;
+    if (pending) return;
 
+    const names = splitMultipleNames(name);
+    if (names.length === 0) return;
+
+    if (names.length >= 2 && onAddMany) {
+      void onAddMany(names);
+      reset();
+      return;
+    }
+
+    const trimmed = names[0];
     const parsedPrice = price.trim() ? Number.parseFloat(price.trim()) : null;
 
     onAdd({
@@ -276,6 +304,10 @@ export function RichAddItemForm({
           </Button>
         ) : null}
       </div>
+
+      {onAddMany ? (
+        <p className="text-xs text-muted-foreground">{tItems("multiAddHint")}</p>
+      ) : null}
 
       {sticky ? (
         <>
