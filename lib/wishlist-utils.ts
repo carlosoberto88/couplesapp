@@ -19,6 +19,28 @@ export function isReserved(item: Pick<Item, "reserved_by">): boolean {
   return item.reserved_by !== null;
 }
 
+/** Whether priority badges would discriminate among the visible (non-purchased) items. */
+export function hasPriorityContrast(items: Item[]): boolean {
+  const visible = items.filter((item) => !isPurchased(item));
+  if (visible.length === 0) return false;
+
+  const tiers = new Set(
+    visible.map((item) => (item.priority === "must_have" ? "must" : "other")),
+  );
+  return tiers.size > 1;
+}
+
+export function formatPrice(price: number, currency: string | null, locale: string): string {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: currency ?? "USD",
+    }).format(price);
+  } catch {
+    return `${currency ?? "USD"} ${price.toFixed(2)}`; // guard bad/unknown currency codes
+  }
+}
+
 export function sortWishlistItems(items: Item[]): Item[] {
   return [...items].sort((a, b) => {
     const aPurchased = a.checked_at !== null;
