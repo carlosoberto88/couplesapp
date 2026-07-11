@@ -11,6 +11,7 @@ import { locales, type Locale } from "@/i18n/config";
 import { isPushSupported, urlBase64ToUint8Array } from "@/lib/push-client";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import { FeedbackForm } from "@/components/feedback-form";
+import { PartnerPanel } from "@/components/partner-panel";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -151,6 +152,8 @@ export function SettingsSheet({ currentLocale }: SettingsSheetProps) {
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
+          <PartnerPanel />
+
           <section className="flex flex-col gap-2">
             <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
               <Bell className="size-4" />

@@ -1,0 +1,199 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient as createServerClient } from "@supabase/supabase-js";
+import { auth, clerkClient } from "@clerk/nextjs/server";
+import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
+
+import { getApiTranslator } from "@/lib/api-translator";
+import { sendPushToUserIds } from "@/lib/send-push";
+import { createClient } from "@/lib/supabase/server";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function POST(request: NextRequest) {
+  const t = await getApiTranslator(request);
+  const { userId, sessionClaims } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: t("api.notAuthenticated") }, { status: 401 });
+  }
+
+  const supabase = await createClient();
+
+  const body = await request.json().catch(() => null);
+  const rawEmail = typeof body?.email === "string" ? body.email : null;
+
+  if (!rawEmail || !EMAIL_RE.test(rawEmail.trim())) {
+    return NextResponse.json({ error: t("api.invalidEmail") }, { status: 400 });
+  }
+
+  const email = rawEmail.trim().toLowerCase();
+
+  if (!sessionClaims?.email) {
+    return NextResponse.json(
+      { error: t("api.missingEmailClaim") },
+      { status: 500 },
+    );
+  }
+
+  if (email === sessionClaims.email.toLowerCase()) {
+    return NextResponse.json({ error: t("api.cantInviteSelf") }, { status: 400 });
+  }
+
+  const inviterEmailClaim = sessionClaims.email;
+
+  const { data: activePartnershipId } = await supabase.rpc("active_partnership_id");
+
+  if (activePartnershipId) {
+    return NextResponse.json(
+      { error: t("api.alreadyPartnered") },
+      { status: 409 },
+    );
+  }
+
+  let inviteId: string;
+
+  const { data: existingInvite } = await supabase
+    .from("partner_invites")
+    .select("id")
+    .eq("email", email)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (existingInvite) {
+    inviteId = existingInvite.id;
+  } else {
+    const { data: newInvite, error: insertError } = await supabase
+      .from("partner_invites")
+      .insert({ inviter_id: userId, email })
+      .select("id")
+      .single();
+
+    if (insertError?.code === "23505") {
+      // Lost the race to a concurrent insert of the same pending invite — idempotent, not an error.
+      const { data: raceInvite } = await supabase
+        .from("partner_invites")
+        .select("id")
+        .eq("email", email)
+        .eq("status", "pending")
+        .maybeSingle();
+
+      if (!raceInvite) {
+        return NextResponse.json(
+          { error: t("api.createInviteError") },
+          { status: 500 },
+        );
+      }
+
+      inviteId = raceInvite.id;
+    } else if (insertError || !newInvite) {
+      return NextResponse.json(
+        { error: t("api.createInviteError") },
+        { status: 500 },
+      );
+    } else {
+      inviteId = newInvite.id;
+    }
+  }
+
+  const admin = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } },
+  );
+
+  const origin = process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin;
+  const inviteUrl = `${origin}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent("/dates")}`;
+  const signupRedirectUrl = `${origin}/signup?next=${encodeURIComponent("/dates")}`;
+
+  async function notifyExistingUser(inviteeUserId: string) {
+    const { data: inviterProfile } = await admin
+      .from("profiles")
+      .select("display_name, email")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const inviterName =
+      inviterProfile?.display_name?.trim() ||
+      inviterProfile?.email ||
+      inviterEmailClaim;
+
+    return sendPushToUserIds({
+      userIds: [inviteeUserId],
+      title: "Couples",
+      body: `${inviterName} invited you to pair up`,
+      url: "/dates",
+    });
+  }
+
+  const client = await clerkClient();
+  const { data: existingUsers } = await client.users.getUserList({
+    emailAddress: [email],
+  });
+
+  if (existingUsers.length > 0) {
+    const { sent } = await notifyExistingUser(existingUsers[0].id);
+
+    return NextResponse.json({
+      status: sent > 0 ? "invited_push_sent" : "invited_copy_link",
+      invite_id: inviteId,
+      inviteUrl,
+    });
+  }
+
+  try {
+    await client.invitations.createInvitation({
+      emailAddress: email,
+      redirectUrl: signupRedirectUrl,
+      notify: true,
+    });
+  } catch (err) {
+    if (isClerkAPIResponseError(err)) {
+      const code = err.errors[0]?.code;
+      console.warn("[partner-invites] createInvitation ClerkAPIResponseError code:", code);
+
+      if (code === "duplicate_record") {
+        return NextResponse.json({
+          status: "invited_email_sent",
+          invite_id: inviteId,
+          inviteUrl,
+        });
+      }
+
+      if (code === "form_identifier_exists") {
+        const { data: raceUsers } = await client.users.getUserList({
+          emailAddress: [email],
+        });
+        const inviteeUserId = raceUsers[0]?.id;
+
+        if (inviteeUserId) {
+          const { sent } = await notifyExistingUser(inviteeUserId);
+
+          if (sent > 0) {
+            return NextResponse.json({
+              status: "invited_push_sent",
+              invite_id: inviteId,
+              inviteUrl,
+            });
+          }
+        }
+
+        return NextResponse.json({
+          status: "invited_copy_link",
+          invite_id: inviteId,
+          inviteUrl,
+        });
+      }
+    }
+
+    return NextResponse.json(
+      { invite_id: inviteId, inviteUrl, status: "email_failed" },
+      { status: 502 },
+    );
+  }
+
+  return NextResponse.json({
+    status: "invited_email_sent",
+    invite_id: inviteId,
+    inviteUrl,
+  });
+}
