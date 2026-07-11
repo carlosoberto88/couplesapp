@@ -94,3 +94,18 @@ export type ItemListContext = Pick<List, "id" | "name" | "type" | "owner_id">;
 export type ItemWithList = Item & {
   lists: ItemListContext;
 };
+
+export type OccasionCategory = "birthday" | "anniversary" | "other";
+
+export type Occasion = {
+  id: string;
+  partnership_id: string;
+  label: string;
+  occasion_date: string;
+  recurring: boolean;
+  category: OccasionCategory;
+  celebrant_user_id: string | null;
+  linked_list_id: string | null;
+  created_by: string;
+  created_at: string;
+};
