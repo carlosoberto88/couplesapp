@@ -34,6 +34,25 @@ export type ListInvite = {
   created_at: string;
 };
 
+export type Partnership = {
+  id: string;
+  user_low: string;
+  user_high: string;
+  status: "active" | "ended";
+  label: string | null;
+  created_by: string;
+  created_at: string;
+  ended_at: string | null;
+};
+
+export type PartnerInvite = {
+  id: string;
+  inviter_id: string;
+  email: string;
+  status: "pending" | "accepted" | "revoked";
+  created_at: string;
+};
+
 export type ItemPriority = "must_have" | "nice_to_have";
 
 export type Item = {

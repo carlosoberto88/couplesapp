@@ -35,6 +35,8 @@ export async function AuthenticatedShell({
     return <ProvisioningError message={upsertErr.message} />;
   }
 
+  await supabase.rpc("accept_pending_partner_invites");
+
   return (
     <>
       <Suspense fallback={null}>
