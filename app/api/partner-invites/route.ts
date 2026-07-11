@@ -4,7 +4,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 
 import { getApiTranslator } from "@/lib/api-translator";
-import { sendPushToUserIds } from "@/lib/send-push";
+import { notifyUsers } from "@/lib/notify";
 import { createClient } from "@/lib/supabase/server";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -117,8 +117,9 @@ export async function POST(request: NextRequest) {
       inviterProfile?.email ||
       inviterEmailClaim;
 
-    return sendPushToUserIds({
+    return notifyUsers({
       userIds: [inviteeUserId],
+      type: "partner_invite",
       title: "Couples",
       body: `${inviterName} invited you to pair up`,
       url: "/dates",
