@@ -90,7 +90,7 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
-  keyboardAware = false,
+  keyboardAware = true,
   style,
   onFocusCapture,
   ...props
@@ -170,10 +170,11 @@ function DialogContent({
       <DialogPrimitive.Popup
         ref={popupRef}
         data-slot="dialog-content"
+        data-dialog-scroll-body={keyboardAware ? "" : undefined}
         className={cn(
           "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           keyboardAware &&
-            "max-sm:left-auto max-sm:w-auto max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-hidden max-sm:min-h-0 flex flex-col",
+            "max-sm:left-auto max-sm:w-auto max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex max-sm:flex-col max-sm:overflow-x-hidden max-sm:overflow-y-auto max-sm:min-h-0",
           className
         )}
         style={{ ...style, ...mobileBoxStyle }}
