@@ -28,10 +28,21 @@ export async function AuthenticatedShell({
 
   const supabase = await createClient();
 
-  const { error: upsertErr } = await supabase.from("profiles").upsert(
-    { id: userId, email: email.toLowerCase(), ...(username ? { username } : {}) },
+  const baseProfile = { id: userId, email: email.toLowerCase() };
+
+  let { error: upsertErr } = await supabase.from("profiles").upsert(
+    { ...baseProfile, ...(username ? { username } : {}) },
     { onConflict: "id" },
   );
+
+  // username is a denormalized cache, not essential: if it collides with another
+  // user's username under the DB's case-insensitive unique index, drop it and
+  // retry so the profile is still provisioned instead of locking the user out.
+  if (upsertErr && username && upsertErr.code === "23505") {
+    ({ error: upsertErr } = await supabase
+      .from("profiles")
+      .upsert(baseProfile, { onConflict: "id" }));
+  }
 
   if (upsertErr) {
     return <ProvisioningError message={upsertErr.message} />;
