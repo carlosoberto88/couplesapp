@@ -10,7 +10,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/sw-register";
 import { PushNotificationsSetup } from "@/components/push-notifications-setup";
-import { InstallPrompt } from "@/components/install-prompt";
 import { NavigationProgress } from "@/components/navigation-progress";
 import "./globals.css";
 
@@ -75,7 +74,6 @@ export default async function RootLayout({
           <ClerkProvider localization={clerkLocalization}>
             <NextIntlClientProvider messages={messages}>
               <NavigationProgress />
-              <InstallPrompt />
               <PushNotificationsSetup />
               {children}
               <Toaster richColors position="top-center" />
