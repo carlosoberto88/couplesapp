@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Bell } from "lucide-react";
 
 import { isPushSupported, urlBase64ToUint8Array } from "@/lib/push-client";
 import { Button } from "@/components/ui/button";
@@ -52,12 +51,8 @@ export function NotificationsSection() {
 
   return (
     <Card className="rounded-2xl">
-      <CardContent className="py-4">
+      <CardContent className="py-2">
         <section className="flex flex-col gap-2">
-          <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <Bell className="size-4" />
-            {t("notifications")}
-          </h3>
           {pushStatus === "unsupported" ? (
             <p className="text-sm text-muted-foreground">{t("pushUnsupported")}</p>
           ) : pushStatus === "granted" ? (

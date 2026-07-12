@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Globe, Laptop, Moon, Sun } from "lucide-react";
+import { Globe, Laptop, Moon, Sun, SunMoon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 
@@ -51,7 +51,7 @@ export function PreferencesSection({ currentLocale }: PreferencesSectionProps) {
 
   return (
     <Card className="rounded-2xl">
-      <CardContent className="flex flex-col gap-4 py-4">
+      <CardContent className="flex flex-col gap-4 py-2">
         <section className="flex flex-col gap-2">
           <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Globe className="size-4" />
@@ -80,7 +80,7 @@ export function PreferencesSection({ currentLocale }: PreferencesSectionProps) {
 
         <section className="flex flex-col gap-2">
           <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <Sun className="size-4" />
+            <SunMoon className="size-4" />
             {t("theme")}
           </h3>
           {mounted ? (

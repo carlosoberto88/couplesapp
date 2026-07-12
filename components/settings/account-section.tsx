@@ -14,7 +14,7 @@ export function AccountSection() {
   if (!isLoaded) {
     return (
       <Card className="rounded-2xl">
-        <CardContent className="flex items-center gap-3 py-4">
+        <CardContent className="flex items-center gap-3 py-2">
           <Skeleton className="size-9 rounded-full" />
           <div className="flex flex-col gap-1.5">
             <Skeleton className="h-4 w-32" />
@@ -27,10 +27,10 @@ export function AccountSection() {
 
   return (
     <Card className="rounded-2xl">
-      <CardContent className="flex items-center gap-3 py-4">
+      <CardContent className="flex items-center gap-3 py-2">
         <UserButton appearance={clerkAppearance(resolvedTheme === "dark")} />
         <div className="flex min-w-0 flex-col">
-          <span className="truncate font-medium text-foreground">
+          <span className="truncate text-base font-medium text-foreground">
             {user?.username ?? user?.fullName ?? user?.primaryEmailAddress?.emailAddress}
           </span>
           {user?.primaryEmailAddress ? (

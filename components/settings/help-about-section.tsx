@@ -61,7 +61,7 @@ export function HelpAboutSection() {
 
   return (
     <Card className="rounded-2xl">
-      <CardContent className="flex flex-col gap-4 py-4">
+      <CardContent className="flex flex-col gap-4 py-2">
         <section className="flex flex-col gap-2">
           <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
             <BookOpen className="size-4" />
