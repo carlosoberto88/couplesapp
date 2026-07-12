@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { MoreVertical, Pencil, Archive, ArchiveRestore, Trash2, Share2 } from "lucide-react";
+import { MoreVertical, Pencil, Archive, ArchiveRestore, Trash2, Share2, Clock } from "lucide-react";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { List } from "@/lib/types";
 import { getListTypeConfig, isWishlist } from "@/lib/list-types";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,10 +30,23 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ShareWishlistDialog } from "@/components/share-wishlist-dialog";
 
+const SCHEDULE_OPTIONS = [
+  { days: null, labelKey: "scheduleOff" },
+  { days: 7, labelKey: "scheduleWeekly" },
+  { days: 14, labelKey: "scheduleBiweekly" },
+  { days: 30, labelKey: "scheduleMonthly" },
+] as const;
+
 type ListSettingsMenuProps = {
   list: Pick<
     List,
-    "id" | "name" | "archived_at" | "type" | "recurring" | "share_token"
+    | "id"
+    | "name"
+    | "archived_at"
+    | "type"
+    | "recurring"
+    | "share_token"
+    | "regenerate_interval_days"
   >;
 };
 
@@ -46,6 +60,7 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const [name, setName] = useState(list.name);
   const [pending, setPending] = useState(false);
 
@@ -108,6 +123,26 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
     router.refresh();
   }
 
+  async function setSchedule(days: number | null) {
+    const next_regenerate_at =
+      days === null ? null : new Date(new Date().getTime() + days * 86_400_000).toISOString();
+
+    setPending(true);
+    const { error } = await supabase
+      .from("lists")
+      .update({ regenerate_interval_days: days, next_regenerate_at })
+      .eq("id", list.id);
+    setPending(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setScheduleOpen(false);
+    toast.success(t("scheduleSavedToast"));
+    router.refresh();
+  }
+
   async function handleDelete() {
     setPending(true);
     const { error } = await supabase.from("lists").delete().eq("id", list.id);
@@ -158,6 +193,22 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
                 </span>
               </div>
             </DropdownMenuCheckboxItem>
+          ) : null}
+          {canRecur && list.recurring ? (
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setScheduleOpen(true);
+              }}
+            >
+              <Clock />
+              <div className="flex flex-col">
+                <span>{t("schedule")}</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  {t("scheduleHint")}
+                </span>
+              </div>
+            </DropdownMenuItem>
           ) : null}
           {canShare ? (
             <DropdownMenuItem
@@ -220,6 +271,34 @@ export function ListSettingsMenu({ list }: ListSettingsMenuProps) {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
+        <DialogContent className="rounded-2xl bg-card">
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg">{t("scheduleTitle")}</DialogTitle>
+            <DialogDescription>{t("scheduleHint")}</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            {SCHEDULE_OPTIONS.map(({ days, labelKey }) => (
+              <button
+                key={labelKey}
+                type="button"
+                disabled={pending}
+                onClick={() => void setSchedule(days)}
+                aria-pressed={list.regenerate_interval_days === days}
+                className={cn(
+                  "flex h-11 items-center rounded-xl border-2 px-4 text-sm font-medium transition-colors disabled:opacity-50",
+                  list.regenerate_interval_days === days
+                    ? "border-primary bg-duo-coral-tint text-primary"
+                    : "border-border bg-background text-muted-foreground hover:bg-muted",
+                )}
+              >
+                {t(labelKey)}
+              </button>
+            ))}
+          </div>
         </DialogContent>
       </Dialog>
 

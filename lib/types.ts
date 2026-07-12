@@ -15,6 +15,8 @@ export type List = {
   created_at: string;
   archived_at: string | null;
   recurring: boolean;
+  regenerate_interval_days: number | null;
+  next_regenerate_at: string | null;
   share_token: string | null;
 };
 

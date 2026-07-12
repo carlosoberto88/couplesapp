@@ -50,7 +50,7 @@ export default async function ListsPage({
   const { data: lists } = await supabase
     .from("lists")
     .select(
-      "id, name, type, recurring, owner_id, archived_at, created_at, share_token, list_members(user_id, created_at, profiles(id, email, display_name))",
+      "id, name, type, recurring, regenerate_interval_days, owner_id, archived_at, created_at, share_token, list_members(user_id, created_at, profiles(id, email, display_name))",
     )
     .order("created_at", { ascending: false });
 
