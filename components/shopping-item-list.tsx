@@ -36,6 +36,7 @@ import { EmptyState } from "@/components/empty-state";
 import { AllDoneCelebration } from "@/components/all-done-celebration";
 import { ListActivityStrip } from "@/components/list-activity-strip";
 import { PartnerPresence } from "@/components/partner-presence";
+import { ShoppingPresence } from "@/components/shopping-presence";
 import { CheckedItemsSection } from "@/components/checked-items-section";
 import { useRealtimeItems } from "@/lib/use-realtime-items";
 import { ItemRow } from "@/components/item-row";
@@ -105,13 +106,16 @@ export function ShoppingItemList({
   const t = useTranslations("items");
   const tBulk = useTranslations("bulkAdd");
   const tCommon = useTranslations("common");
+  const tShoppingNow = useTranslations("shoppingNow");
   const [items, setItems] = useState<Item[]>(initialItems);
   const [adding, setAdding] = useState(false);
   const [detailItem, setDetailItem] = useState<Item | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
+  const [shoppingNow, setShoppingNow] = useState(false);
   const prevAllCheckedRef = useRef(false);
+  const shoppingNowPostInFlightRef = useRef(false);
 
   const { imagesByItemId, refetchImages, primaryImageUrl, imageUrlsForItem } = useItemImages(
     listId,
@@ -162,6 +166,9 @@ export function ShoppingItemList({
     getListTypeConfig(listType).supportsAisles &&
     uncheckedItems.some((item) => item.aisle !== null);
   const supportsReorder = getListTypeConfig(listType).supportsReorder;
+  const canShoppingNow =
+    listType === "shopping" &&
+    members.some((member) => member.user_id !== currentUserId);
   const allChecked =
     sortedItems.length > 0 && hasChecked && uncheckedItems.length === 0;
 
@@ -770,6 +777,32 @@ export function ShoppingItemList({
   const detailImages = detailItem ? imagesByItemId.get(detailItem.id) ?? [] : [];
   const finishLabel = listRecurring ? t("finishShopping") : t("clearChecked");
 
+  // Fires the one-shot "at the store" push only on turn-ON, from this click
+  // handler — never from an effect, so it never re-fires on re-render.
+  const handleToggleShoppingNow = useCallback(() => {
+    if (shoppingNow) {
+      setShoppingNow(false);
+      return;
+    }
+
+    if (shoppingNowPostInFlightRef.current) return;
+    shoppingNowPostInFlightRef.current = true;
+
+    setShoppingNow(true);
+    fetch("/api/shopping-now", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ listId }),
+    })
+      .then((res) => {
+        if (!res.ok) toast.error(t("saveError"));
+      })
+      .catch(() => toast.error(t("saveError")))
+      .finally(() => {
+        shoppingNowPostInFlightRef.current = false;
+      });
+  }, [shoppingNow, listId, t]);
+
   return (
     <div className="flex flex-1 flex-col gap-3 pb-sticky-add-bar md:pb-0">
       <PartnerPresence
@@ -778,6 +811,14 @@ export function ShoppingItemList({
         displayName={myDisplayName}
         memberIds={memberIds}
         colorMap={colorMap}
+      />
+
+      <ShoppingPresence
+        listId={listId}
+        currentUserId={currentUserId}
+        displayName={myDisplayName}
+        memberIds={memberIds}
+        active={shoppingNow}
       />
 
       <ListActivityStrip items={items} nameFor={nameFor} />
@@ -801,16 +842,27 @@ export function ShoppingItemList({
         <span className="text-xs text-muted-foreground">
           {t("itemCount", { count: sortedItems.length })}
         </span>
-        {hasChecked && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleFinish}
-            className="text-muted-foreground hover:text-destructive"
-          >
-            {finishLabel}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {canShoppingNow && (
+            <Button
+              variant={shoppingNow ? "secondary" : "outline"}
+              size="sm"
+              onClick={handleToggleShoppingNow}
+            >
+              {shoppingNow ? tShoppingNow("exit") : tShoppingNow("start")}
+            </Button>
+          )}
+          {hasChecked && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleFinish}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              {finishLabel}
+            </Button>
+          )}
+        </div>
       </div>
 
       {sortedItems.length === 0 ? (
@@ -831,8 +883,13 @@ export function ShoppingItemList({
               </Button>
             </div>
           )}
+          {shoppingNow && (
+            <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-duo-teal">
+              {tShoppingNow("focusLabel")}
+            </p>
+          )}
           <ul className="flex flex-col gap-2">
-            {supportsReorder ? (
+            {supportsReorder && !shoppingNow ? (
               <DndContext
                 sensors={dragSensors}
                 collisionDetection={closestCenter}
@@ -910,6 +967,7 @@ export function ShoppingItemList({
                         hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
                         listRecurring={listRecurring}
                         showAisle={showAisle}
+                        focusMode={shoppingNow}
                         onToggle={handleToggleChecked}
                         onOpenDetail={setDetailItem}
                         onRemove={handleRemove}

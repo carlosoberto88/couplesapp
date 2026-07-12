@@ -489,6 +489,12 @@
     "viewingOne": "{name} is viewing this list",
     "viewingMany": "{count} people are viewing this list"
   },
+  "shoppingNow": {
+    "start": "I'm at the store",
+    "exit": "Done shopping",
+    "focusLabel": "Shopping mode",
+    "partnerBanner": "{name} is at the store — add anything?"
+  },
   "onboarding": {
     "stepOf": "Step {step} of {total}",
     "welcomeTitle": "Welcome to Couples",
@@ -590,6 +596,9 @@
     "linkPreviewFailed": "Couldn't fetch a preview for that link",
     "linkPreviewExpired": "That preview expired — paste the link again",
     "fromLinkInsertError": "Couldn't add that item — try again",
-    "fromLinkImageError": "Couldn't save the product image — try again"
+    "fromLinkImageError": "Couldn't save the product image — try again",
+    "invalidListId": "listId is required",
+    "shoppingNowTitle": "{name} is shopping now",
+    "shoppingNowBody": "Add anything you need to the list"
   }
 }
