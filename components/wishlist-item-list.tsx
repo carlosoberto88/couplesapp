@@ -5,12 +5,14 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
-import type { Item, ItemImage, ItemPriority, ListMember, Profile } from "@/lib/types";
+import type { Item, ItemImage, ItemPriority, ItemReaction, ListMember, Profile } from "@/lib/types";
+import type { ReactionEmoji } from "@/lib/reactions";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { type ItemUpdatePatch } from "@/lib/item-mutations";
 import { buildNewItem, insertItemFromLink, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
 import type { LinkPreviewData } from "@/lib/persist-item";
 import { useItemImages } from "@/lib/use-item-images";
+import { useItemReactions } from "@/lib/use-item-reactions";
 import { upsertRow, removeRow } from "@/lib/item-list-utils";
 import { hasPriorityContrast, sortWishlistItems } from "@/lib/wishlist-utils";
 import { useRealtimeItems } from "@/lib/use-realtime-items";
@@ -36,6 +38,7 @@ type WishlistItemListProps = {
   listShareToken: string | null;
   initialItems: Item[];
   initialImages: ItemImage[];
+  initialReactions?: ItemReaction[];
   members: MemberWithProfile[];
 };
 
@@ -46,6 +49,7 @@ export function WishlistItemList({
   listShareToken,
   initialItems,
   initialImages,
+  initialReactions = [],
   members,
 }: WishlistItemListProps) {
   const supabase = useSupabaseClient();
@@ -61,6 +65,10 @@ export function WishlistItemList({
   const { imagesByItemId, refetchImages, primaryImageUrl, imageUrlsForItem } = useItemImages(
     listId,
     initialImages,
+  );
+  const { reactionsByItemId, setReactionsByItemId, reactionsForItem } = useItemReactions(
+    listId,
+    initialReactions,
   );
 
   const colorMap = useMemo(() => buildMemberColorMap(members), [members]);
@@ -85,6 +93,7 @@ export function WishlistItemList({
   const myDisplayName = nameFor(currentUserId) ?? "You";
   const locallyRemovedIdsRef = useRef<Set<string>>(new Set());
   const handleRichAddRef = useRef<(input: RichAddInput) => void>(() => {});
+  const handleToggleReactionRef = useRef<(item: Item, emoji: ReactionEmoji) => void>(() => {});
 
   const handleRichAdd = useCallback(
     (input: RichAddInput) => {
@@ -260,6 +269,66 @@ export function WishlistItemList({
     },
     [supabase, t, tCommon],
   );
+
+  const handleToggleReaction = useCallback(
+    (item: Item, emoji: ReactionEmoji) => {
+      const existing = reactionsByItemId.get(item.id) ?? [];
+      const mine = existing.find((r) => r.user_id === currentUserId && r.emoji === emoji);
+
+      setReactionsByItemId((prev) => {
+        const next = new Map(prev);
+        const current = next.get(item.id) ?? [];
+        next.set(
+          item.id,
+          mine
+            ? current.filter((r) => r !== mine)
+            : [
+                ...current,
+                {
+                  id: crypto.randomUUID(),
+                  item_id: item.id,
+                  user_id: currentUserId,
+                  emoji,
+                  created_at: new Date().toISOString(),
+                },
+              ],
+        );
+        return next;
+      });
+
+      void (async () => {
+        const { error } = mine
+          ? await supabase
+              .from("item_reactions")
+              .delete()
+              .eq("item_id", item.id)
+              .eq("user_id", currentUserId)
+              .eq("emoji", emoji)
+          : await supabase
+              .from("item_reactions")
+              .insert({ item_id: item.id, user_id: currentUserId, emoji });
+
+        if (error) {
+          setReactionsByItemId((prev) => {
+            const next = new Map(prev);
+            next.set(item.id, existing);
+            return next;
+          });
+          toast.error(t("saveError"), {
+            action: {
+              label: tCommon("retry"),
+              onClick: () => handleToggleReactionRef.current(item, emoji),
+            },
+          });
+        }
+      })();
+    },
+    [currentUserId, reactionsByItemId, setReactionsByItemId, supabase, t, tCommon],
+  );
+
+  useEffect(() => {
+    handleToggleReactionRef.current = handleToggleReaction;
+  });
 
   const handleReserve = useCallback(
     (item: Item) => {
@@ -533,6 +602,8 @@ export function WishlistItemList({
               imageUrl={primaryImageUrl(item.id)}
               hasImages={(imagesByItemId.get(item.id)?.length ?? 0) > 0}
               showPriorityBadge={showPriorityBadge}
+              reactions={reactionsForItem(item.id)}
+              onToggleReaction={handleToggleReaction}
               onOpenDetail={setDetailItem}
               onRemove={handleRemove}
               onReserve={handleReserve}

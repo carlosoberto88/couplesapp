@@ -23,12 +23,14 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
-import type { Item, ItemImage, ListMember, Profile } from "@/lib/types";
+import type { Item, ItemImage, ItemReaction, ListMember, Profile } from "@/lib/types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { buildAssignPatch, type ItemUpdatePatch } from "@/lib/item-mutations";
 import { buildNewItem, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
 import { formatPrice } from "@/lib/wishlist-utils";
 import { useItemImages } from "@/lib/use-item-images";
+import { useItemReactions } from "@/lib/use-item-reactions";
+import type { ReactionEmoji } from "@/lib/reactions";
 import { Button } from "@/components/ui/button";
 import { initialsFor } from "@/components/member-avatar";
 import type { RichAddInput } from "@/components/rich-add-item-form";
@@ -89,6 +91,7 @@ type ShoppingItemListProps = {
   currentUserId: string;
   initialItems: Item[];
   initialImages: ItemImage[];
+  initialReactions: ItemReaction[];
   members: MemberWithProfile[];
   listRecurring: boolean;
 };
@@ -100,6 +103,7 @@ export function ShoppingItemList({
   currentUserId,
   initialItems,
   initialImages,
+  initialReactions,
   members,
   listRecurring,
 }: ShoppingItemListProps) {
@@ -123,6 +127,8 @@ export function ShoppingItemList({
     listId,
     initialImages,
   );
+
+  const { setReactionsByItemId, reactionsForItem } = useItemReactions(listId, initialReactions);
 
   const colorMap = useMemo(() => buildMemberColorMap(members), [members]);
   const memberByUserId = useMemo(() => {
@@ -227,6 +233,7 @@ export function ShoppingItemList({
   const handleUndoFinishRef = useRef<(snapshot: Item[], toastId: string | number) => void>(() => {});
   const handleEditRef = useRef<(item: Item, patch: ItemUpdatePatch) => void>(() => {});
   const handleAssignRef = useRef<(item: Item, userId: string | null) => void>(() => {});
+  const handleToggleReactionRef = useRef<(item: Item, emoji: ReactionEmoji) => void>(() => {});
   const handleReorderRef = useRef<(groupItems: Item[], activeId: string, overId: string) => void>(
     () => {},
   );
@@ -422,6 +429,55 @@ export function ShoppingItemList({
       updateItem(item, buildAssignPatch(userId), () => handleAssignRef.current(item, userId));
     },
     [updateItem],
+  );
+
+  const handleToggleReaction = useCallback(
+    (item: Item, emoji: ReactionEmoji) => {
+      const existing = reactionsForItem(item.id);
+      const mine = existing.find((r) => r.user_id === currentUserId && r.emoji === emoji) ?? null;
+      const optimisticReaction: ItemReaction = {
+        id: `optimistic-${item.id}-${emoji}`,
+        item_id: item.id,
+        user_id: currentUserId,
+        emoji,
+        created_at: new Date().toISOString(),
+      };
+      const nextList = mine ? existing.filter((r) => r.id !== mine.id) : [...existing, optimisticReaction];
+
+      setReactionsByItemId((prev) => {
+        const next = new Map(prev);
+        next.set(item.id, nextList);
+        return next;
+      });
+
+      void (async () => {
+        const { error } = mine
+          ? await supabase
+              .from("item_reactions")
+              .delete()
+              .eq("item_id", item.id)
+              .eq("user_id", currentUserId)
+              .eq("emoji", emoji)
+          : await supabase
+              .from("item_reactions")
+              .insert({ item_id: item.id, user_id: currentUserId, emoji });
+
+        if (error) {
+          setReactionsByItemId((prev) => {
+            const next = new Map(prev);
+            next.set(item.id, existing);
+            return next;
+          });
+          toast.error(t("saveError"), {
+            action: {
+              label: tCommon("retry"),
+              onClick: () => handleToggleReactionRef.current(item, emoji),
+            },
+          });
+        }
+      })();
+    },
+    [reactionsForItem, currentUserId, supabase, setReactionsByItemId, t, tCommon],
   );
 
   // Reorders `groupItems` (one aisle group's unchecked items, already in
@@ -722,6 +778,7 @@ export function ShoppingItemList({
     handleEditRef.current = handleEdit;
     handleAssignRef.current = handleAssign;
     handleReorderRef.current = handleReorder;
+    handleToggleReactionRef.current = handleToggleReaction;
   });
 
   const refetchAll = useCallback(() => {
@@ -959,6 +1016,8 @@ export function ShoppingItemList({
                               assignMembers={assignMembers.length >= 2 ? assignMembers : undefined}
                               currentUserId={currentUserId}
                               onAssign={handleAssign}
+                              reactions={reactionsForItem(item.id)}
+                              onToggleReaction={handleToggleReaction}
                             />
                           )}
                         </SortableItemRow>
@@ -1001,6 +1060,8 @@ export function ShoppingItemList({
                         assignMembers={assignMembers.length >= 2 ? assignMembers : undefined}
                         currentUserId={currentUserId}
                         onAssign={handleAssign}
+                        reactions={reactionsForItem(item.id)}
+                        onToggleReaction={handleToggleReaction}
                       />
                     </Fragment>
                   );
