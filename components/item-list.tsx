@@ -6,7 +6,7 @@ import { ShoppingItemList } from "@/components/shopping-item-list";
 import { WishlistItemList } from "@/components/wishlist-item-list";
 
 type MemberWithProfile = ListMember & {
-  profiles: Pick<Profile, "id" | "email" | "display_name"> | null;
+  profiles: Pick<Profile, "id" | "email" | "display_name" | "username"> | null;
 };
 
 type ItemListProps = {

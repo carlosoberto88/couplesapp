@@ -1,11 +1,10 @@
 import type { MemberColor } from "@/lib/member-colors";
 import { cn } from "@/lib/utils";
+import { initialFor, type Identifiable } from "@/lib/display-name";
 
-/** Best-effort initial for a member avatar: display name first, then email, then "?". */
-export function initialsFor(profile: { display_name: string | null; email: string } | null): string {
-  if (!profile) return "?";
-  const source = profile.display_name?.trim() || profile.email;
-  return source ? source.charAt(0).toUpperCase() : "?";
+/** Best-effort initial for a member avatar: username first, then display name, then email, then "?". */
+export function initialsFor(profile: Identifiable | null): string {
+  return initialFor(profile);
 }
 
 type MemberAvatarProps = {

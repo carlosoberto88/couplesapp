@@ -6,6 +6,7 @@ import { auth } from "@clerk/nextjs/server";
 import { createClient } from "@/lib/supabase/server";
 import { getListTypeMeta, isWishlist } from "@/lib/list-types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
+import { displayNameFor } from "@/lib/display-name";
 import type { List, Profile } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { AppBar } from "@/components/app-bar";
@@ -22,7 +23,7 @@ import { MemberAvatar, initialsFor } from "@/components/member-avatar";
 type ListMemberWithProfile = {
   user_id: string;
   created_at: string;
-  profiles: Pick<Profile, "id" | "email" | "display_name"> | null;
+  profiles: Pick<Profile, "id" | "email" | "display_name" | "username"> | null;
 };
 
 type ListRow = List & { list_members: ListMemberWithProfile[] };
@@ -50,7 +51,7 @@ export default async function ListsPage({
   const { data: lists } = await supabase
     .from("lists")
     .select(
-      "id, name, type, recurring, regenerate_interval_days, owner_id, archived_at, created_at, share_token, list_members(user_id, created_at, profiles(id, email, display_name))",
+      "id, name, type, recurring, regenerate_interval_days, owner_id, archived_at, created_at, share_token, list_members(user_id, created_at, profiles(id, email, display_name, username))",
     )
     .order("created_at", { ascending: false });
 
@@ -136,10 +137,7 @@ export default async function ListsPage({
                               {members.slice(0, dotCount).map((member) => {
                                 const color =
                                   colorMap.get(member.user_id) ?? UNKNOWN_MEMBER_COLOR;
-                                const name =
-                                  member.profiles?.display_name ||
-                                  member.profiles?.email ||
-                                  "?";
+                                const name = displayNameFor(member.profiles);
                                 return (
                                   <MemberAvatar
                                     key={member.user_id}

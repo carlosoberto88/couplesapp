@@ -20,6 +20,7 @@ export async function AuthenticatedShell({
   }
 
   const email = sessionClaims?.email;
+  const username = sessionClaims?.username;
 
   if (!email) {
     return <ProvisioningError />;
@@ -27,9 +28,10 @@ export async function AuthenticatedShell({
 
   const supabase = await createClient();
 
-  const { error: upsertErr } = await supabase
-    .from("profiles")
-    .upsert({ id: userId, email: email.toLowerCase() }, { onConflict: "id" });
+  const { error: upsertErr } = await supabase.from("profiles").upsert(
+    { id: userId, email: email.toLowerCase(), ...(username ? { username } : {}) },
+    { onConflict: "id" },
+  );
 
   if (upsertErr) {
     return <ProvisioningError message={upsertErr.message} />;

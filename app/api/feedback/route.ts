@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
   let query = admin
     .from("feedback_submissions")
     .select(
-      "id, user_id, type, message, page_url, user_agent, status, created_at, resolved_at, profiles(email, display_name)",
+      "id, user_id, type, message, page_url, user_agent, status, created_at, resolved_at, profiles(email, display_name, username)",
     )
     .order("created_at", { ascending: false });
 

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Partnership, PartnerInvite, Profile } from "@/lib/types";
+import { displayNameFor } from "@/lib/display-name";
 import { DuoRings } from "@/components/duo-rings";
 import { initialsFor } from "@/components/member-avatar";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type PartnerProfile = Pick<Profile, "id" | "display_name" | "email">;
+type PartnerProfile = Pick<Profile, "id" | "display_name" | "email" | "username">;
 type PendingInvite = Pick<PartnerInvite, "id" | "email" | "created_at">;
 
 type InviteResponse = {
@@ -86,7 +87,7 @@ export function UsSurface() {
     async function load() {
       try {
         const [{ data: ownRow }, { data: pid }] = await Promise.all([
-          supabase.from("profiles").select("id, display_name, email").eq("id", user!.id).maybeSingle(),
+          supabase.from("profiles").select("id, display_name, email, username").eq("id", user!.id).maybeSingle(),
           supabase.rpc("active_partnership_id"),
         ]);
         if (cancelled) return;
@@ -128,7 +129,7 @@ export function UsSurface() {
 
         const { data: partnerProfile } = await supabase
           .from("profiles")
-          .select("id, display_name, email")
+          .select("id, display_name, email, username")
           .eq("id", partnerId)
           .maybeSingle();
         if (!cancelled) setPartner((partnerProfile as PartnerProfile) ?? null);
@@ -270,8 +271,8 @@ export function UsSurface() {
     setConfirmAction(null);
   }
 
-  const yourName = ownProfile?.display_name || ownProfile?.email || t("you");
-  const partnerName = partner?.display_name || partner?.email || t("partnerFallback");
+  const yourName = displayNameFor(ownProfile, t("you"));
+  const partnerName = displayNameFor(partner, t("partnerFallback"));
 
   return (
     <>

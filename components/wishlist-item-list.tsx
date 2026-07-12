@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Item, ItemImage, ItemPriority, ItemReaction, ListMember, Profile } from "@/lib/types";
+import { displayNameFor } from "@/lib/display-name";
 import type { ReactionEmoji } from "@/lib/reactions";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { type ItemUpdatePatch } from "@/lib/item-mutations";
@@ -28,7 +29,7 @@ import { ItemDetailDialog } from "@/components/item-detail-dialog";
 const UNDO_GRACE_MS = 5000;
 
 type MemberWithProfile = ListMember & {
-  profiles: Pick<Profile, "id" | "email" | "display_name"> | null;
+  profiles: Pick<Profile, "id" | "email" | "display_name" | "username"> | null;
 };
 
 type WishlistItemListProps = {
@@ -82,7 +83,8 @@ export function WishlistItemList({
     (userId: string | null) => {
       if (!userId) return null;
       const member = memberByUserId.get(userId);
-      return member?.profiles?.display_name || member?.profiles?.email || null;
+      if (!member?.profiles) return null;
+      return displayNameFor(member.profiles);
     },
     [memberByUserId],
   );
