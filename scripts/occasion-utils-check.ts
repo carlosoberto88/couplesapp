@@ -11,7 +11,9 @@ import {
   daysUntilOccasion,
   isReminderDay,
   REMINDER_DAYS,
+  sortOccasionsByProximity,
 } from "../lib/occasion-utils";
+import type { Occasion } from "../lib/types";
 
 let failures = 0;
 
@@ -85,6 +87,46 @@ function main() {
     assert("0 is not a reminder day", !isReminderDay(0));
     assert("2 is not a reminder day", !isReminderDay(2));
     assert("REMINDER_DAYS is [7, 3, 1]", JSON.stringify(REMINDER_DAYS) === JSON.stringify([7, 3, 1]));
+  }
+
+  console.log("\n--- sortOccasionsByProximity ---");
+  {
+    function occasion(id: string, occasion_date: string, recurring: boolean): Occasion {
+      return {
+        id,
+        partnership_id: "p1",
+        label: id,
+        occasion_date,
+        recurring,
+        category: "other",
+        celebrant_user_id: null,
+        linked_list_id: null,
+        created_by: "u1",
+        created_at: "2026-01-01T00:00:00.000Z",
+      };
+    }
+
+    const pastOneOff = occasion("past-one-off", "2026-01-01", false); // -191 days
+    const in7 = occasion("in-7", "2026-07-18", false); // 7 days
+    const in1 = occasion("in-1", "2026-07-12", false); // 1 day
+    const recurringRollsTo3 = occasion("recurring-rolls", "2026-07-08", true); // rolls to next year, far away
+    const today0 = occasion("today", "2026-07-11", false); // 0 days
+
+    const unsorted = [pastOneOff, in7, in1, recurringRollsTo3, today0];
+    const unsortedSnapshot = [...unsorted];
+    const sorted = sortOccasionsByProximity(unsorted, today);
+
+    assert(
+      "soonest-first with past one-off last",
+      sorted.map((o) => o.id).join(",") ===
+        ["today", "in-1", "in-7", "recurring-rolls", "past-one-off"].join(","),
+      sorted.map((o) => o.id),
+    );
+    assert(
+      "input array not mutated",
+      unsorted.every((o, i) => o === unsortedSnapshot[i]),
+      unsorted.map((o) => o.id),
+    );
   }
 
   console.log(`\n${failures === 0 ? "ALL ASSERTIONS PASSED" : `${failures} ASSERTION(S) FAILED`}`);
