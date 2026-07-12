@@ -99,8 +99,8 @@ export async function UsHomeSections() {
           </h2>
           <div className="flex items-center gap-3">
             <Link
-              href="/dates"
-              className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              href="/dates?new=1"
+              className="text-xs font-medium text-duo-gold underline-offset-4 hover:underline"
             >
               {t("addDate")}
             </Link>
@@ -108,12 +108,12 @@ export async function UsHomeSections() {
               href="/dates"
               className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             >
-              {t("occasionsSeeAll")}
+              {t("occasionsSeeAll")} ›
             </Link>
           </div>
         </div>
         {upcomingOccasions.length === 0 ? (
-          <p className="px-1 text-sm text-muted-foreground">{t("occasionsEmpty")}</p>
+          <EmptyState icon="🗓️" title={t("occasionsEmpty")} />
         ) : (
           <ul className="flex flex-col gap-3">
             {upcomingOccasions.map((occasion) => {

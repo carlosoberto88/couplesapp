@@ -19,7 +19,7 @@ function UsTabIcon() {
 
   return (
     <DuoRings
-      size={22}
+      size={18}
       state={state}
       partnerA={{ initials: "" }}
       partnerB={state !== "solo" ? { initials: "" } : undefined}

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { CalendarHeart, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
@@ -56,9 +56,17 @@ export function DatesList({
   currentUserId,
 }: DatesListProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useTranslations("dates");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(() => searchParams.get("new") === "1");
   const [editingOccasion, setEditingOccasion] = useState<Occasion | undefined>(undefined);
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      router.replace("/dates");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const today = new Date();
   const sorted = sortOccasionsByProximity(initialOccasions, today);

@@ -281,12 +281,24 @@ export function UsSurface() {
 
   return (
     <>
-      <div className="mx-auto flex w-full max-w-[420px] flex-1 flex-col items-center gap-6 p-4 pb-bottom-nav">
+      <div
+        className={cn(
+          "flex flex-1 flex-col gap-6",
+          !loading && partnership
+            ? "w-full"
+            : "mx-auto w-full max-w-[420px] items-center p-4 pb-bottom-nav",
+        )}
+      >
         {loading ? (
           <p className="mt-12 text-sm text-muted-foreground">{t("loading")}</p>
         ) : partnership ? (
           <div className="flex w-full flex-col gap-2">
-            <div className="flex w-full items-center gap-3 rounded-2xl bg-duo-gold-tint px-4 py-3">
+            <button
+              type="button"
+              aria-expanded={showDetails}
+              onClick={() => setShowDetails((v) => !v)}
+              className="flex w-full items-center gap-3 rounded-2xl bg-duo-gold-tint px-4 py-3 text-left"
+            >
               <DuoRings
                 state="paired"
                 partnerA={{ initials: initialsFor(ownProfile), name: yourName }}
@@ -304,25 +316,18 @@ export function UsSurface() {
                     : ""}
                 </p>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="shrink-0 rounded-full text-muted-foreground"
-                aria-expanded={showDetails}
-                onClick={() => setShowDetails((v) => !v)}
-              >
+              <span className="flex shrink-0 items-center justify-center rounded-full p-1.5 text-muted-foreground">
                 <ChevronDown
                   className={cn("size-4 transition-transform", showDetails && "rotate-180")}
                   aria-hidden
                 />
                 <span className="sr-only">{t("detailsHeading")}</span>
-              </Button>
-            </div>
+              </span>
+            </button>
 
             {showDetails && (
               <>
-                <div className="flex flex-col divide-y divide-border rounded-2xl bg-card ring-1 ring-foreground/10">
+                <div className="flex flex-col divide-y divide-border rounded-2xl border border-border">
                   <div className="flex items-center justify-between gap-3 px-4 py-3">
                     <span className="shrink-0 text-sm text-muted-foreground">{t("labelField")}</span>
                     {editingLabel ? (
