@@ -24,6 +24,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Item, ItemImage, ItemReaction, ListMember, Profile } from "@/lib/types";
+import { displayNameFor } from "@/lib/display-name";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { buildAssignPatch, type ItemUpdatePatch } from "@/lib/item-mutations";
 import { buildNewItem, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
@@ -81,7 +82,7 @@ function SortableItemRow({ item, children }: SortableItemRowProps) {
 const UNDO_GRACE_MS = 5000;
 
 type MemberWithProfile = ListMember & {
-  profiles: Pick<Profile, "id" | "email" | "display_name"> | null;
+  profiles: Pick<Profile, "id" | "email" | "display_name" | "username"> | null;
 };
 
 type ShoppingItemListProps = {
@@ -141,7 +142,8 @@ export function ShoppingItemList({
     (userId: string | null) => {
       if (!userId) return null;
       const member = memberByUserId.get(userId);
-      return member?.profiles?.display_name || member?.profiles?.email || null;
+      if (!member?.profiles) return null;
+      return displayNameFor(member.profiles);
     },
     [memberByUserId],
   );

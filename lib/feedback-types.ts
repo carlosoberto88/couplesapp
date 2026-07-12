@@ -11,6 +11,7 @@ export type FeedbackSubmission = {
   profiles: {
     email: string;
     display_name: string | null;
+    username: string | null;
   } | null;
 };
 

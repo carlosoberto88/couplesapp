@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import type { FeedbackSubmission } from "@/lib/feedback-types";
+import { displayNameFor } from "@/lib/display-name";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -22,9 +23,7 @@ function formatDate(iso: string) {
 }
 
 function authorLabel(submission: FeedbackSubmission) {
-  const profile = submission.profiles;
-  if (profile?.display_name?.trim()) return profile.display_name.trim();
-  return profile?.email ?? submission.user_id;
+  return displayNameFor(submission.profiles, submission.user_id);
 }
 
 export function FeedbackAdminList({ submissions, status }: FeedbackAdminListProps) {

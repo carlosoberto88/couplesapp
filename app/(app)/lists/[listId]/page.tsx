@@ -8,6 +8,7 @@ import { auth } from "@clerk/nextjs/server";
 import { createClient } from "@/lib/supabase/server";
 import { getListTypeMeta, isWishlist } from "@/lib/list-types";
 import { buildMemberColorMap } from "@/lib/member-colors";
+import { displayNameFor } from "@/lib/display-name";
 import type { Item, ItemImage, ItemReaction, List, ListMember, Profile } from "@/lib/types";
 import { ItemList } from "@/components/item-list";
 import { AppBar } from "@/components/app-bar";
@@ -18,7 +19,7 @@ import { ListDetailLiveSync } from "@/components/list-detail-live-sync";
 import { MarkListSeen } from "@/components/mark-list-seen";
 
 type MemberWithProfile = ListMember & {
-  profiles: Pick<Profile, "id" | "email" | "display_name"> | null;
+  profiles: Pick<Profile, "id" | "email" | "display_name" | "username"> | null;
 };
 
 export default async function ListDetailPage({
@@ -52,7 +53,7 @@ export default async function ListDetailPage({
         .order("created_at", { ascending: true }),
       supabase
         .from("list_members")
-        .select("list_id, user_id, role, created_at, profiles(id, email, display_name)")
+        .select("list_id, user_id, role, created_at, profiles(id, email, display_name, username)")
         .eq("list_id", listId),
     ]);
 
@@ -67,7 +68,7 @@ export default async function ListDetailPage({
   const colorMap = buildMemberColorMap(typedMembers);
 
   const otherMember = typedMembers.find((m) => m.user_id !== userId);
-  const otherName = otherMember?.profiles?.display_name || otherMember?.profiles?.email || "?";
+  const otherName = displayNameFor(otherMember?.profiles);
 
   let initialImages: ItemImage[] = [];
   if (typedItems.length > 0) {
@@ -138,7 +139,7 @@ export default async function ListDetailPage({
               {typedMembers.map((member) => {
                 const color = colorMap.get(member.user_id);
                 if (!color) return null;
-                const name = member.profiles?.display_name || member.profiles?.email || "?";
+                const name = displayNameFor(member.profiles);
                 return (
                   <MemberAvatar
                     key={member.user_id}

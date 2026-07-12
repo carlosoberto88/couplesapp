@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { ListMember, Profile } from "@/lib/types";
+import { displayNameFor } from "@/lib/display-name";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +39,7 @@ type PendingInvite = {
 };
 
 type MemberWithProfile = ListMember & {
-  profiles: Pick<Profile, "id" | "email" | "display_name"> | null;
+  profiles: Pick<Profile, "id" | "email" | "display_name" | "username"> | null;
 };
 
 type ConfirmAction =
@@ -104,7 +105,7 @@ export function InvitePanel({
   }, []);
 
   function memberLabel(member: MemberWithProfile) {
-    return member.profiles?.display_name || member.profiles?.email || tCommon("unknown");
+    return displayNameFor(member.profiles, tCommon("unknown"));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -287,12 +288,6 @@ export function InvitePanel({
                           <span className="truncate text-sm text-foreground">
                             {label}
                           </span>
-                          {member.profiles?.display_name &&
-                            member.profiles.email && (
-                              <span className="truncate text-xs text-muted-foreground">
-                                {member.profiles.email}
-                              </span>
-                            )}
                         </div>
                         <div className="flex shrink-0 items-center gap-1.5">
                           <Badge variant="secondary">

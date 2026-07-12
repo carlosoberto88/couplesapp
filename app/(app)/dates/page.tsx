@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getTranslations } from "next-intl/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { displayNameFor } from "@/lib/display-name";
 import type { Occasion } from "@/lib/types";
 import { AppBar } from "@/components/app-bar";
 import { AppBarActions } from "@/components/app-bar-actions";
@@ -41,7 +42,7 @@ export default async function DatesPage() {
   const [{ data: occasionRows }, { data: profileRows }, { data: wishlistRows }] = await Promise.all([
     supabase.from("occasions").select("*").order("occasion_date", { ascending: true }),
     partnerId
-      ? supabase.from("profiles").select("id, display_name, email").eq("id", partnerId)
+      ? supabase.from("profiles").select("id, display_name, email, username").eq("id", partnerId)
       : Promise.resolve({ data: null }),
     supabase.from("lists").select("id, name, list_members(user_id)").eq("type", "wishlist"),
   ]);
@@ -53,7 +54,7 @@ export default async function DatesPage() {
       ? [
           {
             userId: partnerId,
-            label: partnerProfile?.display_name ?? partnerProfile?.email ?? tCommon("unknown"),
+            label: displayNameFor(partnerProfile, tCommon("unknown")),
           },
         ]
       : []),

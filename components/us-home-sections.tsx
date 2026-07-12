@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getListTypeMeta, isWishlist } from "@/lib/list-types";
 import { daysUntilOccasion, sortOccasionsByProximity } from "@/lib/occasion-utils";
 import { formatRelativeTime } from "@/lib/format-relative-time";
+import { displayNameFor } from "@/lib/display-name";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
@@ -34,7 +35,7 @@ export async function UsHomeSections() {
 
   const { data: partnerId } = await supabase.rpc("active_partner_id");
   const { data: partnerProfile } = partnerId
-    ? await supabase.from("profiles").select("id, display_name, email").eq("id", partnerId).maybeSingle()
+    ? await supabase.from("profiles").select("id, username, display_name, email").eq("id", partnerId).maybeSingle()
     : { data: null };
 
   const [
@@ -66,7 +67,7 @@ export async function UsHomeSections() {
 
   const lists = (listRows ?? []) as ListRow[];
   const items = (itemRows ?? []) as ItemRow[];
-  const partnerName = partnerProfile?.display_name || partnerProfile?.email || tUs("partnerFallback");
+  const partnerName = displayNameFor(partnerProfile, tUs("partnerFallback"));
 
   const pendingByList = new Map<string, number>();
   for (const item of items) {

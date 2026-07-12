@@ -12,6 +12,7 @@
     "db:repair": "supabase migration repair",
     "vapid:generate": "tsx scripts/generate-vapid-keys.ts",
     "seed:test": "tsx scripts/seed-test-users.ts",
+    "backfill:usernames": "tsx scripts/backfill-usernames.ts",
     "test:rls": "tsx scripts/rls-test.ts",
     "check:sort": "tsx scripts/sort-items-check.ts",
     "test:auth": "tsx scripts/auth-test.ts"

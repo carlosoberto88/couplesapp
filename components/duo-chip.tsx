@@ -9,8 +9,9 @@ import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
 import { DuoRings, type DuoRingsState } from "@/components/duo-rings";
 import { initialsFor } from "@/components/member-avatar";
+import { displayNameFor } from "@/lib/display-name";
 
-type PartnerProfile = Pick<Profile, "id" | "display_name" | "email">;
+type PartnerProfile = Pick<Profile, "id" | "username" | "display_name" | "email">;
 
 /**
  * Compact always-present app-bar affordance that mirrors the partnership
@@ -35,7 +36,7 @@ export function DuoChip() {
     async function load() {
       try {
         const [{ data: ownRow }, { data: pid }] = await Promise.all([
-          supabase.from("profiles").select("id, display_name, email").eq("id", user!.id).maybeSingle(),
+          supabase.from("profiles").select("id, username, display_name, email").eq("id", user!.id).maybeSingle(),
           supabase.rpc("active_partnership_id"),
         ]);
         if (cancelled) return;
@@ -62,7 +63,7 @@ export function DuoChip() {
 
         const { data: partnerProfile } = await supabase
           .from("profiles")
-          .select("id, display_name, email")
+          .select("id, username, display_name, email")
           .eq("id", partnerId)
           .maybeSingle();
         if (cancelled) return;
@@ -84,8 +85,8 @@ export function DuoChip() {
 
   if (loading) return null;
 
-  const yourName = ownProfile?.display_name || ownProfile?.email || t("you");
-  const partnerName = partner?.display_name || partner?.email || t("partnerFallback");
+  const yourName = displayNameFor(ownProfile, t("you"));
+  const partnerName = displayNameFor(partner, t("partnerFallback"));
 
   return (
     <Link
