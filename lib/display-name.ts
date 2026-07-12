@@ -20,5 +20,7 @@ export function initialFor(
   profile: Identifiable | null | undefined,
   fallback = "?",
 ): string {
-  return displayNameFor(profile, fallback).charAt(0).toUpperCase();
+  const name = displayNameFor(profile, fallback);
+  const char = name.match(/[a-z0-9]/i)?.[0] ?? name.charAt(0);
+  return char.toUpperCase();
 }
