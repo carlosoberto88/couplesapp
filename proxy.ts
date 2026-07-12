@@ -7,6 +7,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/push/send",
   // Vercel Cron — authenticated via CRON_SECRET in the route.
   "/api/cron/occasion-reminders",
+  "/api/cron/recurring-lists",
   // Public shareable wishlist gallery + guest reserve/release — no Clerk session required.
   "/w/(.*)",
   "/api/public/(.*)",
