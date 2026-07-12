@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { CalendarHeart, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
-import { daysUntilOccasion } from "@/lib/occasion-utils";
+import { daysUntilOccasion, sortOccasionsByProximity } from "@/lib/occasion-utils";
 import type { Occasion } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,12 +48,6 @@ function formatOccasionDate(dateStr: string) {
   }).format(new Date(Date.UTC(year, month - 1, day)));
 }
 
-// Sorts soonest-first; past one-off occasions (negative days) sort to the end.
-function sortKey(occasion: Occasion, today: Date) {
-  const days = daysUntilOccasion(occasion.occasion_date, occasion.recurring, today);
-  return days < 0 ? Number.POSITIVE_INFINITY : days;
-}
-
 export function DatesList({
   partnershipId,
   initialOccasions,
@@ -67,7 +61,7 @@ export function DatesList({
   const [editingOccasion, setEditingOccasion] = useState<Occasion | undefined>(undefined);
 
   const today = new Date();
-  const sorted = [...initialOccasions].sort((a, b) => sortKey(a, today) - sortKey(b, today));
+  const sorted = sortOccasionsByProximity(initialOccasions, today);
 
   function openCreate() {
     setEditingOccasion(undefined);

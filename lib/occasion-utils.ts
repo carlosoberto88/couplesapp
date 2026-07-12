@@ -2,6 +2,8 @@
 // use UTC so a `YYYY-MM-DD` date column always means the same calendar day
 // regardless of server/client timezone.
 
+import type { Occasion } from "@/lib/types";
+
 export const REMINDER_DAYS = [7, 3, 1] as const;
 
 export function isReminderDay(days: number): boolean {
@@ -45,4 +47,17 @@ export function daysUntilOccasion(
   const target = Date.UTC(year, month - 1, day);
 
   return Math.round((target - todayUtc) / MS_PER_DAY);
+}
+
+/**
+ * Sorts occasions soonest-first; past one-off occasions (negative days) sort
+ * to the end. Returns a new array — does not mutate `occasions`.
+ */
+export function sortOccasionsByProximity(occasions: Occasion[], today: Date = new Date()): Occasion[] {
+  function sortKey(occasion: Occasion) {
+    const days = daysUntilOccasion(occasion.occasion_date, occasion.recurring, today);
+    return days < 0 ? Number.POSITIVE_INFINITY : days;
+  }
+
+  return [...occasions].sort((a, b) => sortKey(a) - sortKey(b));
 }

@@ -256,6 +256,14 @@
     "unpairConfirm": "Separar",
     "unpaired": "Ya no estás en pareja"
   },
+  "home": {
+    "pendingHeading": "Para hacer juntos",
+    "pendingEmptyTitle": "Están al día",
+    "pendingEmptyBody": "No hay artículos pendientes en sus listas ahora mismo.",
+    "occasionsHeading": "Próximamente",
+    "occasionsSeeAll": "Todas las fechas",
+    "activityHeading": "Novedades de {name}"
+  },
   "notifications": {
     "bellLabel": "Notificaciones",
     "title": "Notificaciones",

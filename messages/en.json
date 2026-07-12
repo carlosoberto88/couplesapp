@@ -256,6 +256,14 @@
     "unpairConfirm": "Unpair",
     "unpaired": "You're unpaired"
   },
+  "home": {
+    "pendingHeading": "To do together",
+    "pendingEmptyTitle": "You're all caught up",
+    "pendingEmptyBody": "No open items across lists right now.",
+    "occasionsHeading": "Coming up",
+    "occasionsSeeAll": "All dates",
+    "activityHeading": "Recently from {name}"
+  },
   "notifications": {
     "bellLabel": "Notifications",
     "title": "Notifications",
