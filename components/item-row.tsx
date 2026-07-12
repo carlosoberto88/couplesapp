@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Check, ChevronRight, GripVertical, Link2, UserPlus, X } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 
@@ -10,6 +10,7 @@ import type { ItemUpdatePatch } from "@/lib/item-mutations";
 import { nextAssignee } from "@/lib/item-mutations";
 import type { MemberColor } from "@/lib/member-colors";
 import { UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
+import { formatPrice } from "@/lib/wishlist-utils";
 import { Button } from "@/components/ui/button";
 import { MemberAvatar } from "@/components/member-avatar";
 import {
@@ -79,6 +80,7 @@ export function ItemRow({
   onAssign,
 }: ItemRowProps) {
   const t = useTranslations("items");
+  const locale = useLocale();
   const checked = item.checked_at !== null;
   const checkColor = checkerColor ?? UNKNOWN_MEMBER_COLOR;
   const assignEnabled = !!(onAssign && assignMembers && currentUserId);
@@ -169,6 +171,11 @@ export function ItemRow({
           </span>
           {item.note && (
             <span className="mt-0.5 block truncate text-xs text-muted-foreground">{item.note}</span>
+          )}
+          {item.price !== null && (
+            <span className="mt-0.5 block text-xs font-medium tabular-nums text-muted-foreground">
+              {formatPrice(item.price, item.currency, locale)}
+            </span>
           )}
           {(item.url || hasImages) && (
             <span className="mt-1 flex items-center gap-2 text-muted-foreground">

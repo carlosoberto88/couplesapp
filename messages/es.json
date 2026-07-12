@@ -276,6 +276,7 @@
     "addAriaLabel": "Agregar un ítem",
     "multiAddHint": "Separa con comas o saltos de línea para agregar varios",
     "itemCount": "{count, plural, one {# ítem} other {# ítems}}",
+    "runningTotal": "{spent} de {total}",
     "clearChecked": "Limpiar marcados",
     "empty": "Aún no hay ítems — agrega el primero arriba.",
     "emptyTitle": "Aún no hay ítems",

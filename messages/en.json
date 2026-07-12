@@ -276,6 +276,7 @@
     "addAriaLabel": "Add an item",
     "multiAddHint": "Separate with commas or new lines to add several",
     "itemCount": "{count, plural, one {# item} other {# items}}",
+    "runningTotal": "{spent} of {total}",
     "clearChecked": "Clear checked",
     "empty": "No items yet — add your first item above.",
     "emptyTitle": "No items yet",

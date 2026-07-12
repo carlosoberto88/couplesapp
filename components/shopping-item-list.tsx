@@ -2,7 +2,7 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -27,6 +27,7 @@ import type { Item, ItemImage, ListMember, Profile } from "@/lib/types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { buildAssignPatch, type ItemUpdatePatch } from "@/lib/item-mutations";
 import { buildNewItem, insertItemWithImages, insertItemsBulk } from "@/lib/persist-item";
+import { formatPrice } from "@/lib/wishlist-utils";
 import { useItemImages } from "@/lib/use-item-images";
 import { Button } from "@/components/ui/button";
 import { initialsFor } from "@/components/member-avatar";
@@ -104,6 +105,7 @@ export function ShoppingItemList({
 }: ShoppingItemListProps) {
   const supabase = useSupabaseClient();
   const t = useTranslations("items");
+  const locale = useLocale();
   const tBulk = useTranslations("bulkAdd");
   const tCommon = useTranslations("common");
   const tShoppingNow = useTranslations("shoppingNow");
@@ -161,6 +163,20 @@ export function ShoppingItemList({
     () => sortedItems.filter((item) => item.checked_at !== null),
     [sortedItems],
   );
+  const priceTotals = useMemo(() => {
+    let spent = 0,
+      total = 0,
+      count = 0;
+    let currency: string | null = null;
+    for (const item of sortedItems) {
+      if (item.price === null) continue;
+      count += 1;
+      total += item.price;
+      if (item.checked_at !== null) spent += item.price;
+      if (currency === null) currency = item.currency;
+    }
+    return { spent, total, count, currency: currency ?? "USD" };
+  }, [sortedItems]);
   const hasChecked = checkedItemsList.length > 0;
   const showAisle =
     getListTypeConfig(listType).supportsAisles &&
@@ -839,9 +855,19 @@ export function ShoppingItemList({
       />
 
       <div className="flex items-center justify-between px-1">
-        <span className="text-xs text-muted-foreground">
-          {t("itemCount", { count: sortedItems.length })}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {t("itemCount", { count: sortedItems.length })}
+          </span>
+          {priceTotals.count > 0 && (
+            <span className="text-xs font-medium tabular-nums text-foreground">
+              {t("runningTotal", {
+                spent: formatPrice(priceTotals.spent, priceTotals.currency, locale),
+                total: formatPrice(priceTotals.total, priceTotals.currency, locale),
+              })}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           {canShoppingNow && (
             <Button
