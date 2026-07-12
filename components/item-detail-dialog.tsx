@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import type { Item, ItemImage, ItemPriority } from "@/lib/types";
 import type { MemberColor } from "@/lib/member-colors";
+import { AISLE_PRESET_IDS } from "@/lib/aisle-presets";
 import { getListTypeConfig, isWishlist } from "@/lib/list-types";
 import { buildEditPatch, type ItemUpdatePatch } from "@/lib/item-mutations";
 import { safeExternalUrl } from "@/lib/safe-url";
@@ -335,6 +336,29 @@ export function ItemDetailDialog({
                   maxLength={24}
                   disabled={saving}
                 />
+                <div className="flex flex-wrap gap-1.5">
+                  {AISLE_PRESET_IDS.map((id) => {
+                    const label = tItems(`aislePresets.${id}`);
+                    const active = aisle.trim().toLowerCase() === label.toLowerCase();
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        disabled={saving}
+                        aria-pressed={active}
+                        onClick={() => setAisle(label)}
+                        className={cn(
+                          "rounded-full border-2 px-3 py-1 text-xs font-medium transition-colors",
+                          active
+                            ? "border-primary bg-duo-coral-tint text-foreground"
+                            : "border-border bg-background text-muted-foreground hover:bg-muted",
+                        )}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
