@@ -80,8 +80,8 @@ export function buildEditPatch(input: RichAddInput, wishlist: boolean): ItemUpda
     name: input.name.trim(),
     note: input.note,
     url: input.url,
-    price: wishlist && input.price !== null ? input.price : null,
-    currency: wishlist && input.price !== null ? input.currency : null,
+    price: input.price !== null ? input.price : null,
+    currency: input.price !== null ? input.currency : null,
     priority: wishlist ? input.priority : null,
   };
 }

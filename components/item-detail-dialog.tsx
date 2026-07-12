@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ExternalLink, ImagePlus, Pencil } from "lucide-react";
 import { Switch } from "@base-ui/react/switch";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import { buildEditPatch, type ItemUpdatePatch } from "@/lib/item-mutations";
 import { safeExternalUrl } from "@/lib/safe-url";
 import {
   canSeeReservation,
+  formatPrice,
   isPurchased,
   isReserved,
 } from "@/lib/wishlist-utils";
@@ -99,6 +100,7 @@ export function ItemDetailDialog({
   const t = useTranslations("itemDetail");
   const tWishlist = useTranslations("wishlist");
   const tItems = useTranslations("items");
+  const locale = useLocale();
   const supabase = useSupabaseClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
@@ -215,7 +217,7 @@ export function ItemDetailDialog({
       name: trimmedName,
       url: safeExternalUrl(url.trim()),
       note: note.trim() || null,
-      price: wishlist && parsedPrice !== null && !Number.isNaN(parsedPrice) ? parsedPrice : null,
+      price: parsedPrice !== null && !Number.isNaN(parsedPrice) ? parsedPrice : null,
       currency: "USD" as const,
       priority: wishlist ? priority : null,
       files: newFiles,
@@ -336,15 +338,14 @@ export function ItemDetailDialog({
               </div>
             )}
 
-            {wishlist ? (
-              <WishlistExtraFields
-                price={price}
-                priority={priority}
-                pending={saving}
-                onPriceChange={setPrice}
-                onPriorityChange={setPriority}
-              />
-            ) : null}
+            <WishlistExtraFields
+              price={price}
+              priority={priority}
+              pending={saving}
+              showPriority={wishlist}
+              onPriceChange={setPrice}
+              onPriorityChange={setPriority}
+            />
 
             {(visibleExistingImages.length > 0 || newFiles.length > 0) && (
               <ul className="flex flex-wrap gap-2">
@@ -516,11 +517,11 @@ export function ItemDetailDialog({
                 </div>
               )}
 
-              {wishlist && currentItem.price !== null && (
+              {currentItem.price !== null && (
                 <div>
                   <dt className="text-xs font-medium text-muted-foreground">{t("price")}</dt>
                   <dd className="mt-0.5 font-medium">
-                    {currentItem.currency ?? "USD"} {currentItem.price.toFixed(2)}
+                    {formatPrice(currentItem.price, currentItem.currency, locale)}
                   </dd>
                 </div>
               )}
