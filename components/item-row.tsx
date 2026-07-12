@@ -42,6 +42,8 @@ type ItemRowProps = {
   hasImages: boolean;
   listRecurring?: boolean;
   showAisle?: boolean;
+  /** Big-tap variant for shopping-now focus mode — larger checkbox + row padding, same behavior. */
+  focusMode?: boolean;
   dragHandleProps?: ItemRowDragHandleProps;
   dragActivatorRef?: (node: HTMLElement | null) => void;
   dragRef?: (node: HTMLLIElement | null) => void;
@@ -63,6 +65,7 @@ export function ItemRow({
   hasImages,
   listRecurring = false,
   showAisle = false,
+  focusMode = false,
   dragHandleProps,
   dragActivatorRef,
   dragRef,
@@ -86,7 +89,10 @@ export function ItemRow({
   return (
     <li
       ref={dragRef}
-      className="animate-item-in motion-reduce:animate-none flex min-h-11 items-start gap-3 rounded-2xl border border-border bg-card px-3 py-2.5"
+      className={cn(
+        "animate-item-in motion-reduce:animate-none flex min-h-11 items-start gap-3 rounded-2xl border border-border bg-card px-3 py-2.5",
+        focusMode && "min-h-14 gap-4 px-4 py-4",
+      )}
       style={{
         borderLeftWidth: 3,
         borderLeftColor: adderColor.color,
@@ -113,7 +119,8 @@ export function ItemRow({
         type="button"
         aria-label={checked ? t("uncheckItem", { name: item.name }) : t("checkItem", { name: item.name })}
         className={cn(
-          "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors",
+          "mt-0.5 flex shrink-0 items-center justify-center rounded-full border transition-colors",
+          focusMode ? "size-8" : "size-5",
           checked
             ? "border-transparent text-primary-foreground animate-check-pop motion-reduce:animate-none"
             : "border-input",
@@ -121,7 +128,7 @@ export function ItemRow({
         style={checked ? { backgroundColor: checkColor.color } : undefined}
         onClick={() => onToggle(item)}
       >
-        {checked && <Check className="size-3" />}
+        {checked && <Check className={focusMode ? "size-4" : "size-3"} />}
       </button>
 
       {checked && <span className="sr-only">{t("completedBy")}</span>}
@@ -144,7 +151,8 @@ export function ItemRow({
           <span className="flex min-w-0 items-center gap-1.5">
             <span
               className={cn(
-                "truncate text-sm text-foreground",
+                "truncate text-foreground",
+                focusMode ? "text-base font-medium" : "text-sm",
                 checked && "line-through",
               )}
             >

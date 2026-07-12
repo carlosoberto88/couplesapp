@@ -491,6 +491,12 @@
     "viewingOne": "{name} está viendo esta lista",
     "viewingMany": "{count} personas están viendo esta lista"
   },
+  "shoppingNow": {
+    "start": "Estoy en la tienda",
+    "exit": "Terminé de comprar",
+    "focusLabel": "Modo compra",
+    "partnerBanner": "{name} está en la tienda, ¿agregas algo?"
+  },
   "onboarding": {
     "stepOf": "Paso {step} de {total}",
     "welcomeTitle": "Bienvenido a Couples",
@@ -592,6 +598,9 @@
     "linkPreviewFailed": "No se pudo obtener una vista previa de ese enlace",
     "linkPreviewExpired": "Esa vista previa expiró — pega el enlace otra vez",
     "fromLinkInsertError": "No se pudo agregar ese ítem — intenta de nuevo",
-    "fromLinkImageError": "No se pudo guardar la imagen del producto — intenta de nuevo"
+    "fromLinkImageError": "No se pudo guardar la imagen del producto — intenta de nuevo",
+    "invalidListId": "listId es obligatorio",
+    "shoppingNowTitle": "{name} está comprando ahora",
+    "shoppingNowBody": "Agrega lo que necesites a la lista"
   }
 }
