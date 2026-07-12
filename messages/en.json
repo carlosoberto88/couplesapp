@@ -610,6 +610,7 @@
     "identifierRequired": "Email or username is required",
     "invalidEmail": "That doesn't look like a valid email address",
     "userNotFound": "We couldn't find anyone with that username",
+    "inviteLookupFailed": "Couldn't look up that username — try again",
     "missingEmailClaim": "Clerk session token is missing the `email` claim — add it in Clerk Dashboard → Sessions → Customize session token",
     "cantInviteSelf": "You can't invite yourself",
     "alreadyPartnered": "You already have a partner",

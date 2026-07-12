@@ -39,6 +39,22 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // List access must be checked BEFORE resolving the identifier — otherwise
+  // an unauthorized caller can use the 404-vs-other response as a
+  // username-existence oracle for a list they can't see.
+  const { data: list } = await supabase
+    .from("lists")
+    .select("id, name")
+    .eq("id", listId)
+    .maybeSingle();
+
+  if (!list) {
+    return NextResponse.json(
+      { error: t("api.noListAccess") },
+      { status: 403 },
+    );
+  }
+
   const trimmedIdentifier = rawIdentifier.trim();
   const client = await clerkClient();
 
@@ -50,10 +66,36 @@ export async function POST(request: NextRequest) {
   if (EMAIL_RE.test(trimmedIdentifier)) {
     email = trimmedIdentifier.toLowerCase();
   } else {
-    const { data: usernameMatches } = await client.users.getUserList({
-      username: [trimmedIdentifier],
-    });
-    const resolvedEmail = usernameMatches[0]?.primaryEmailAddress?.emailAddress;
+    // Clerk usernames can't exceed this length; reject before the API call.
+    if (trimmedIdentifier.length > 64) {
+      return NextResponse.json(
+        { error: t("api.userNotFound") },
+        { status: 404 },
+      );
+    }
+
+    let usernameMatches;
+    try {
+      ({ data: usernameMatches } = await client.users.getUserList({
+        username: [trimmedIdentifier],
+      }));
+    } catch (err) {
+      if (isClerkAPIResponseError(err)) {
+        console.warn("[invites] getUserList ClerkAPIResponseError code:", err.errors[0]?.code);
+      }
+      return NextResponse.json(
+        { error: t("api.inviteLookupFailed") },
+        { status: 502 },
+      );
+    }
+
+    // Clerk's username filter is a case-insensitive PARTIAL match — require
+    // an exact match so we never resolve to the wrong person.
+    const match = usernameMatches[0];
+    const resolvedEmail =
+      match?.username?.toLowerCase() === trimmedIdentifier.toLowerCase()
+        ? match.primaryEmailAddress?.emailAddress
+        : undefined;
 
     if (!resolvedEmail) {
       return NextResponse.json(
@@ -69,19 +111,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: t("api.cantInviteSelf") },
       { status: 400 },
-    );
-  }
-
-  const { data: list } = await supabase
-    .from("lists")
-    .select("id, name")
-    .eq("id", listId)
-    .maybeSingle();
-
-  if (!list) {
-    return NextResponse.json(
-      { error: t("api.noListAccess") },
-      { status: 403 },
     );
   }
 

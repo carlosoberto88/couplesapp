@@ -612,6 +612,7 @@
     "identifierRequired": "El correo o nombre de usuario es obligatorio",
     "invalidEmail": "Eso no parece un correo válido",
     "userNotFound": "No encontramos a nadie con ese nombre de usuario",
+    "inviteLookupFailed": "No pudimos buscar ese nombre de usuario — intenta de nuevo",
     "missingEmailClaim": "El token de sesión de Clerk no incluye el claim `email` — agrégalo en Clerk Dashboard → Sessions → Customize session token",
     "cantInviteSelf": "No puedes invitarte a ti mismo",
     "alreadyPartnered": "Ya tienes pareja",
