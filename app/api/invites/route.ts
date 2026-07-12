@@ -6,6 +6,7 @@ import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 import { getApiTranslator } from "@/lib/api-translator";
 import { notifyUsers } from "@/lib/notify";
 import { createClient } from "@/lib/supabase/server";
+import { displayNameFor } from "@/lib/display-name";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -21,20 +22,12 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => null);
   const listId = typeof body?.listId === "string" ? body.listId : null;
-  const rawEmail = typeof body?.email === "string" ? body.email : null;
+  const rawIdentifier =
+    typeof body?.identifier === "string" ? body.identifier : null;
 
-  if (!listId || !rawEmail) {
+  if (!listId || !rawIdentifier) {
     return NextResponse.json(
-      { error: t("api.listIdEmailRequired") },
-      { status: 400 },
-    );
-  }
-
-  const email = rawEmail.trim().toLowerCase();
-
-  if (!EMAIL_RE.test(email)) {
-    return NextResponse.json(
-      { error: t("api.invalidEmail") },
+      { error: t("api.listIdIdentifierRequired") },
       { status: 400 },
     );
   }
@@ -46,13 +39,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (email === sessionClaims.email.toLowerCase()) {
-    return NextResponse.json(
-      { error: t("api.cantInviteSelf") },
-      { status: 400 },
-    );
-  }
-
+  // List access must be checked BEFORE resolving the identifier — otherwise
+  // an unauthorized caller can use the 404-vs-other response as a
+  // username-existence oracle for a list they can't see.
   const { data: list } = await supabase
     .from("lists")
     .select("id, name")
@@ -63,6 +52,65 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: t("api.noListAccess") },
       { status: 403 },
+    );
+  }
+
+  const trimmedIdentifier = rawIdentifier.trim();
+  const client = await clerkClient();
+
+  // The identifier is either a real email (existing flow, unchanged) or a
+  // username that must resolve, server-side, to that Clerk user's OWN
+  // primary email — never trust a client-supplied email for a username.
+  let email: string;
+
+  if (EMAIL_RE.test(trimmedIdentifier)) {
+    email = trimmedIdentifier.toLowerCase();
+  } else {
+    // Clerk usernames can't exceed this length; reject before the API call.
+    if (trimmedIdentifier.length > 64) {
+      return NextResponse.json(
+        { error: t("api.userNotFound") },
+        { status: 404 },
+      );
+    }
+
+    let usernameMatches;
+    try {
+      ({ data: usernameMatches } = await client.users.getUserList({
+        username: [trimmedIdentifier],
+      }));
+    } catch (err) {
+      if (isClerkAPIResponseError(err)) {
+        console.warn("[invites] getUserList ClerkAPIResponseError code:", err.errors[0]?.code);
+      }
+      return NextResponse.json(
+        { error: t("api.inviteLookupFailed") },
+        { status: 502 },
+      );
+    }
+
+    // Clerk's username filter is a case-insensitive PARTIAL match — require
+    // an exact match so we never resolve to the wrong person.
+    const match = usernameMatches[0];
+    const resolvedEmail =
+      match?.username?.toLowerCase() === trimmedIdentifier.toLowerCase()
+        ? match.primaryEmailAddress?.emailAddress
+        : undefined;
+
+    if (!resolvedEmail) {
+      return NextResponse.json(
+        { error: t("api.userNotFound") },
+        { status: 404 },
+      );
+    }
+
+    email = resolvedEmail.toLowerCase();
+  }
+
+  if (email === sessionClaims.email.toLowerCase()) {
+    return NextResponse.json(
+      { error: t("api.cantInviteSelf") },
+      { status: 400 },
     );
   }
 
@@ -112,7 +160,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (existingMember) {
-    return NextResponse.json({ status: "already_member" });
+    return NextResponse.json({ status: "already_member", email });
   }
 
   let inviteId: string;
@@ -154,7 +202,6 @@ export async function POST(request: NextRequest) {
   const inviteUrl = `${origin}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(`/lists/${listId}`)}`;
   const signupRedirectUrl = `${origin}/signup?next=${encodeURIComponent(`/lists/${listId}`)}`;
 
-  const client = await clerkClient();
   const { data: existingUsers } = await client.users.getUserList({
     emailAddress: [email],
   });
@@ -178,14 +225,11 @@ export async function POST(request: NextRequest) {
 
     const { data: inviterProfile } = await admin
       .from("profiles")
-      .select("display_name, email")
+      .select("username, display_name, email")
       .eq("id", userId)
       .maybeSingle();
 
-    const inviterName =
-      inviterProfile?.display_name?.trim() ||
-      inviterProfile?.email ||
-      sessionClaims.email;
+    const inviterName = displayNameFor(inviterProfile, sessionClaims.email);
 
     const { sent } = await notifyUsers({
       userIds: [inviteeUserId],
@@ -199,6 +243,7 @@ export async function POST(request: NextRequest) {
       status: sent > 0 ? "invited_push_sent" : "invited_copy_link",
       invite_id: inviteId,
       inviteUrl,
+      email,
     });
   }
 
@@ -219,6 +264,7 @@ export async function POST(request: NextRequest) {
           status: "invited_email_sent",
           invite_id: inviteId,
           inviteUrl,
+          email,
         });
       }
 
@@ -245,14 +291,11 @@ export async function POST(request: NextRequest) {
 
           const { data: inviterProfile } = await admin
             .from("profiles")
-            .select("display_name, email")
+            .select("username, display_name, email")
             .eq("id", userId)
             .maybeSingle();
 
-          const inviterName =
-            inviterProfile?.display_name?.trim() ||
-            inviterProfile?.email ||
-            sessionClaims.email;
+          const inviterName = displayNameFor(inviterProfile, sessionClaims.email);
 
           const { sent } = await notifyUsers({
             userIds: [inviteeUserId],
@@ -267,6 +310,7 @@ export async function POST(request: NextRequest) {
               status: "invited_push_sent",
               invite_id: inviteId,
               inviteUrl,
+              email,
             });
           }
         }
@@ -275,12 +319,13 @@ export async function POST(request: NextRequest) {
           status: "invited_copy_link",
           invite_id: inviteId,
           inviteUrl,
+          email,
         });
       }
     }
 
     return NextResponse.json(
-      { invite_id: inviteId, inviteUrl, status: "email_failed" },
+      { invite_id: inviteId, inviteUrl, status: "email_failed", email },
       { status: 502 },
     );
   }
@@ -289,5 +334,6 @@ export async function POST(request: NextRequest) {
     status: "invited_email_sent",
     invite_id: inviteId,
     inviteUrl,
+    email,
   });
 }
