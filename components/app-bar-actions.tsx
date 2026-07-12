@@ -7,7 +7,6 @@ import { useTheme } from "next-themes";
 import { Settings } from "lucide-react";
 
 import { clerkAppearance } from "@/lib/clerk-appearance";
-import { DuoChip } from "@/components/duo-chip";
 import { NotificationBell } from "@/components/notification-bell";
 
 export function AppBarActions() {
@@ -16,7 +15,6 @@ export function AppBarActions() {
 
   return (
     <>
-      <DuoChip />
       <NotificationBell />
       <Link
         href="/settings"

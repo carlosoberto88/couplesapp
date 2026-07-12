@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useUser } from "@clerk/nextjs";
-import { Check, Copy, Heart, Pencil, Share2 } from "lucide-react";
+import { Check, ChevronDown, Copy, Heart, Pencil, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Partnership, PartnerInvite, Profile } from "@/lib/types";
 import { displayNameFor } from "@/lib/display-name";
+import { cn } from "@/lib/utils";
 import { DuoRings } from "@/components/duo-rings";
 import { initialsFor } from "@/components/member-avatar";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ export function UsSurface() {
   const [label, setLabel] = useState("");
   const [editingLabel, setEditingLabel] = useState(false);
   const [labelSaving, setLabelSaving] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const [actionPending, setActionPending] = useState(false);
@@ -283,94 +285,99 @@ export function UsSurface() {
         {loading ? (
           <p className="mt-12 text-sm text-muted-foreground">{t("loading")}</p>
         ) : partnership ? (
-          <>
-            <div className="flex w-full flex-col items-center gap-4 rounded-3xl bg-duo-gold-tint px-6 py-8">
+          <div className="flex w-full flex-col gap-2">
+            <div className="flex w-full items-center gap-3 rounded-2xl bg-duo-gold-tint px-4 py-3">
               <DuoRings
                 state="paired"
                 partnerA={{ initials: initialsFor(ownProfile), name: yourName }}
                 partnerB={{ initials: initialsFor(partner), name: partnerName }}
-                size={72}
-                label={
-                  <button
-                    type="button"
-                    onClick={() => setEditingLabel(true)}
-                    className="rounded-full border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm"
-                  >
-                    {label || t("labelDefault")}
-                  </button>
-                }
+                size={40}
               />
-              <div className="flex flex-col items-center gap-1 text-center">
-                <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <h1 className="truncate font-display text-lg font-semibold text-foreground">
                   {yourName} <span className="text-duo-gold">&</span> {partnerName}
                 </h1>
-                {partnership.created_at && (
-                  <p className="text-sm text-muted-foreground">
-                    {t("pairedCaption", { date: formatMonthYear(partnership.created_at) })}
-                  </p>
-                )}
+                <p className="truncate text-xs text-muted-foreground">
+                  {label || t("labelDefault")}
+                  {partnership.created_at
+                    ? ` · ${t("pairedCaption", { date: formatMonthYear(partnership.created_at) })}`
+                    : ""}
+                </p>
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="shrink-0 rounded-full text-muted-foreground"
+                aria-expanded={showDetails}
+                onClick={() => setShowDetails((v) => !v)}
+              >
+                <ChevronDown
+                  className={cn("size-4 transition-transform", showDetails && "rotate-180")}
+                  aria-hidden
+                />
+                <span className="sr-only">{t("detailsHeading")}</span>
+              </Button>
             </div>
 
-            <div className="flex w-full flex-col gap-2">
-              <h2 className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {t("detailsHeading")}
-              </h2>
-              <div className="flex flex-col divide-y divide-border rounded-2xl bg-card ring-1 ring-foreground/10">
-                <div className="flex items-center justify-between gap-3 px-4 py-3">
-                  <span className="shrink-0 text-sm text-muted-foreground">{t("labelField")}</span>
-                  {editingLabel ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        autoFocus
-                        className="h-8 w-32 rounded-lg text-sm"
-                        placeholder={t("labelPlaceholder")}
-                        value={label}
-                        onChange={(e) => setLabel(e.target.value)}
-                        maxLength={60}
-                      />
-                      <Button
+            {showDetails && (
+              <>
+                <div className="flex flex-col divide-y divide-border rounded-2xl bg-card ring-1 ring-foreground/10">
+                  <div className="flex items-center justify-between gap-3 px-4 py-3">
+                    <span className="shrink-0 text-sm text-muted-foreground">{t("labelField")}</span>
+                    {editingLabel ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          autoFocus
+                          className="h-8 w-32 rounded-lg text-sm"
+                          placeholder={t("labelPlaceholder")}
+                          value={label}
+                          onChange={(e) => setLabel(e.target.value)}
+                          maxLength={60}
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          className="h-8 shrink-0 rounded-lg"
+                          disabled={labelSaving}
+                          onClick={() => void saveLabel()}
+                        >
+                          {labelSaving ? t("labelSaving") : t("labelSave")}
+                        </Button>
+                      </div>
+                    ) : (
+                      <button
                         type="button"
-                        variant="secondary"
-                        size="sm"
-                        className="h-8 shrink-0 rounded-lg"
-                        disabled={labelSaving}
-                        onClick={() => void saveLabel()}
+                        onClick={() => setEditingLabel(true)}
+                        className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground"
                       >
-                        {labelSaving ? t("labelSaving") : t("labelSave")}
-                      </Button>
+                        {label || t("labelDefault")}
+                        <Pencil className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                      </button>
+                    )}
+                  </div>
+                  {partnership.created_at && (
+                    <div className="flex items-center justify-between gap-3 px-4 py-3">
+                      <span className="text-sm text-muted-foreground">{t("pairedSinceField")}</span>
+                      <span className="text-sm font-medium text-foreground">
+                        {formatDate(partnership.created_at)}
+                      </span>
                     </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setEditingLabel(true)}
-                      className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground"
-                    >
-                      {label || t("labelDefault")}
-                      <Pencil className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-                    </button>
                   )}
                 </div>
-                {partnership.created_at && (
-                  <div className="flex items-center justify-between gap-3 px-4 py-3">
-                    <span className="text-sm text-muted-foreground">{t("pairedSinceField")}</span>
-                    <span className="text-sm font-medium text-foreground">
-                      {formatDate(partnership.created_at)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
 
-            <Button
-              type="button"
-              variant="ghost"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => setConfirmAction({ type: "unpair" })}
-            >
-              {t("unpair", { name: partnerName })}
-            </Button>
-          </>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => setConfirmAction({ type: "unpair" })}
+                >
+                  {t("unpair", { name: partnerName })}
+                </Button>
+              </>
+            )}
+          </div>
         ) : pendingInvite ? (
           <>
             <DuoRings

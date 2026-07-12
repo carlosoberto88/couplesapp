@@ -38,7 +38,7 @@
     "navLabel": "Main navigation",
     "shoppingTab": "Shopping",
     "wishlistsTab": "Wishlists",
-    "datesTab": "Dates"
+    "usTab": "Us"
   },
   "listDetail": {
     "backToLists": "Lists",
@@ -93,6 +93,7 @@
     "deletedToast": "List deleted"
   },
   "dates": {
+    "backToUs": "Back to Us",
     "addTrigger": "Add date",
     "menuLabel": "Date options",
     "edit": "Edit",
@@ -271,6 +272,8 @@
     "pendingEmptyBody": "No open items across lists right now.",
     "occasionsHeading": "Coming up",
     "occasionsSeeAll": "All dates",
+    "addDate": "+ Add date",
+    "occasionsEmpty": "No upcoming dates yet",
     "activityHeading": "Recently from {name}"
   },
   "notifications": {

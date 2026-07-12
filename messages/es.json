@@ -38,7 +38,7 @@
     "navLabel": "Navegación principal",
     "shoppingTab": "Compras",
     "wishlistsTab": "Deseos",
-    "datesTab": "Fechas"
+    "usTab": "Nosotros"
   },
   "listDetail": {
     "backToLists": "Listas",
@@ -93,6 +93,7 @@
     "deletedToast": "Lista eliminada"
   },
   "dates": {
+    "backToUs": "Volver a Nosotros",
     "addTrigger": "Añadir fecha",
     "menuLabel": "Opciones de la fecha",
     "edit": "Editar",
@@ -271,6 +272,8 @@
     "pendingEmptyBody": "No hay artículos pendientes en sus listas ahora mismo.",
     "occasionsHeading": "Próximamente",
     "occasionsSeeAll": "Todas las fechas",
+    "addDate": "+ Agregar fecha",
+    "occasionsEmpty": "Aún no hay fechas próximas",
     "activityHeading": "Novedades de {name}"
   },
   "notifications": {
