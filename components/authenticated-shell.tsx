@@ -30,8 +30,11 @@ export async function AuthenticatedShell({
 
   const baseProfile = { id: userId, email: email.toLowerCase() };
 
+  // Never store an email-like username: it's rendered on the public
+  // (unauthenticated) wishlist page, so this guards against a misconfigured
+  // Clerk username policy leaking an email to anonymous visitors.
   let { error: upsertErr } = await supabase.from("profiles").upsert(
-    { ...baseProfile, ...(username ? { username } : {}) },
+    { ...baseProfile, ...(username && !username.includes("@") ? { username } : {}) },
     { onConflict: "id" },
   );
 
