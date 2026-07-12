@@ -3,9 +3,10 @@
 import { Check, Star, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
-import type { Item } from "@/lib/types";
+import type { Item, ItemReaction } from "@/lib/types";
 import type { MemberColor } from "@/lib/member-colors";
 import { UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
+import { REACTION_EMOJIS, type ReactionEmoji } from "@/lib/reactions";
 import {
   canSeeReservation,
   formatPrice,
@@ -31,7 +32,24 @@ type WishlistItemRowProps = {
   onMarkPurchased: (item: Item) => void;
   onUnmarkPurchased: (item: Item) => void;
   showPriorityBadge: boolean;
+  reactions?: ItemReaction[];
+  onToggleReaction?: (item: Item, emoji: ReactionEmoji) => void;
 };
+
+function reactionAriaLabel(
+  t: ReturnType<typeof useTranslations>,
+  emoji: ReactionEmoji,
+  name: string,
+  active: boolean,
+): string {
+  return emoji === "❤️"
+    ? active
+      ? t("unreactHeart", { name })
+      : t("reactHeart", { name })
+    : active
+      ? t("unreactThumbsUp", { name })
+      : t("reactThumbsUp", { name });
+}
 
 export function WishlistItemRow({
   item,
@@ -48,6 +66,8 @@ export function WishlistItemRow({
   onMarkPurchased,
   onUnmarkPurchased,
   showPriorityBadge,
+  reactions,
+  onToggleReaction,
 }: WishlistItemRowProps) {
   const t = useTranslations("wishlist");
   const locale = useLocale();
@@ -145,7 +165,7 @@ export function WishlistItemRow({
       </button>
 
       <div className="flex items-center justify-between gap-2 border-t border-border px-2.5 py-2">
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           {canReserve ? (
             <Button
               type="button"
@@ -185,6 +205,33 @@ export function WishlistItemRow({
               {t("release")}
             </button>
           )}
+
+          {onToggleReaction &&
+            reactions !== undefined &&
+            REACTION_EMOJIS.map((emoji) => {
+              const forEmoji = reactions.filter((r) => r.emoji === emoji);
+              const mine = forEmoji.some((r) => r.user_id === currentUserId);
+              return (
+                <button
+                  key={emoji}
+                  type="button"
+                  aria-label={reactionAriaLabel(t, emoji, item.name, mine)}
+                  aria-pressed={mine}
+                  className={cn(
+                    "flex h-6 items-center gap-1 rounded-full border px-1.5 text-xs transition-colors",
+                    mine
+                      ? "border-duo-coral bg-duo-coral-tint text-foreground"
+                      : "border-transparent text-muted-foreground hover:bg-muted",
+                  )}
+                  onClick={() => onToggleReaction(item, emoji)}
+                >
+                  <span aria-hidden>{emoji}</span>
+                  {forEmoji.length > 0 && (
+                    <span className="tabular-nums">{t("reactionCount", { count: forEmoji.length })}</span>
+                  )}
+                </button>
+              );
+            })}
         </div>
 
         <Button

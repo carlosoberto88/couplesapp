@@ -5,11 +5,12 @@ import { useLocale, useTranslations } from "next-intl";
 import { Check, ChevronRight, GripVertical, Link2, UserPlus, X } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 
-import type { Item } from "@/lib/types";
+import type { Item, ItemReaction } from "@/lib/types";
 import type { ItemUpdatePatch } from "@/lib/item-mutations";
 import { nextAssignee } from "@/lib/item-mutations";
 import type { MemberColor } from "@/lib/member-colors";
 import { UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
+import { REACTION_EMOJIS, type ReactionEmoji } from "@/lib/reactions";
 import { formatPrice } from "@/lib/wishlist-utils";
 import { Button } from "@/components/ui/button";
 import { MemberAvatar } from "@/components/member-avatar";
@@ -35,6 +36,11 @@ export type ItemRowAssignMember = {
   color: MemberColor;
 };
 
+const REACTION_LABEL_KEYS: Record<ReactionEmoji, { react: string; unreact: string }> = {
+  "❤️": { react: "reactHeart", unreact: "unreactHeart" },
+  "👍": { react: "reactThumbsUp", unreact: "unreactThumbsUp" },
+};
+
 type ItemRowProps = {
   item: Item;
   adderColor: MemberColor;
@@ -56,6 +62,8 @@ type ItemRowProps = {
   assignMembers?: ItemRowAssignMember[];
   currentUserId?: string;
   onAssign?: (item: Item, userId: string | null) => void;
+  reactions?: ItemReaction[];
+  onToggleReaction?: (item: Item, emoji: ReactionEmoji) => void;
 };
 
 export function ItemRow({
@@ -78,6 +86,8 @@ export function ItemRow({
   assignMembers,
   currentUserId,
   onAssign,
+  reactions,
+  onToggleReaction,
 }: ItemRowProps) {
   const t = useTranslations("items");
   const locale = useLocale();
@@ -198,6 +208,36 @@ export function ItemRow({
         >
           {t("oneTimeChip")}
         </button>
+      )}
+
+      {!focusMode && onToggleReaction && reactions !== undefined && (
+        <div className="mt-0.5 flex shrink-0 items-center gap-1">
+          {REACTION_EMOJIS.map((emoji) => {
+            const emojiReactions = reactions.filter((r) => r.emoji === emoji);
+            const mine = emojiReactions.some((r) => r.user_id === currentUserId);
+            const count = emojiReactions.length;
+            const labelKey = mine ? REACTION_LABEL_KEYS[emoji].unreact : REACTION_LABEL_KEYS[emoji].react;
+            return (
+              <button
+                key={emoji}
+                type="button"
+                aria-label={t(labelKey, { name: item.name })}
+                onClick={() => onToggleReaction(item, emoji)}
+                className={cn(
+                  "flex h-6 items-center gap-0.5 rounded-full border px-1.5 text-xs transition-colors",
+                  mine
+                    ? "border-transparent bg-duo-teal-tint text-foreground"
+                    : "border-input text-muted-foreground",
+                )}
+              >
+                <span aria-hidden>{emoji}</span>
+                {count > 0 && (
+                  <span className="text-[10px] tabular-nums">{t("reactionCount", { count })}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       )}
 
       {assignEnabled &&

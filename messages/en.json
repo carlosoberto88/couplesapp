@@ -351,7 +351,12 @@
     "assignedTo": "Assigned to {name}",
     "assignedToYou": "Assigned to you",
     "unassign": "Unassign",
-    "assignMenuLabel": "Assign to"
+    "assignMenuLabel": "Assign to",
+    "reactHeart": "React with a heart to {name}",
+    "unreactHeart": "Remove your heart from {name}",
+    "reactThumbsUp": "React with a thumbs up to {name}",
+    "unreactThumbsUp": "Remove your thumbs up from {name}",
+    "reactionCount": "{count}"
   },
   "wishlist": {
     "itemCount": "{count, plural, one {# gift} other {# gifts}}",
@@ -400,7 +405,12 @@
     "viewDetails": "View details",
     "hasPhotos": "Photos",
     "addedBy": "Added by",
-    "completedBy": "Purchased by partner"
+    "completedBy": "Purchased by partner",
+    "reactHeart": "React with a heart to {name}",
+    "unreactHeart": "Remove your heart from {name}",
+    "reactThumbsUp": "React with a thumbs up to {name}",
+    "unreactThumbsUp": "Remove your thumbs up from {name}",
+    "reactionCount": "{count}"
   },
   "publicWishlist": {
     "ogDescription": "See {name}'s wishlist and reserve something special.",

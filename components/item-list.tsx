@@ -1,7 +1,7 @@
 "use client";
 
 import { isWishlist } from "@/lib/list-types";
-import type { Item, ItemImage, ListMember, Profile } from "@/lib/types";
+import type { Item, ItemImage, ItemReaction, ListMember, Profile } from "@/lib/types";
 import { ShoppingItemList } from "@/components/shopping-item-list";
 import { WishlistItemList } from "@/components/wishlist-item-list";
 
@@ -17,6 +17,7 @@ type ItemListProps = {
   listShareToken?: string | null;
   initialItems: Item[];
   initialImages?: ItemImage[];
+  initialReactions?: ItemReaction[];
   members: MemberWithProfile[];
   listRecurring?: boolean;
 };
@@ -29,6 +30,7 @@ export function ItemList({
   listShareToken = null,
   initialItems,
   initialImages = [],
+  initialReactions = [],
   members,
   listRecurring = false,
 }: ItemListProps) {
@@ -41,6 +43,7 @@ export function ItemList({
         listShareToken={listShareToken}
         initialItems={initialItems}
         initialImages={initialImages}
+        initialReactions={initialReactions}
         members={members}
       />
     );
@@ -54,6 +57,7 @@ export function ItemList({
       currentUserId={currentUserId}
       initialItems={initialItems}
       initialImages={initialImages}
+      initialReactions={initialReactions}
       members={members}
       listRecurring={listRecurring}
     />

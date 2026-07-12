@@ -792,6 +792,145 @@ async function main() {
       fail("Assertion 7 skipped — no listId from Assertion 1");
     }
 
+    // ---------- 7.5. item_reactions (0024) ----------
+    console.log("\n--- Assertion 7.5: item_reactions (0024) ---");
+    if (listId && itemId) {
+      const { data: aReaction, error: aReactErr } = await clientA
+        .from("item_reactions")
+        .insert({ item_id: itemId, user_id: userAId, emoji: "❤️" })
+        .select()
+        .maybeSingle();
+      assert(
+        "A can insert own reaction on a shared-list item",
+        !aReactErr && aReaction?.user_id === userAId,
+        aReactErr?.message ?? aReaction,
+      );
+
+      const { data: aReactionSeenByB } = await clientB
+        .from("item_reactions")
+        .select("*")
+        .eq("item_id", itemId)
+        .eq("user_id", userAId);
+      assert(
+        "B (co-member) can read A's reaction",
+        (aReactionSeenByB ?? []).length === 1,
+        aReactionSeenByB,
+      );
+
+      const { data: bReaction, error: bReactErr } = await clientB
+        .from("item_reactions")
+        .insert({ item_id: itemId, user_id: userBId, emoji: "👍" })
+        .select()
+        .maybeSingle();
+      assert(
+        "B can insert own reaction on the shared item",
+        !bReactErr && bReaction?.user_id === userBId,
+        bReactErr?.message ?? bReaction,
+      );
+
+      const { data: bReactionSeenByA } = await clientA
+        .from("item_reactions")
+        .select("*")
+        .eq("item_id", itemId)
+        .eq("user_id", userBId);
+      assert("A can read B's reaction", (bReactionSeenByA ?? []).length === 1, bReactionSeenByA);
+
+      const { data: spoofedReaction, error: spoofErr } = await clientB
+        .from("item_reactions")
+        .insert({ item_id: itemId, user_id: userAId, emoji: "👍" })
+        .select();
+      assert(
+        "B cannot insert a reaction spoofing A's user_id",
+        !!spoofErr || (spoofedReaction ?? []).length === 0,
+        spoofErr?.message ?? spoofedReaction,
+      );
+
+      const { error: dupErr } = await clientA
+        .from("item_reactions")
+        .insert({ item_id: itemId, user_id: userAId, emoji: "❤️" })
+        .select();
+      assert(
+        "Duplicate (item_id, user_id, emoji) insert fails",
+        !!dupErr,
+        "expected a unique-constraint error",
+      );
+
+      const { data: reactionDeletedByB } = await clientB
+        .from("item_reactions")
+        .delete()
+        .eq("item_id", itemId)
+        .eq("user_id", userAId)
+        .select();
+      assert("B cannot delete A's reaction", (reactionDeletedByB ?? []).length === 0, reactionDeletedByB);
+
+      const { data: reactionDeletedByA, error: deleteOwnErr } = await clientA
+        .from("item_reactions")
+        .delete()
+        .eq("item_id", itemId)
+        .eq("user_id", userAId)
+        .select();
+      assert(
+        "A can delete their own reaction",
+        !deleteOwnErr && (reactionDeletedByA ?? []).length === 1,
+        deleteOwnErr?.message ?? reactionDeletedByA,
+      );
+
+      // Non-member check: a scratch list where only A is a member (B was
+      // never added), reusing B's already-authenticated client — same idiom
+      // as Assertion 2's pre-invite non-member checks.
+      const { data: scratchListId, error: scratchListErr } = await clientA.rpc("create_list", {
+        p_name: "Reactions non-member scratch",
+        p_type: "shopping",
+      });
+      assert(
+        "A creates a scratch list for the non-member reactions check",
+        !scratchListErr && !!scratchListId,
+        scratchListErr?.message,
+      );
+
+      if (scratchListId) {
+        const { data: scratchItem, error: scratchItemErr } = await clientA
+          .from("items")
+          .insert({ list_id: scratchListId, name: "Non-member test item", created_by: userAId })
+          .select()
+          .maybeSingle();
+        assert(
+          "A can insert an item on the scratch list",
+          !scratchItemErr && !!scratchItem,
+          scratchItemErr?.message,
+        );
+
+        if (scratchItem) {
+          const { data: reactionsSeenByNonMember } = await clientB
+            .from("item_reactions")
+            .select("*")
+            .eq("item_id", scratchItem.id);
+          assert(
+            "Non-member B cannot select reactions on a list they don't belong to",
+            (reactionsSeenByNonMember ?? []).length === 0,
+            reactionsSeenByNonMember,
+          );
+
+          const { data: reactionInsertedByNonMember, error: nonMemberInsertErr } = await clientB
+            .from("item_reactions")
+            .insert({ item_id: scratchItem.id, user_id: userBId, emoji: "❤️" })
+            .select();
+          assert(
+            "Non-member B cannot insert a reaction on a list they don't belong to",
+            !!nonMemberInsertErr || (reactionInsertedByNonMember ?? []).length === 0,
+            nonMemberInsertErr?.message ?? reactionInsertedByNonMember,
+          );
+        }
+
+        await serviceClient.from("lists").delete().eq("id", scratchListId);
+      }
+
+      // B's reaction from earlier in this block is still on the shared item.
+      await serviceClient.from("item_reactions").delete().eq("item_id", itemId);
+    } else {
+      fail("Assertion 7.5 skipped — no listId/itemId from Assertion 1");
+    }
+
     // ---------- 5. Member removal + invite revoke -----------------
     console.log("\n--- Assertion 5: member removal + invite revoke ---");
     if (listId) {

@@ -8,7 +8,7 @@ import { auth } from "@clerk/nextjs/server";
 import { createClient } from "@/lib/supabase/server";
 import { getListTypeMeta, isWishlist } from "@/lib/list-types";
 import { buildMemberColorMap } from "@/lib/member-colors";
-import type { Item, ItemImage, List, ListMember, Profile } from "@/lib/types";
+import type { Item, ItemImage, ItemReaction, List, ListMember, Profile } from "@/lib/types";
 import { ItemList } from "@/components/item-list";
 import { AppBar } from "@/components/app-bar";
 import { AppBarActions } from "@/components/app-bar-actions";
@@ -80,6 +80,18 @@ export default async function ListDetailPage({
       )
       .order("sort_order");
     initialImages = (imageRows ?? []) as ItemImage[];
+  }
+
+  let initialReactions: ItemReaction[] = [];
+  if (typedItems.length > 0) {
+    const { data: reactionRows } = await supabase
+      .from("item_reactions")
+      .select("*")
+      .in(
+        "item_id",
+        typedItems.map((item) => item.id),
+      );
+    initialReactions = (reactionRows ?? []) as ItemReaction[];
   }
 
   return (
@@ -156,6 +168,7 @@ export default async function ListDetailPage({
           listShareToken={typedList.share_token}
           initialItems={typedItems}
           initialImages={initialImages}
+          initialReactions={initialReactions}
           members={typedMembers}
           listRecurring={typedList.recurring}
         />
