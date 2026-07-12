@@ -4,10 +4,28 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CalendarHeart, Gift, ShoppingCart } from "lucide-react";
+import { Gift, ShoppingCart, Users } from "lucide-react";
 
 import { LinkPendingIndicator } from "@/components/link-pending-indicator";
+import { DuoRings } from "@/components/duo-rings";
+import { useDuoState } from "@/components/use-duo-state";
 import { cn } from "@/lib/utils";
+
+/** Mini `DuoRings` reflecting live pairing state; falls back to a static glyph while loading or on error. */
+function UsTabIcon() {
+  const { state, loading } = useDuoState();
+
+  if (loading) return <Users className="size-5" />;
+
+  return (
+    <DuoRings
+      size={18}
+      state={state}
+      partnerA={{ initials: "" }}
+      partnerB={state !== "solo" ? { initials: "" } : undefined}
+    />
+  );
+}
 
 const tabs = [
   {
@@ -29,12 +47,13 @@ const tabs = [
     activeBg: "bg-duo-coral-tint",
   },
   {
-    href: "/dates",
-    icon: CalendarHeart,
-    labelKey: "datesTab" as const,
-    isActive: (pathname: string) => pathname === "/dates",
+    href: "/us",
+    icon: Users,
+    labelKey: "usTab" as const,
+    isActive: (pathname: string) => pathname === "/us" || pathname === "/dates",
     activeText: "text-duo-gold",
     activeBg: "bg-duo-gold-tint",
+    isUs: true,
   },
 ];
 
@@ -50,7 +69,7 @@ function BottomNavTabs() {
       aria-label={t("navLabel")}
     >
       <div className="mx-auto flex h-16 w-full max-w-[640px] items-stretch px-2 pb-safe">
-        {tabs.map(({ href, icon: Icon, labelKey, isActive, activeText, activeBg }) => {
+        {tabs.map(({ href, icon: Icon, labelKey, isActive, activeText, activeBg, isUs }) => {
           const active = isActive(pathname, room);
 
           return (
@@ -58,6 +77,7 @@ function BottomNavTabs() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
+              aria-label={isUs ? t(labelKey) : undefined}
               className={cn(
                 "relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-medium transition-colors",
                 active ? activeText : "text-muted-foreground hover:text-foreground",
@@ -69,7 +89,13 @@ function BottomNavTabs() {
                   active && activeBg,
                 )}
               >
-                <Icon className="size-5" aria-hidden />
+                {isUs ? (
+                  <span aria-hidden>
+                    <UsTabIcon />
+                  </span>
+                ) : (
+                  <Icon className="size-5" aria-hidden />
+                )}
                 <LinkPendingIndicator className="top-1 right-1" />
               </span>
               {t(labelKey)}

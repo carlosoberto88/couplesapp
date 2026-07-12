@@ -93,6 +93,55 @@ export async function UsHomeSections() {
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex w-full flex-col gap-2">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {t("occasionsHeading")}
+          </h2>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dates?new=1"
+              className="text-xs font-medium text-duo-gold underline-offset-4 hover:underline"
+            >
+              {t("addDate")}
+            </Link>
+            <Link
+              href="/dates"
+              className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              {t("occasionsSeeAll")} ›
+            </Link>
+          </div>
+        </div>
+        {upcomingOccasions.length === 0 ? (
+          <EmptyState icon="🗓️" title={t("occasionsEmpty")} />
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {upcomingOccasions.map((occasion) => {
+              const days = daysUntilOccasion(occasion.occasion_date, occasion.recurring, today);
+              return (
+                <li key={occasion.id}>
+                  <Card className="rounded-2xl">
+                    <CardContent className="flex items-center justify-between gap-3 py-1">
+                      <span className="truncate font-display text-base font-semibold text-foreground">
+                        {occasion.label}
+                      </span>
+                      <Badge variant={days < 0 ? "outline" : days === 0 ? "default" : "secondary"}>
+                        {days === 0
+                          ? tDates("countdownToday")
+                          : days < 0
+                            ? tDates("countdownPassed")
+                            : tDates("countdownDays", { days })}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      <div className="flex w-full flex-col gap-2">
         <h2 className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
           {t("pendingHeading")}
         </h2>
@@ -130,45 +179,6 @@ export async function UsHomeSections() {
           </ul>
         )}
       </div>
-
-      {upcomingOccasions.length > 0 && (
-        <div className="flex w-full flex-col gap-2">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {t("occasionsHeading")}
-            </h2>
-            <Link
-              href="/dates"
-              className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            >
-              {t("occasionsSeeAll")}
-            </Link>
-          </div>
-          <ul className="flex flex-col gap-3">
-            {upcomingOccasions.map((occasion) => {
-              const days = daysUntilOccasion(occasion.occasion_date, occasion.recurring, today);
-              return (
-                <li key={occasion.id}>
-                  <Card className="rounded-2xl">
-                    <CardContent className="flex items-center justify-between gap-3 py-1">
-                      <span className="truncate font-display text-base font-semibold text-foreground">
-                        {occasion.label}
-                      </span>
-                      <Badge variant={days < 0 ? "outline" : days === 0 ? "default" : "secondary"}>
-                        {days === 0
-                          ? tDates("countdownToday")
-                          : days < 0
-                            ? tDates("countdownPassed")
-                            : tDates("countdownDays", { days })}
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
 
       {recentPartnerItems.length > 0 && (
         <div className="flex w-full flex-col gap-2">

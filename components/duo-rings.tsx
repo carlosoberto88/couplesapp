@@ -15,7 +15,7 @@ type DuoRingsProps = {
   partnerA: DuoRingsPartner;
   /** Omit for `state === "solo"` — the second ring renders as an empty dashed seat. */
   partnerB?: DuoRingsPartner;
-  /** Diameter of each circle in px. Default 72 (hero); also used at 24 for the app-bar chip. */
+  /** Diameter of each circle in px. Default 72 (hero); also used at 18 for the bottom-nav Us tab icon. */
   size?: number;
   /** Optional chip anchored in the seam over the overlap, e.g. an editable "us" label. */
   label?: ReactNode;
@@ -65,7 +65,7 @@ export function DuoRings({ state, partnerA, partnerB, size = 72, label, classNam
           className={cn(
             "relative flex shrink-0 items-center justify-center rounded-full border-solid font-semibold text-foreground",
             state === "pending"
-              ? "border-duo-coral bg-duo-coral-tint motion-safe:animate-pulse"
+              ? cn("border-duo-coral bg-duo-coral-tint", size > 32 && "motion-safe:animate-pulse")
               : "border-duo-gold bg-duo-gold-tint",
           )}
           style={{ width: size, height: size, borderWidth: strokeWidth, marginLeft: -overlap, fontSize }}

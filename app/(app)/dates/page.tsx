@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import { getTranslations } from "next-intl/server";
 
@@ -31,6 +33,13 @@ export default async function DatesPage() {
           <AppBarActions />
         </AppBar>
         <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 p-4 pb-bottom-nav">
+          <Link
+            href="/us"
+            className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ChevronLeft className="size-4" />
+            {t("backToUs")}
+          </Link>
           <EmptyState icon="💌" title={t("unpairedTitle")} description={t("unpairedBody")} />
         </main>
       </>
@@ -72,6 +81,13 @@ export default async function DatesPage() {
         <AppBarActions />
       </AppBar>
       <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 p-4 pb-bottom-nav">
+        <Link
+          href="/us"
+          className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronLeft className="size-4" />
+          {t("backToUs")}
+        </Link>
         <DatesList
           partnershipId={pid}
           initialOccasions={(occasionRows ?? []) as Occasion[]}
