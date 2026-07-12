@@ -29,6 +29,7 @@ type InviteResponse = {
   status?: "invited_email_sent" | "invited_copy_link" | "invited_push_sent" | "email_failed";
   invite_id?: string;
   inviteUrl?: string;
+  email?: string;
   error?: string;
 };
 
@@ -61,7 +62,7 @@ export function UsSurface() {
   const [pendingInvite, setPendingInvite] = useState<PendingInvite | null>(null);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [canShare, setCanShare] = useState(false);
@@ -148,7 +149,7 @@ export function UsSurface() {
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = email.trim();
+    const trimmed = identifier.trim();
     if (!trimmed) return;
 
     setSubmitting(true);
@@ -157,7 +158,7 @@ export function UsSurface() {
       const res = await fetch("/api/partner-invites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmed }),
+        body: JSON.stringify({ identifier: trimmed }),
       });
       const data: InviteResponse = await res.json().catch(() => ({}));
 
@@ -166,18 +167,20 @@ export function UsSurface() {
         return;
       }
 
-      setEmail("");
-      setInviteUrl(data.inviteUrl ?? buildInviteUrl(trimmed));
+      const resolvedEmail = data.email ?? trimmed;
+
+      setIdentifier("");
+      setInviteUrl(data.inviteUrl ?? buildInviteUrl(resolvedEmail));
       setPendingInvite({
-        id: data.invite_id ?? `optimistic-${trimmed}`,
-        email: trimmed,
+        id: data.invite_id ?? `optimistic-${resolvedEmail}`,
+        email: resolvedEmail,
         created_at: new Date().toISOString(),
       });
 
       if (data.status === "invited_push_sent") {
-        toast.success(t("notifiedPush", { name: trimmed }));
+        toast.success(t("notifiedPush", { name: resolvedEmail }));
       } else if (data.status === "invited_email_sent") {
-        toast.success(t("notifiedEmail", { name: trimmed }));
+        toast.success(t("notifiedEmail", { name: resolvedEmail }));
       }
       // invited_copy_link / email_failed: no fake-success toast — the waiting
       // state below surfaces the copy-link affordance prominently instead.
@@ -432,12 +435,14 @@ export function UsSurface() {
 
             <form onSubmit={handleInvite} className="flex w-full flex-col gap-3">
               <Input
-                type="email"
+                type="text"
                 required
+                autoCapitalize="none"
+                autoCorrect="off"
                 className="h-12 rounded-xl"
-                placeholder={t("emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("identifierPlaceholder")}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
               />
               <Button
                 type="submit"

@@ -6,6 +6,7 @@ import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 import { getApiTranslator } from "@/lib/api-translator";
 import { notifyUsers } from "@/lib/notify";
 import { createClient } from "@/lib/supabase/server";
+import { displayNameFor } from "@/lib/display-name";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -20,19 +21,47 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
 
   const body = await request.json().catch(() => null);
-  const rawEmail = typeof body?.email === "string" ? body.email : null;
+  const rawIdentifier =
+    typeof body?.identifier === "string" ? body.identifier : null;
 
-  if (!rawEmail || !EMAIL_RE.test(rawEmail.trim())) {
-    return NextResponse.json({ error: t("api.invalidEmail") }, { status: 400 });
+  if (!rawIdentifier) {
+    return NextResponse.json(
+      { error: t("api.identifierRequired") },
+      { status: 400 },
+    );
   }
-
-  const email = rawEmail.trim().toLowerCase();
 
   if (!sessionClaims?.email) {
     return NextResponse.json(
       { error: t("api.missingEmailClaim") },
       { status: 500 },
     );
+  }
+
+  const trimmedIdentifier = rawIdentifier.trim();
+  const client = await clerkClient();
+
+  // The identifier is either a real email (existing flow, unchanged) or a
+  // username that must resolve, server-side, to that Clerk user's OWN
+  // primary email — never trust a client-supplied email for a username.
+  let email: string;
+
+  if (EMAIL_RE.test(trimmedIdentifier)) {
+    email = trimmedIdentifier.toLowerCase();
+  } else {
+    const { data: usernameMatches } = await client.users.getUserList({
+      username: [trimmedIdentifier],
+    });
+    const resolvedEmail = usernameMatches[0]?.primaryEmailAddress?.emailAddress;
+
+    if (!resolvedEmail) {
+      return NextResponse.json(
+        { error: t("api.userNotFound") },
+        { status: 404 },
+      );
+    }
+
+    email = resolvedEmail.toLowerCase();
   }
 
   if (email === sessionClaims.email.toLowerCase()) {
@@ -108,14 +137,11 @@ export async function POST(request: NextRequest) {
   async function notifyExistingUser(inviteeUserId: string) {
     const { data: inviterProfile } = await admin
       .from("profiles")
-      .select("display_name, email")
+      .select("username, display_name, email")
       .eq("id", userId)
       .maybeSingle();
 
-    const inviterName =
-      inviterProfile?.display_name?.trim() ||
-      inviterProfile?.email ||
-      inviterEmailClaim;
+    const inviterName = displayNameFor(inviterProfile, inviterEmailClaim);
 
     return notifyUsers({
       userIds: [inviteeUserId],
@@ -126,7 +152,6 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const client = await clerkClient();
   const { data: existingUsers } = await client.users.getUserList({
     emailAddress: [email],
   });
@@ -139,6 +164,7 @@ export async function POST(request: NextRequest) {
         status: "invited_push_sent",
         invite_id: inviteId,
         inviteUrl,
+        email,
       });
     }
 
@@ -146,6 +172,7 @@ export async function POST(request: NextRequest) {
       status: "invited_copy_link",
       invite_id: inviteId,
       inviteUrl,
+      email,
     });
   }
 
@@ -165,6 +192,7 @@ export async function POST(request: NextRequest) {
           status: "invited_email_sent",
           invite_id: inviteId,
           inviteUrl,
+          email,
         });
       }
 
@@ -182,6 +210,7 @@ export async function POST(request: NextRequest) {
               status: "invited_push_sent",
               invite_id: inviteId,
               inviteUrl,
+              email,
             });
           }
         }
@@ -190,12 +219,13 @@ export async function POST(request: NextRequest) {
           status: "invited_copy_link",
           invite_id: inviteId,
           inviteUrl,
+          email,
         });
       }
     }
 
     return NextResponse.json(
-      { invite_id: inviteId, inviteUrl, status: "email_failed" },
+      { invite_id: inviteId, inviteUrl, status: "email_failed", email },
       { status: 502 },
     );
   }
@@ -204,5 +234,6 @@ export async function POST(request: NextRequest) {
     status: "invited_email_sent",
     invite_id: inviteId,
     inviteUrl,
+    email,
   });
 }

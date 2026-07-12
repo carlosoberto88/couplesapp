@@ -30,6 +30,7 @@ type InviteResponse = {
     | "already_member"
     | "email_failed";
   inviteUrl?: string;
+  email?: string;
   error?: string;
 };
 
@@ -66,7 +67,7 @@ export function InvitePanel({
   const isOwner = currentUserId === ownerId;
 
   const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -110,7 +111,7 @@ export function InvitePanel({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = email.trim();
+    const trimmed = identifier.trim();
     if (!trimmed) return;
 
     setSubmitting(true);
@@ -121,50 +122,53 @@ export function InvitePanel({
       const res = await fetch("/api/invites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ listId, email: trimmed }),
+        body: JSON.stringify({ listId, identifier: trimmed }),
       });
       const data: InviteResponse = await res.json().catch(() => ({}));
+      // Server resolves username -> email; fall back to what was typed
+      // (already an email) if the response omits it.
+      const resolvedEmail = data.email ?? trimmed;
 
       if (res.ok && data.status === "already_member") {
-        toast.info(t("alreadyMember", { email: trimmed }));
-        setEmail("");
+        toast.info(t("alreadyMember", { email: resolvedEmail }));
+        setIdentifier("");
         return;
       }
 
       if (res.ok && data.status === "invited_email_sent") {
-        toast.success(t("emailSent", { email: trimmed }));
+        toast.success(t("emailSent", { email: resolvedEmail }));
         setInviteUrl(data.inviteUrl ?? null);
-        setEmail("");
+        setIdentifier("");
         setPendingInvites((prev) =>
-          prev.some((i) => i.email === trimmed)
+          prev.some((i) => i.email === resolvedEmail)
             ? prev
-            : [...prev, { id: `optimistic-${trimmed}`, email: trimmed }],
+            : [...prev, { id: `optimistic-${resolvedEmail}`, email: resolvedEmail }],
         );
         return;
       }
 
       if (res.ok && data.status === "invited_copy_link") {
-        toast.info(t("copyLinkToast", { email: trimmed }));
+        toast.info(t("copyLinkToast", { email: resolvedEmail }));
         setInviteUrl(data.inviteUrl ?? null);
         setCopyLinkHint(true);
-        setEmail("");
+        setIdentifier("");
         setPendingInvites((prev) =>
-          prev.some((i) => i.email === trimmed)
+          prev.some((i) => i.email === resolvedEmail)
             ? prev
-            : [...prev, { id: `optimistic-${trimmed}`, email: trimmed }],
+            : [...prev, { id: `optimistic-${resolvedEmail}`, email: resolvedEmail }],
         );
         return;
       }
 
       if (res.ok && data.status === "invited_push_sent") {
-        toast.success(t("pushSent", { email: trimmed }));
+        toast.success(t("pushSent", { email: resolvedEmail }));
         setInviteUrl(data.inviteUrl ?? null);
         setCopyLinkHint(false);
-        setEmail("");
+        setIdentifier("");
         setPendingInvites((prev) =>
-          prev.some((i) => i.email === trimmed)
+          prev.some((i) => i.email === resolvedEmail)
             ? prev
-            : [...prev, { id: `optimistic-${trimmed}`, email: trimmed }],
+            : [...prev, { id: `optimistic-${resolvedEmail}`, email: resolvedEmail }],
         );
         return;
       }
@@ -173,11 +177,11 @@ export function InvitePanel({
         toast.error(t("emailFailed"));
         setInviteUrl(data.inviteUrl ?? null);
         setPendingInvites((prev) =>
-          prev.some((i) => i.email === trimmed)
+          prev.some((i) => i.email === resolvedEmail)
             ? prev
-            : [...prev, { id: `optimistic-${trimmed}`, email: trimmed }],
+            : [...prev, { id: `optimistic-${resolvedEmail}`, email: resolvedEmail }],
         );
-        setEmail("");
+        setIdentifier("");
         return;
       }
 
@@ -326,18 +330,21 @@ export function InvitePanel({
               onSubmit={handleSubmit}
             >
               <Input
-                type="email"
+                type="text"
+                autoCapitalize="none"
+                autoCorrect="off"
                 className="h-11 flex-1 rounded-xl"
-                placeholder={t("emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("identifierPlaceholder")}
+                aria-label={t("identifierLabel")}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
               />
               <Button
                 type="submit"
                 size="lg"
                 className="h-11 rounded-xl px-5"
-                disabled={submitting || !email.trim()}
+                disabled={submitting || !identifier.trim()}
               >
                 {submitting ? t("sending") : t("submit")}
               </Button>
