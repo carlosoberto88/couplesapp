@@ -18,6 +18,8 @@ const SIGNED_URL_TTL_SECONDS = 600; // 10 minutes
 
 type PublicWishlistRow = {
   list_name: string;
+  // Sourced from coalesce(p.username, p.display_name) in get_public_wishlist
+  // (0027) — never the owner's email, since this page is unauthenticated.
   owner_display_name: string | null;
   item_id: string;
   name: string;
