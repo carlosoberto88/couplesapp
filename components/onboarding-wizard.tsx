@@ -1,16 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
-import { type ListTypeKey } from "@/lib/list-types";
 import { ONBOARDING_VERSION } from "@/lib/onboarding";
-import { CreateListForm } from "@/components/create-list-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,7 +19,17 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-const TOTAL_STEPS = 5;
+const STEPS = [
+  { icon: "💑", titleKey: "welcomeTitle", descriptionKey: "welcomeDescription" },
+  { icon: "🛒", titleKey: "buildTitle", descriptionKey: "buildDescription" },
+  { icon: "✅", titleKey: "liveTitle", descriptionKey: "liveDescription" },
+  { icon: "🏬", titleKey: "shoppingNowTitle", descriptionKey: "shoppingNowDescription" },
+  { icon: "🎉", titleKey: "datesTitle", descriptionKey: "datesDescription" },
+  { icon: "💞", titleKey: "usTitle", descriptionKey: "usDescription" },
+  { icon: "🎁", titleKey: "shareTitle", descriptionKey: "shareDescription" },
+] as const;
+
+const TOTAL_STEPS = STEPS.length;
 
 type OnboardingWizardProps = {
   show: boolean;
@@ -33,13 +40,9 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
   const { user } = useUser();
   const supabase = useSupabaseClient();
   const t = useTranslations("onboarding");
-  const tCreate = useTranslations("createList");
 
   const [open, setOpen] = useState(show);
   const [step, setStep] = useState(1);
-  const [name, setName] = useState("");
-  const [type, setType] = useState<ListTypeKey>("shopping");
-  const [listId, setListId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   if (!show && !open) return null;
@@ -66,26 +69,6 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
     router.refresh();
   }
 
-  async function handleCreateAndNext() {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-
-    setSubmitting(true);
-    const { data, error } = await supabase.rpc("create_list", {
-      p_name: trimmed,
-      p_type: type,
-    });
-    setSubmitting(false);
-
-    if (error || !data) {
-      toast.error(error?.message ?? tCreate("error"));
-      return;
-    }
-
-    setListId(data);
-    setStep(3);
-  }
-
   function handleOpenChange(next: boolean) {
     if (!next && open) {
       void completeOnboarding();
@@ -95,20 +78,8 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
   }
 
   function handleNext() {
-    if (step === 1) {
-      setStep(2);
-      return;
-    }
-    if (step === 2) {
-      void handleCreateAndNext();
-      return;
-    }
-    if (step === 3) {
-      setStep(4);
-      return;
-    }
-    if (step === 4) {
-      setStep(5);
+    if (step < TOTAL_STEPS) {
+      setStep(step + 1);
       return;
     }
     void completeOnboarding();
@@ -118,42 +89,12 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
     if (step > 1) setStep(step - 1);
   }
 
-  const stepTitle =
-    step === 1
-      ? t("welcomeTitle")
-      : step === 2
-        ? t("createTitle")
-        : step === 3
-          ? t("inviteTitle")
-          : step === 4
-            ? t("itemsTitle")
-            : t("shareTitle");
+  const currentStep = STEPS[step - 1];
+  const stepTitle = t(currentStep.titleKey);
+  const stepDescription = t(currentStep.descriptionKey);
+  const stepIcon = currentStep.icon;
 
-  const stepDescription =
-    step === 1
-      ? t("welcomeDescription")
-      : step === 2
-        ? t("createDescription")
-        : step === 3
-          ? t("inviteDescription")
-          : step === 4
-            ? t("itemsDescription")
-            : t("shareDescription");
-
-  const stepIcon =
-    step === 1
-      ? "💑"
-      : step === 2
-        ? "📋"
-        : step === 3
-          ? "✉️"
-          : step === 4
-            ? "✅"
-            : "🎁";
-
-  const nextDisabled = submitting || (step === 2 && !name.trim());
-  const nextLabel =
-    step === 5 ? t("getStarted") : step === 2 && submitting ? tCreate("creating") : t("next");
+  const nextLabel = step === TOTAL_STEPS ? t("getStarted") : t("next");
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -180,26 +121,6 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
           <DialogDescription>{stepDescription}</DialogDescription>
         </DialogHeader>
 
-        {step === 2 ? (
-          <CreateListForm
-            name={name}
-            onNameChange={setName}
-            type={type}
-            onTypeChange={setType}
-            nameInputId="onboarding-list-name"
-            autoFocus
-          />
-        ) : null}
-
-        {step === 3 && listId ? (
-          <Link
-            href={`/lists/${listId}`}
-            className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-          >
-            {t("openList")}
-          </Link>
-        ) : null}
-
         <DialogFooter className="flex-col gap-2 sm:flex-col">
           <div className="flex w-full gap-2">
             {step > 1 ? (
@@ -216,7 +137,7 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
             <Button
               type="button"
               className="h-11 flex-1 rounded-xl"
-              disabled={nextDisabled}
+              disabled={submitting}
               onClick={() => void handleNext()}
             >
               {nextLabel}
