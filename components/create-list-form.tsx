@@ -54,23 +54,26 @@ export function CreateListForm({
       <div className="flex flex-col gap-1.5">
         <Label>{t("typeLabel")}</Label>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {LIST_TYPE_KEYS.map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => onTypeChange(key)}
-              aria-pressed={type === key}
-              className={cn(
-                "flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl border-2 px-2 py-2.5 text-xs font-medium transition-colors",
-                type === key
-                  ? "border-primary bg-duo-coral-tint text-primary"
-                  : "border-border bg-background text-muted-foreground hover:bg-muted",
-              )}
-            >
-              <span className="text-xl leading-none">{getListTypeIcon(key)}</span>
-              {tListTypes(key)}
-            </button>
-          ))}
+          {LIST_TYPE_KEYS.map((key) => {
+            const Icon = getListTypeIcon(key);
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => onTypeChange(key)}
+                aria-pressed={type === key}
+                className={cn(
+                  "flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl border-2 px-2 py-2.5 text-xs font-medium transition-colors",
+                  type === key
+                    ? "border-primary bg-duo-coral-tint text-primary"
+                    : "border-border bg-background text-muted-foreground hover:bg-muted",
+                )}
+              >
+                <Icon className="size-5" />
+                {tListTypes(key)}
+              </button>
+            );
+          })}
         </div>
       </div>
       {getListTypeConfig(type).supportsRecurring ? (

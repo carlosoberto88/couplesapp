@@ -1,12 +1,15 @@
+import type { LucideIcon } from "lucide-react";
+import { ClipboardList, Gift, ListChecks, ShoppingCart } from "lucide-react";
+
 export type ListTypeKey = "shopping" | "todo" | "wishlist" | "other";
 
 export type ListTypeMeta = {
   label: string;
-  icon: string;
+  Icon: LucideIcon;
 };
 
 export type ListTypeConfig = {
-  icon: string;
+  Icon: LucideIcon;
   supportsCheckoff: boolean;
   supportsReservation: boolean;
   supportsImages: boolean;
@@ -20,7 +23,7 @@ export const LIST_TYPE_KEYS: ListTypeKey[] = ["shopping", "todo", "wishlist", "o
 
 const LIST_TYPE_CONFIG: Record<ListTypeKey, ListTypeConfig> = {
   shopping: {
-    icon: "🛒",
+    Icon: ShoppingCart,
     supportsCheckoff: true,
     supportsReservation: false,
     supportsImages: false,
@@ -30,7 +33,7 @@ const LIST_TYPE_CONFIG: Record<ListTypeKey, ListTypeConfig> = {
     supportsReorder: true,
   },
   todo: {
-    icon: "✓",
+    Icon: ListChecks,
     supportsCheckoff: true,
     supportsReservation: false,
     supportsImages: false,
@@ -40,7 +43,7 @@ const LIST_TYPE_CONFIG: Record<ListTypeKey, ListTypeConfig> = {
     supportsReorder: true,
   },
   wishlist: {
-    icon: "🎁",
+    Icon: Gift,
     supportsCheckoff: true,
     supportsReservation: true,
     supportsImages: true,
@@ -50,7 +53,7 @@ const LIST_TYPE_CONFIG: Record<ListTypeKey, ListTypeConfig> = {
     supportsReorder: false,
   },
   other: {
-    icon: "📋",
+    Icon: ClipboardList,
     supportsCheckoff: true,
     supportsReservation: false,
     supportsImages: false,
@@ -87,15 +90,15 @@ export function getListTypeMeta(
 ): ListTypeMeta {
   const isKnown = type in LIST_TYPE_CONFIG;
   const key = (isKnown ? type : "fallback") as ListTypeKey | "fallback";
-  const icon = isKnown ? LIST_TYPE_CONFIG[type as ListTypeKey].icon : "📋";
+  const Icon = isKnown ? LIST_TYPE_CONFIG[type as ListTypeKey].Icon : ClipboardList;
 
   return {
     label: translate ? translate(key) : DEFAULT_LABELS[key],
-    icon,
+    Icon,
   };
 }
 
 /** Icons only — for type picker grids that supply their own translated labels. */
-export function getListTypeIcon(type: ListTypeKey): string {
-  return LIST_TYPE_CONFIG[type].icon;
+export function getListTypeIcon(type: ListTypeKey): LucideIcon {
+  return LIST_TYPE_CONFIG[type].Icon;
 }

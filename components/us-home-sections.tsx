@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CalendarHeart, CircleCheckBig } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import { createClient } from "@/lib/supabase/server";
@@ -113,7 +114,7 @@ export async function UsHomeSections() {
           </div>
         </div>
         {upcomingOccasions.length === 0 ? (
-          <EmptyState icon="🗓️" title={t("occasionsEmpty")} />
+          <EmptyState icon={<CalendarHeart className="size-6" />} title={t("occasionsEmpty")} />
         ) : (
           <ul className="flex flex-col gap-3">
             {upcomingOccasions.map((occasion) => {
@@ -146,7 +147,11 @@ export async function UsHomeSections() {
           {t("pendingHeading")}
         </h2>
         {pendingLists.length === 0 ? (
-          <EmptyState icon="✅" title={t("pendingEmptyTitle")} description={t("pendingEmptyBody")} />
+          <EmptyState
+            icon={<CircleCheckBig className="size-6" />}
+            title={t("pendingEmptyTitle")}
+            description={t("pendingEmptyBody")}
+          />
         ) : (
           <ul className="flex flex-col gap-3">
             {pendingLists.map((list) => {
@@ -157,10 +162,10 @@ export async function UsHomeSections() {
                     <CardContent className="flex min-h-11 items-center py-1">
                       <ListCardLink href={`/lists/${list.id}`}>
                         <span
-                          className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-xl"
+                          className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"
                           aria-hidden
                         >
-                          {meta.icon}
+                          <meta.Icon className="size-5" />
                         </span>
                         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                           <span className="truncate font-display text-base font-semibold text-foreground">

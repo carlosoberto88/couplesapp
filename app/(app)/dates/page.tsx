@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, HeartHandshake } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import { getTranslations } from "next-intl/server";
 
@@ -29,7 +29,7 @@ export default async function DatesPage() {
   if (!pid || !userId) {
     return (
       <>
-        <AppBar>
+        <AppBar title={t("title")}>
           <AppBarActions />
         </AppBar>
         <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 p-4 pb-bottom-nav">
@@ -40,7 +40,11 @@ export default async function DatesPage() {
             <ChevronLeft className="size-4" />
             {t("backToUs")}
           </Link>
-          <EmptyState icon="💌" title={t("unpairedTitle")} description={t("unpairedBody")} />
+          <EmptyState
+            icon={<HeartHandshake className="size-6" />}
+            title={t("unpairedTitle")}
+            description={t("unpairedBody")}
+          />
         </main>
       </>
     );
@@ -77,7 +81,7 @@ export default async function DatesPage() {
 
   return (
     <>
-      <AppBar>
+      <AppBar title={t("title")}>
         <AppBarActions />
       </AppBar>
       <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 p-4 pb-bottom-nav">

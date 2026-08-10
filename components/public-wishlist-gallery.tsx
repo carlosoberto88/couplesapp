@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Star } from "lucide-react";
+import { Gift, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
@@ -155,8 +155,8 @@ export function PublicWishlistGallery({ token, items: initialItems }: PublicWish
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={item.imageUrl} alt="" className="size-full object-cover" />
               ) : (
-                <div className="flex size-full items-center justify-center bg-duo-coral-tint text-3xl">
-                  🎁
+                <div className="flex size-full items-center justify-center bg-duo-coral-tint">
+                  <Gift className="size-8 text-duo-coral" />
                 </div>
               )}
 

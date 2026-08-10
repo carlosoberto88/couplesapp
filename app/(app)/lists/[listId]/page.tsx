@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getListTypeMeta, isWishlist } from "@/lib/list-types";
 import { buildMemberColorMap } from "@/lib/member-colors";
 import { displayNameFor } from "@/lib/display-name";
-import type { Item, ItemImage, ItemReaction, List, ListMember, Profile } from "@/lib/types";
+import type { Item, ItemImage, List, ListMember, Profile } from "@/lib/types";
 import { ItemList } from "@/components/item-list";
 import { AppBar } from "@/components/app-bar";
 import { AppBarActions } from "@/components/app-bar-actions";
@@ -83,18 +83,6 @@ export default async function ListDetailPage({
     initialImages = (imageRows ?? []) as ItemImage[];
   }
 
-  let initialReactions: ItemReaction[] = [];
-  if (typedItems.length > 0) {
-    const { data: reactionRows } = await supabase
-      .from("item_reactions")
-      .select("*")
-      .in(
-        "item_id",
-        typedItems.map((item) => item.id),
-      );
-    initialReactions = (reactionRows ?? []) as ItemReaction[];
-  }
-
   return (
     <>
       <ListDetailLiveSync listId={typedList.id} />
@@ -113,10 +101,10 @@ export default async function ListDetailPage({
 
         <div className="flex items-center gap-3">
           <span
-            className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-xl"
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"
             aria-hidden
           >
-            {meta.icon}
+            <meta.Icon className="size-5" />
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <h1 className="font-display text-lg font-semibold text-foreground">
@@ -169,7 +157,6 @@ export default async function ListDetailPage({
           listShareToken={typedList.share_token}
           initialItems={typedItems}
           initialImages={initialImages}
-          initialReactions={initialReactions}
           members={typedMembers}
           listRecurring={typedList.recurring}
         />

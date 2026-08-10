@@ -13,7 +13,7 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <AppBar>
+      <AppBar title={t("title")}>
         <AppBarActions />
       </AppBar>
       <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-6 p-4 pb-bottom-nav">

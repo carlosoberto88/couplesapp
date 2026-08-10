@@ -93,6 +93,7 @@
     "deletedToast": "Lista eliminada"
   },
   "dates": {
+    "title": "Fechas",
     "backToUs": "Volver a Nosotros",
     "addTrigger": "Añadir fecha",
     "menuLabel": "Opciones de la fecha",
@@ -296,7 +297,7 @@
     "emptyAction": "Agregar ítems",
     "checkedCount": "{count, plural, one {# marcado} other {# marcados}}",
     "photoAlt": "Foto de {name}",
-    "allDone": "Todo listo 🎉",
+    "allDone": "Todo listo",
     "clearCheckedPrompt": "¿Limpiar marcados?",
     "addedBy": "Agregado por",
     "completedBy": "Completado por tu pareja",
@@ -362,12 +363,7 @@
     "assignedTo": "Asignado a {name}",
     "assignedToYou": "Asignado a ti",
     "unassign": "Quitar asignación",
-    "assignMenuLabel": "Asignar a",
-    "reactHeart": "Reaccionar con un corazón a {name}",
-    "unreactHeart": "Quitar tu corazón de {name}",
-    "reactThumbsUp": "Reaccionar con un me gusta a {name}",
-    "unreactThumbsUp": "Quitar tu me gusta de {name}",
-    "reactionCount": "{count}"
+    "assignMenuLabel": "Asignar a"
   },
   "wishlist": {
     "itemCount": "{count, plural, one {# regalo} other {# regalos}}",
@@ -418,12 +414,7 @@
     "viewDetails": "Ver detalles",
     "hasPhotos": "Fotos",
     "addedBy": "Agregado por",
-    "completedBy": "Comprado por tu pareja",
-    "reactHeart": "Reaccionar con un corazón a {name}",
-    "unreactHeart": "Quitar tu corazón de {name}",
-    "reactThumbsUp": "Reaccionar con un me gusta a {name}",
-    "unreactThumbsUp": "Quitar tu me gusta de {name}",
-    "reactionCount": "{count}"
+    "completedBy": "Comprado por tu pareja"
   },
   "publicWishlist": {
     "ogDescription": "Mira la lista de regalos de {name} y reserva algo especial.",
@@ -539,7 +530,7 @@
     "buildTitle": "Arma listas rápido",
     "buildDescription": "Agrega ítems a mano, toma una foto o el precio, pega un enlace para autocompletar los detalles, prueba el agregado con IA o pega una lista entera de una vez.",
     "liveTitle": "Compren juntos, en vivo",
-    "liveDescription": "Marca ítems con sincronización instantánea y ve la presencia de tu pareja. Reacciona con ❤️ o 👍, agrupa por pasillo y sigue un total de precio en tiempo real.",
+    "liveDescription": "Marca ítems con sincronización instantánea y ve la presencia de tu pareja. Agrupa por pasillo y sigue un total de precio en tiempo real.",
     "shoppingNowTitle": "Modo compras ahora",
     "shoppingNowDescription": "Una vista enfocada de botones grandes, ordenada por pasillo, pensada para la tienda. Asígnense ítems entre ustedes.",
     "datesTitle": "Fechas y ocasiones",
