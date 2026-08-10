@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 
 import { auth } from "@clerk/nextjs/server";
 
+import { Archive } from "lucide-react";
+
 import { createClient } from "@/lib/supabase/server";
 import { getListTypeMeta, isWishlist } from "@/lib/list-types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
@@ -43,6 +45,7 @@ export default async function ListsPage({
   const { userId } = await auth();
   const t = await getTranslations("lists");
   const tListTypes = await getTranslations("listTypes");
+  const tNav = await getTranslations("allItems");
 
   const supabase = await createClient();
 
@@ -82,7 +85,7 @@ export default async function ListsPage({
   return (
     <>
       <ListsLiveSync userId={userId} />
-      <AppBar>
+      <AppBar title={room === "wishlist" ? tNav("wishlistsTab") : tNav("shoppingTab")}>
         <CreateListDialog />
         <AppBarActions />
       </AppBar>
@@ -90,7 +93,7 @@ export default async function ListsPage({
         {visibleLists.length === 0 ? (
           showArchived ? (
             <EmptyState
-              icon="📦"
+              icon={<Archive className="size-6" />}
               title={t("emptyArchivedTitle")}
               description={t("emptyArchivedDescription")}
             />
@@ -115,10 +118,10 @@ export default async function ListsPage({
                     <CardContent className="flex min-h-11 items-center gap-4 py-1">
                       <ListCardLink href={`/lists/${list.id}`}>
                         <span
-                          className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-xl"
+                          className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"
                           aria-hidden
                         >
-                          {meta.icon}
+                          <meta.Icon className="size-5" />
                         </span>
                         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                           <span className="truncate font-display text-base font-semibold text-foreground">

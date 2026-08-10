@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import {
+  CalendarHeart,
+  Heart,
+  ListPlus,
+  RefreshCw,
+  Share2,
+  Store,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
 import { useSupabaseClient } from "@/lib/supabase/client";
 import { ONBOARDING_VERSION } from "@/lib/onboarding";
@@ -19,15 +29,15 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-const STEPS = [
-  { icon: "💑", titleKey: "welcomeTitle", descriptionKey: "welcomeDescription" },
-  { icon: "🛒", titleKey: "buildTitle", descriptionKey: "buildDescription" },
-  { icon: "✅", titleKey: "liveTitle", descriptionKey: "liveDescription" },
-  { icon: "🏬", titleKey: "shoppingNowTitle", descriptionKey: "shoppingNowDescription" },
-  { icon: "🎉", titleKey: "datesTitle", descriptionKey: "datesDescription" },
-  { icon: "💞", titleKey: "usTitle", descriptionKey: "usDescription" },
-  { icon: "🎁", titleKey: "shareTitle", descriptionKey: "shareDescription" },
-] as const;
+const STEPS: { Icon: LucideIcon; titleKey: string; descriptionKey: string }[] = [
+  { Icon: Heart, titleKey: "welcomeTitle", descriptionKey: "welcomeDescription" },
+  { Icon: ListPlus, titleKey: "buildTitle", descriptionKey: "buildDescription" },
+  { Icon: RefreshCw, titleKey: "liveTitle", descriptionKey: "liveDescription" },
+  { Icon: Store, titleKey: "shoppingNowTitle", descriptionKey: "shoppingNowDescription" },
+  { Icon: CalendarHeart, titleKey: "datesTitle", descriptionKey: "datesDescription" },
+  { Icon: Users, titleKey: "usTitle", descriptionKey: "usDescription" },
+  { Icon: Share2, titleKey: "shareTitle", descriptionKey: "shareDescription" },
+];
 
 const TOTAL_STEPS = STEPS.length;
 
@@ -92,7 +102,7 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
   const currentStep = STEPS[step - 1];
   const stepTitle = t(currentStep.titleKey);
   const stepDescription = t(currentStep.descriptionKey);
-  const stepIcon = currentStep.icon;
+  const StepIcon = currentStep.Icon;
 
   const nextLabel = step === TOTAL_STEPS ? t("getStarted") : t("next");
 
@@ -114,8 +124,8 @@ export function OnboardingWizard({ show }: OnboardingWizardProps) {
               />
             ))}
           </div>
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-muted text-2xl">
-            {stepIcon}
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+            <StepIcon className="size-6" />
           </div>
           <DialogTitle className="font-display text-lg">{stepTitle}</DialogTitle>
           <DialogDescription>{stepDescription}</DialogDescription>

@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ExternalLink, ImagePlus, Pencil } from "lucide-react";
+import { ClipboardList, ExternalLink, Gift, ImagePlus, Pencil } from "lucide-react";
 import { Switch } from "@base-ui/react/switch";
 import { toast } from "sonner";
 
@@ -471,8 +471,8 @@ export function ItemDetailDialog({
                 ))}
               </div>
             ) : (
-              <div className="flex size-32 items-center justify-center rounded-xl bg-muted text-3xl">
-                {wishlist ? "🎁" : "📋"}
+              <div className="flex size-32 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                {wishlist ? <Gift className="size-10" /> : <ClipboardList className="size-10" />}
               </div>
             )}
 

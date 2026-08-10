@@ -64,11 +64,11 @@ function BottomNavTabs() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80 md:inset-x-auto md:left-1/2 md:w-full md:max-w-[var(--app-frame)] md:-translate-x-1/2 md:border-x"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-safe backdrop-blur-xl saturate-150 supports-backdrop-filter:bg-background/70 md:inset-x-auto md:left-1/2 md:w-full md:max-w-[var(--app-frame)] md:-translate-x-1/2 md:border-x"
       role="navigation"
       aria-label={t("navLabel")}
     >
-      <div className="mx-auto flex h-16 w-full max-w-[640px] items-stretch px-2 pb-safe">
+      <div className="mx-auto flex h-16 w-full max-w-[640px] items-stretch px-2">
         {tabs.map(({ href, icon: Icon, labelKey, isActive, activeText, activeBg, isUs }) => {
           const active = isActive(pathname, room);
 
@@ -79,7 +79,7 @@ function BottomNavTabs() {
               aria-current={active ? "page" : undefined}
               aria-label={isUs ? t(labelKey) : undefined}
               className={cn(
-                "relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-medium transition-colors",
+                "press relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-medium transition-colors",
                 active ? activeText : "text-muted-foreground hover:text-foreground",
               )}
             >

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ListPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { CreateListDialog } from "@/components/create-list-dialog";
@@ -13,7 +14,7 @@ export function ListsEmptyActive() {
   return (
     <>
       <EmptyState
-        icon="📋"
+        icon={<ListPlus className="size-6" />}
         title={t("emptyActiveTitle")}
         description={t("emptyActiveDescription")}
         actionLabel={t("emptyActiveAction")}

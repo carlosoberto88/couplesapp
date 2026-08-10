@@ -1,5 +1,3 @@
-import type { ReactionEmoji } from "@/lib/reactions";
-
 export type Profile = {
   id: string;
   email: string;
@@ -93,16 +91,6 @@ export type ItemImage = {
 
 export type ItemWithImages = Item & {
   images: ItemImage[];
-};
-
-export type { ReactionEmoji };
-
-export type ItemReaction = {
-  id: string;
-  item_id: string;
-  user_id: string;
-  emoji: ReactionEmoji;
-  created_at: string;
 };
 
 export type ItemListContext = Pick<List, "id" | "name" | "type" | "owner_id">;

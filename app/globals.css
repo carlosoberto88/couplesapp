@@ -210,12 +210,36 @@
     animation: item-in 150ms ease-out;
   }
 
+  .press {
+    transition: transform 100ms ease-out, background-color 100ms ease-out;
+  }
+
+  .press:active {
+    transform: scale(0.98);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-check-pop,
     .animate-item-in,
     .confetti-particle {
       animation: none;
       transition-duration: 0.01ms;
+    }
+
+    .press {
+      transition: none;
+    }
+
+    .press:active {
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    header[class*="backdrop-blur"],
+    nav[class*="backdrop-blur"] {
+      background-color: var(--background);
+      backdrop-filter: none;
     }
   }
 
@@ -242,8 +266,9 @@
     padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
   }
 
+  /* Nav real height: h-16 content (4rem) + pb-safe base (0.75rem) + border-t (1px) + inset */
   .pb-bottom-nav {
-    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(4.75rem + 1px + env(safe-area-inset-bottom, 0px));
   }
 
   .pb-sticky-add-bar {
