@@ -28,9 +28,10 @@ export const config = {
      * - favicon.ico (favicon file)
      * - images (public image files)
      * - sw.js (service worker)
+     * - shell.html (static, data-free offline/fallback shell)
      * - manifest.webmanifest (PWA manifest)
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|favicon.ico|images|sw.js|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|images|sw.js|shell.html|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

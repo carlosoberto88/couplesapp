@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <style>
+      /* ponytail: token values duplicated from app/globals.css — this file must stay
+         static and data-free, so it cannot import the app's build-hashed CSS. */
+      :root {
+        --background: #f4f4f2;
+        --muted: #e9e9e6;
+        --border: #e6e6e2;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background: #15161c;
+          --muted: #101116;
+          --border: rgb(237 238 242 / 10%);
+        }
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--background);
+        font-family: system-ui;
+      }
+      .header {
+        height: calc(3.5rem + env(safe-area-inset-top));
+        border-bottom: 1px solid var(--border);
+      }
+      .column {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 1rem;
+        display: grid;
+        gap: 0.75rem;
+      }
+      .row {
+        height: 4rem;
+        border-radius: 1rem;
+        background: var(--muted);
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      .bottom-bar {
+        position: fixed;
+        inset: auto 0 0;
+        height: calc(4rem + 0.75rem + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--border);
+        background: var(--background);
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header"></div>
+    <div class="column">
+      <div class="row"></div>
+      <div class="row"></div>
+      <div class="row"></div>
+    </div>
+    <div class="bottom-bar"></div>
+    <script>
+      // Served by the service worker when the network lost a 400ms race. Reload to
+      // get the real page: the browser keeps painting this skeleton for the whole
+      // navigation, so the handoff is invisible. The SW serves this shell as a
+      // timeout fallback at most once per worker lifetime, so the reload always
+      // races a clean network-first fetch and cannot loop.
+      addEventListener("load", () => {
+        // ponytail: only reload when this shell is standing in for another route —
+        // a direct visit to /shell.html would otherwise reload itself forever.
+        if (navigator.onLine && location.pathname !== "/shell.html") location.reload();
+      });
+    </script>
+  </body>
+</html>

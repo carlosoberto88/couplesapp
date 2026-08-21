@@ -12,9 +12,23 @@ export function ServiceWorkerRegister() {
     if (process.env.NODE_ENV !== "production") return;
     if (!("serviceWorker" in navigator)) return;
 
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      // Installability is best-effort — no user-facing error on failure.
-    });
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((registration) => {
+        // Installed PWAs get resumed from the home screen far more often
+        // than they get navigated, so the browser's page-load update check
+        // rarely fires. Re-check for a new worker on foreground instead.
+        const onVisibilityChange = () => {
+          if (document.visibilityState === "visible") registration.update();
+        };
+
+        // ponytail: no cleanup — this component mounts once for the app's
+        // lifetime, so the listener never needs to be torn down.
+        document.addEventListener("visibilitychange", onVisibilityChange);
+      })
+      .catch(() => {
+        // Installability is best-effort — no user-facing error on failure.
+      });
   }, []);
 
   return null;

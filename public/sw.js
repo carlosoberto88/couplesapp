@@ -1,7 +1,17 @@
 // PWA service worker — installability, offline shell, web push notifications.
 
-const CACHE_NAME = "couples-shell-v1";
-const SHELL_URLS = ["/lists", "/icons/icon-192.png"];
+const CACHE_NAME = "couples-shell-v2";
+// ponytail: the shell is static and data-free, so a stale copy is
+// indistinguishable from a fresh one. No versioning beyond CACHE_NAME.
+const SHELL_URL = "/shell.html";
+const SHELL_URLS = [SHELL_URL, "/icons/icon-192.png"];
+const NAV_TIMEOUT_MS = 400;
+
+// Serve the shell as a *timeout* fallback at most once per worker lifetime, so
+// the reload shell.html triggers always races a clean network-first fetch and
+// cannot loop. The worker is idle-terminated after ~30s, which resets this —
+// exactly the right granularity: one shell per cold launch.
+let shellUsedForTimeout = false;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -20,30 +30,45 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") {
-    event.respondWith(fetch(event.request));
-    return;
-  }
+function shellResponse() {
+  return caches.match(SHELL_URL);
+}
 
-  const url = new URL(event.request.url);
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(fetch(event.request));
+function handleNavigate(request) {
+  const network = fetch(request);
+
+  const timeout = new Promise((resolve) => setTimeout(resolve, NAV_TIMEOUT_MS))
+    .then(() => (shellUsedForTimeout ? null : shellResponse()))
+    .then((cached) => {
+      // ponytail: a promise that never settles is the shortest way to say
+      // "withdraw from the race" — no cached shell means the network wins,
+      // however long it takes.
+      if (!cached) return new Promise(() => {});
+      shellUsedForTimeout = true;
+      return cached;
+    });
+
+  return Promise.race([network, timeout]).catch(
+    async () => (await shellResponse()) ?? Response.error(),
+  );
+}
+
+self.addEventListener("fetch", (event) => {
+  // ponytail: no respondWith == default browser handling. Shorter than the
+  // previous `respondWith(fetch(request))` passthrough and strictly better —
+  // that form breaks streaming request bodies on some browsers.
+  if (event.request.method !== "GET") return;
+  if (new URL(event.request.url).pathname.startsWith("/api/")) return;
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(handleNavigate(event.request));
     return;
   }
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => response)
-      .catch(async () => {
-        const cached = await caches.match(event.request);
-        if (cached) return cached;
-        if (url.pathname.startsWith("/lists")) {
-          const shell = await caches.match("/lists");
-          if (shell) return shell;
-        }
-        return Response.error();
-      }),
+    fetch(event.request).catch(
+      async () => (await caches.match(event.request)) ?? Response.error(),
+    ),
   );
 });
 
