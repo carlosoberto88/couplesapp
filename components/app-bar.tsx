@@ -12,7 +12,7 @@ export async function AppBar({ title, children }: AppBarProps) {
   const t = await getTranslations("common");
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/95 pt-safe backdrop-blur-xl saturate-150 supports-backdrop-filter:bg-background/70">
+    <header className="glass-chrome sticky top-0 z-40 border-b border-border pt-safe">
       <div className="mx-auto flex h-14 w-full max-w-[640px] items-center justify-between gap-2 px-4">
         {title ? (
           <span className="min-w-0 truncate font-display text-lg font-bold text-foreground">

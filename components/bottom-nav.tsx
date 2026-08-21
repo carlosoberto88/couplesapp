@@ -35,7 +35,8 @@ const tabs = [
     isActive: (pathname: string, room: string | null) =>
       pathname === "/lists" && room !== "wishlist",
     activeText: "text-duo-teal",
-    activeBg: "bg-duo-teal-tint",
+    // ponytail: alpha fill, not the opaque -tint, so the active pill composites through the glass blur.
+    activeBg: "bg-duo-teal/18",
   },
   {
     href: "/lists?room=wishlist",
@@ -44,7 +45,7 @@ const tabs = [
     isActive: (pathname: string, room: string | null) =>
       pathname === "/lists" && room === "wishlist",
     activeText: "text-duo-coral",
-    activeBg: "bg-duo-coral-tint",
+    activeBg: "bg-duo-coral/18",
   },
   {
     href: "/us",
@@ -52,7 +53,7 @@ const tabs = [
     labelKey: "usTab" as const,
     isActive: (pathname: string) => pathname === "/us" || pathname === "/dates",
     activeText: "text-duo-gold",
-    activeBg: "bg-duo-gold-tint",
+    activeBg: "bg-duo-gold/18",
     isUs: true,
   },
 ];
@@ -64,7 +65,9 @@ function BottomNavTabs() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-safe backdrop-blur-xl saturate-150 supports-backdrop-filter:bg-background/70 md:inset-x-auto md:left-1/2 md:w-full md:max-w-[var(--app-frame)] md:-translate-x-1/2 md:border-x"
+      // ponytail: auto-margin centring, deliberately not a CSS transform — a transform anywhere
+      // in this fixed element's ancestry stops iOS Safari from compositing backdrop-filter.
+      className="glass-chrome fixed inset-x-0 bottom-0 z-40 border-t border-border pb-safe md:mx-auto md:max-w-[var(--app-frame)] md:border-x"
       role="navigation"
       aria-label={t("navLabel")}
     >

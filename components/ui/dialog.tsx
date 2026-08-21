@@ -16,6 +16,12 @@ function getIsMobileViewport() {
   return window.matchMedia("(max-width: 639px)").matches
 }
 
+// The mobile sheet is the one interaction in this app where a spring would beat
+// a CSS curve: a drag-to-dismiss sheet needs release-velocity handoff and
+// mid-flight interruptibility, which a fixed-duration cubic-bezier cannot fake.
+// It is deliberately NOT built. If a motion dependency is ever added, this
+// interaction alone must justify it — evaluated on its own, not bundled into a
+// design pass. Everything else in this app is CSS-only and stays that way.
 function getMobileBoxStyle(
   visualViewport: VisualViewportSize,
   enableTransition: boolean,
@@ -78,7 +84,7 @@ function DialogOverlay({
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "glass-scrim fixed inset-0 isolate z-50 duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -172,7 +178,7 @@ function DialogContent({
         data-slot="dialog-content"
         data-dialog-scroll-body={keyboardAware ? "" : undefined}
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 shadow-[var(--elevation-modal)] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-[0.97] data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-[0.97]",
           keyboardAware &&
             "max-sm:left-auto max-sm:w-auto max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex max-sm:flex-col max-sm:overflow-x-hidden max-sm:overflow-y-auto max-sm:min-h-0",
           className
@@ -225,7 +231,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-lg border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
         className
       )}
       {...props}

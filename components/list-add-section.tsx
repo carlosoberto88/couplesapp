@@ -170,7 +170,7 @@ export function ListAddSection({
 
       <div
         ref={stickyBarRef}
-        className="sticky-add-bar pointer-events-none fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur supports-backdrop-filter:bg-background/80 md:hidden"
+        className="glass-chrome sticky-add-bar pointer-events-none fixed inset-x-0 bottom-0 z-30 border-t border-border p-3 md:hidden"
       >
         <div className="pointer-events-auto mx-auto flex w-full max-w-[640px] items-center gap-2">
           <Button
