@@ -36,7 +36,7 @@ export function CheckedItemsSection({
   if (items.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2 border-t border-duo-teal/15 pt-2">
+    <div className="flex flex-col gap-2 border-t border-border pt-2">
       <button
         type="button"
         className="flex items-center gap-2 px-1 text-xs font-medium text-muted-foreground hover:text-foreground"
@@ -50,7 +50,7 @@ export function CheckedItemsSection({
         {t("checkedCount", { count: items.length })}
       </button>
       {expanded ? (
-        <ul className="flex flex-col gap-2 opacity-80">
+        <ul className="list-group [--row-inset:3.75rem] opacity-70">
           {items.map((item) => (
             <ItemRow
               key={item.id}

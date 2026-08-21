@@ -20,7 +20,7 @@ export function LinkPendingIndicator({
       <span
         aria-hidden
         className={cn(
-          "link-pending-overlay pointer-events-none absolute inset-0 rounded-2xl bg-background/45 transition-opacity duration-150",
+          "link-pending-overlay pointer-events-none absolute inset-0 rounded-[inherit] bg-card/55 transition-opacity duration-150",
           pending ? "opacity-100" : "opacity-0",
           className,
         )}

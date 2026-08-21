@@ -92,11 +92,11 @@ export function ItemRow({
     <li
       ref={dragRef}
       className={cn(
-        "animate-item-in motion-reduce:animate-none flex min-h-11 items-start gap-3 rounded-2xl border border-border bg-card px-3 py-2.5",
+        "animate-item-in motion-reduce:animate-none row-press relative flex min-h-11 items-start gap-3 px-3.5 py-2.5",
         focusMode && "min-h-14 gap-4 px-4 py-4",
       )}
       style={{
-        borderLeftWidth: 3,
+        borderLeftWidth: 2,
         borderLeftColor: adderColor.color,
         backgroundColor: checked ? checkColor.tint : assignee ? assignee.color.tint : undefined,
         ...dragStyle,
@@ -109,7 +109,7 @@ export function ItemRow({
           type="button"
           ref={dragActivatorRef}
           aria-label={t("reorderItem", { name: item.name })}
-          className="mt-0.5 flex size-5 shrink-0 cursor-grab touch-none items-center justify-center text-muted-foreground active:cursor-grabbing"
+          className="relative mt-0.5 flex size-6 shrink-0 cursor-grab touch-none items-center justify-center text-muted-foreground hit-tall active:cursor-grabbing"
           {...dragHandleProps.attributes}
           {...dragHandleProps.listeners}
         >
@@ -121,8 +121,8 @@ export function ItemRow({
         type="button"
         aria-label={checked ? t("uncheckItem", { name: item.name }) : t("checkItem", { name: item.name })}
         className={cn(
-          "press mt-0.5 flex shrink-0 items-center justify-center rounded-full border transition-colors",
-          focusMode ? "size-8" : "size-5",
+          "press relative mt-0.5 flex shrink-0 items-center justify-center rounded-full border transition-colors hit-tall",
+          focusMode ? "size-8" : "size-6",
           checked
             ? "border-transparent text-primary-foreground animate-check-pop motion-reduce:animate-none"
             : "border-input",
@@ -130,14 +130,14 @@ export function ItemRow({
         style={checked ? { backgroundColor: checkColor.color } : undefined}
         onClick={() => onToggle(item)}
       >
-        {checked && <Check className={focusMode ? "size-4" : "size-3"} />}
+        {checked && <Check className={focusMode ? "size-4" : "size-3.5"} />}
       </button>
 
       {checked && <span className="sr-only">{t("completedBy")}</span>}
 
       <button
         type="button"
-        className="press flex min-w-0 flex-1 items-start gap-2 text-left"
+        className="flex min-w-0 flex-1 items-start gap-2 text-left"
         onClick={() => onOpenDetail(item)}
       >
         {imageUrl ? (
@@ -162,7 +162,7 @@ export function ItemRow({
             </span>
             {showAisle && item.aisle && (
               <span
-                className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
                 aria-label={t("aisleChipLabel", { aisle: item.aisle })}
               >
                 {item.aisle}

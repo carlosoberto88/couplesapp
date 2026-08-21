@@ -10,7 +10,6 @@ import { getListTypeMeta, isWishlist } from "@/lib/list-types";
 import { buildMemberColorMap, UNKNOWN_MEMBER_COLOR } from "@/lib/member-colors";
 import { displayNameFor } from "@/lib/display-name";
 import type { List, Profile } from "@/lib/types";
-import { Card, CardContent } from "@/components/ui/card";
 import { AppBar } from "@/components/app-bar";
 import { AppBarActions } from "@/components/app-bar-actions";
 import { CreateListDialog } from "@/components/create-list-dialog";
@@ -101,7 +100,8 @@ export default async function ListsPage({
             <ListsEmptyActive />
           )
         ) : (
-          <ul className="flex flex-col gap-3">
+          // ponytail: <li> is the surface here; a Card inside .list-group would draw a second background/ring
+          <ul className="list-group [--row-inset:4.625rem]">
             {visibleLists.map((list) => {
               const meta = getListTypeMeta(list.type, (key) => tListTypes(key));
               const members = list.list_members ?? [];
@@ -114,50 +114,48 @@ export default async function ListsPage({
 
               return (
                 <li key={list.id}>
-                  <Card className="relative rounded-2xl">
-                    <CardContent className="flex min-h-11 items-center gap-4 py-1">
-                      <ListCardLink href={`/lists/${list.id}`}>
-                        <span
-                          className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"
-                          aria-hidden
-                        >
-                          <meta.Icon className="size-5" />
+                  <div className="flex min-h-11 items-center gap-4 px-3.5">
+                    <ListCardLink href={`/lists/${list.id}`}>
+                      <span
+                        className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"
+                        aria-hidden
+                      >
+                        <meta.Icon className="size-5" />
+                      </span>
+                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="truncate font-display text-base font-semibold text-foreground">
+                          {list.name}
                         </span>
-                        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                          <span className="truncate font-display text-base font-semibold text-foreground">
-                            {list.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {meta.label}
-                            {!isWishlist(list.type) && listPendingCount > 0 &&
-                              ` · ${t("pendingItems", { count: listPendingCount })}`}
-                          </span>
-                        </div>
-                        <div className="flex shrink-0 flex-col items-end gap-0.5">
-                          <ListNewBadge listId={list.id} createdAts={listCreatedAts} />
-                          {memberCount > 0 && (
-                            <div className="flex -space-x-1.5">
-                              {members.slice(0, dotCount).map((member) => {
-                                const color =
-                                  colorMap.get(member.user_id) ?? UNKNOWN_MEMBER_COLOR;
-                                const name = displayNameFor(member.profiles);
-                                return (
-                                  <MemberAvatar
-                                    key={member.user_id}
-                                    initials={initialsFor(member.profiles)}
-                                    color={color}
-                                    title={name}
-                                    className="size-6 text-[10px]"
-                                  />
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      </ListCardLink>
-                      {isOwner && <ListSettingsMenu list={list} />}
-                    </CardContent>
-                  </Card>
+                        <span className="text-xs text-muted-foreground">
+                          {meta.label}
+                          {!isWishlist(list.type) && listPendingCount > 0 &&
+                            ` · ${t("pendingItems", { count: listPendingCount })}`}
+                        </span>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-0.5">
+                        <ListNewBadge listId={list.id} createdAts={listCreatedAts} />
+                        {memberCount > 0 && (
+                          <div className="flex -space-x-1.5">
+                            {members.slice(0, dotCount).map((member) => {
+                              const color =
+                                colorMap.get(member.user_id) ?? UNKNOWN_MEMBER_COLOR;
+                              const name = displayNameFor(member.profiles);
+                              return (
+                                <MemberAvatar
+                                  key={member.user_id}
+                                  initials={initialsFor(member.profiles)}
+                                  color={color}
+                                  title={name}
+                                  className="size-6 text-[10px]"
+                                />
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </ListCardLink>
+                    {isOwner && <ListSettingsMenu list={list} />}
+                  </div>
                 </li>
               );
             })}

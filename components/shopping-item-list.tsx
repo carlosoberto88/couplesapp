@@ -905,7 +905,7 @@ export function ShoppingItemList({
       ) : (
         <>
           {allChecked && (
-            <div className="flex items-center justify-between gap-2 rounded-2xl bg-duo-teal-tint px-3 py-2.5 text-sm text-foreground">
+            <div className="flex items-center justify-between gap-2 rounded-lg bg-duo-teal-tint px-3 py-2.5 text-sm text-foreground">
               <span className="font-medium text-duo-teal">{t("allDone")}</span>
               <Button variant="secondary" size="sm" onClick={handleFinish}>
                 {finishLabel}
@@ -913,11 +913,11 @@ export function ShoppingItemList({
             </div>
           )}
           {shoppingNow && (
-            <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-duo-teal">
+            <p className="px-3.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {tShoppingNow("focusLabel")}
             </p>
           )}
-          <ul className="flex flex-col gap-2">
+          <ul className="list-group [--row-inset:3.75rem]">
             {supportsReorder && !shoppingNow ? (
               <DndContext
                 sensors={dragSensors}
@@ -927,9 +927,8 @@ export function ShoppingItemList({
                 {uncheckedGroups.map((group) => (
                   <Fragment key={group.key ?? "__no_aisle__"}>
                     {showAisle && (
-                      <li className="flex items-center gap-2 px-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-duo-teal first:pt-0">
+                      <li className="list-group-head px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         <span>{group.key === null ? t("noAisle") : group.items[0].aisle?.trim()}</span>
-                        <span className="h-px flex-1 bg-duo-teal/15" aria-hidden />
                       </li>
                     )}
                     <SortableContext
@@ -981,9 +980,8 @@ export function ShoppingItemList({
                   return (
                     <Fragment key={item.id}>
                       {showHeader && (
-                        <li className="flex items-center gap-2 px-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-duo-teal first:pt-0">
+                        <li className="list-group-head px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                           <span>{aisleGroup === null ? t("noAisle") : item.aisle?.trim()}</span>
-                          <span className="h-px flex-1 bg-duo-teal/15" aria-hidden />
                         </li>
                       )}
                       <ItemRow
