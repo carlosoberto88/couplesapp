@@ -1,6 +1,6 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
 
@@ -13,16 +13,14 @@ import { PushNotificationsSetup } from "@/components/push-notifications-setup";
 import { NavigationProgress } from "@/components/navigation-progress";
 import "./globals.css";
 
-const bricolageGrotesque = Bricolage_Grotesque({
-  variable: "--font-bricolage",
-  subsets: ["latin"],
-  weight: ["600", "700"],
-});
-
+// ponytail: omitting `weight` (rather than listing more static weights) is what
+// makes next/font fetch the variable font — 100-900 in one file, so font-bold /
+// font-semibold finally render as real weights instead of being synthesised.
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  axes: ["opsz"],
+  display: "swap",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -61,7 +59,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${bricolageGrotesque.variable} ${inter.variable} h-full antialiased`}
+      className={`${inter.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

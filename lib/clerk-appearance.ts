@@ -27,7 +27,8 @@ export const clerkAppearance = (isDark: boolean) => ({
   },
   elements: {
     card: "rounded-2xl border border-border shadow-none",
-    headerTitle: "font-[var(--font-bricolage)]",
+    // app is Inter-only; `font-display` is the semantic title hook — don't re-add a second face here
+    headerTitle: "font-display",
     formButtonPrimary: "rounded-full",
     socialButtonsBlockButton: "rounded-full",
     formFieldInput: "rounded-xl",

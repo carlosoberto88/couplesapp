@@ -194,11 +194,12 @@ export function SmartAdd({
             )}
 
             <DialogFooter>
+              {/* text-duo-ink, not text-white: --duo-teal is a bright aqua in dark mode and white on it is 1.7:1. --duo-ink is the one on-colour that clears AA on all three duo fills in both themes. */}
               <Button
                 type="button"
                 onClick={handleParse}
                 disabled={parsing || text.trim().length === 0}
-                className="bg-duo-teal text-white hover:bg-duo-teal/90"
+                className="bg-duo-teal text-duo-ink hover:bg-duo-teal/90"
               >
                 {parsing && <Loader2 className="animate-spin" />}
                 {t("parse")}
@@ -232,7 +233,7 @@ export function SmartAdd({
                       aria-pressed={candidate.checked}
                       className={cn(
                         "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors",
-                        candidate.checked ? "border-transparent bg-duo-teal text-white" : "border-input",
+                        candidate.checked ? "border-transparent bg-duo-teal text-duo-ink" : "border-input",
                       )}
                     >
                       {candidate.checked && <Check className="size-3" />}
@@ -265,7 +266,7 @@ export function SmartAdd({
                 type="button"
                 onClick={handleAddChecked}
                 disabled={checkedCandidates.length === 0}
-                className="bg-duo-teal text-white hover:bg-duo-teal/90"
+                className="bg-duo-teal text-duo-ink hover:bg-duo-teal/90"
               >
                 {t("addItems", { count: checkedCandidates.length })}
               </Button>

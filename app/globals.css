@@ -8,14 +8,15 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
-  --font-display: var(--font-bricolage);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-inter);
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
   --color-duo-coral: var(--duo-coral);
   --color-duo-coral-tint: var(--duo-coral-tint);
   --color-duo-teal: var(--duo-teal);
   --color-duo-teal-tint: var(--duo-teal-tint);
   --color-duo-gold: var(--duo-gold);
   --color-duo-gold-tint: var(--duo-gold-tint);
+  --color-duo-ink: var(--duo-ink);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -45,13 +46,47 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-sm: calc(var(--radius) - 0.5rem);    /* 6px  */
+  --radius-md: calc(var(--radius) - 0.25rem);   /* 10px */
+  --radius-lg: var(--radius);                   /* 14px */
+  --radius-xl: calc(var(--radius) + 0.25rem);   /* 18px */
+  --radius-2xl: calc(var(--radius) + 0.5rem);   /* 22px */
+  --radius-3xl: calc(var(--radius) + 0.875rem); /* 28px */
+  --radius-4xl: calc(var(--radius) + 1.375rem); /* 36px */
+}
+
+/* Type scale — Inter at every step. Size, leading and tracking are one decision
+   per step: tracking goes negative as text grows and positive as it shrinks;
+   leading tightens as text grows. Overriding Tailwind's own --text-* steps
+   applies this to every existing call site with zero file edits. */
+@theme {
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-xs--letter-spacing: 0.01em;
+
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-sm--letter-spacing: 0.003em;
+
+  --text-base: 1rem;
+  --text-base--line-height: 1.4375rem;
+  --text-base--letter-spacing: -0.006em;
+
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.4375rem;
+  --text-lg--letter-spacing: -0.014em;
+
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.5625rem;
+  --text-xl--letter-spacing: -0.018em;
+
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.75rem;
+  --text-2xl--letter-spacing: -0.021em;
+
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.125rem;
+  --text-3xl--letter-spacing: -0.024em;
 }
 
 :root {
@@ -70,16 +105,18 @@
   --muted-foreground: #63656f;
   --accent: #eaeaf3;
   --accent-foreground: #22232a;
-  --destructive: #d8446b;
-  --border: #e6e6e2;
-  --input: #e6e6e2;
+  --destructive: #c62b53;
+  --border: rgb(20 21 26 / 0.10);        /* was #e6e6e2 — an alpha hairline composites
+                                            correctly on both #ffffff cards and the
+                                            #f4f4f2 page, which an opaque hex cannot */
+  --input: #e6e6e2;   /* stays opaque — a field outline wants an opaque edge, not a veil */
   --ring: #5b5be0;
   --chart-1: #5b5be0;
   --chart-2: #a36b0b;
   --chart-3: #d8446b;
   --chart-4: #63656f;
   --chart-5: #22232a;
-  --radius: 1rem;
+  --radius: 0.875rem;                    /* was 1rem */
   --sidebar: #f4f4f2;
   --sidebar-foreground: #22232a;
   --sidebar-primary: #5b5be0;
@@ -94,13 +131,36 @@
   --app-backdrop: linear-gradient(180deg, #ededf2 0%, #e7e7ee 100%);
   --app-frame-shadow: rgb(38 40 51 / 0.16);
 
-  /* His & Hers member accent tokens (large-text/UI accents only — keep body copy off marigold) */
-  --duo-coral: #a36b0b;
-  --duo-coral-tint: #fbeecb;
-  --duo-teal: #5b5be0;
-  --duo-teal-tint: #e6e6fb;
-  --duo-gold: #d8446b;
-  --duo-gold-tint: #fbe0e8;
+  /* His & Hers member accents. Names now match hues. Every value clears 4.5:1
+     as text against --card, --background AND its own tint. Retuning these also
+     de-duplicates them from --primary / --destructive / --chart-2, which they
+     were byte-identical to. */
+  --duo-coral: #b23f24;
+  --duo-coral-tint: #fdece6;   /* pinned: --primary on this tint = 4.56:1 */
+  --duo-teal: #0b6f66;
+  --duo-teal-tint: #dcf3f0;
+  --duo-gold: #7d5e07;
+  --duo-gold-tint: #f8efd2;
+  /* On-colour for SOLID duo fills. `text-white` on the dark-mode duo colours is
+     1.7:1 — unreadable. This is the one value that works for all three fills in
+     both themes (worst case 5.79:1). */
+  --duo-ink: #ffffff;
+
+  /* Fixed-chrome material. Consumed only by .glass-chrome (Task 3). */
+  --glass-blur: 20px;
+  --glass-saturate: 180%;
+  --glass-opacity: 76%;
+  --glass-highlight: rgb(255 255 255 / 0.85);
+
+  /* Modal scrim. Its blur is derived from --glass-blur so reduced-transparency
+     needs no second override. */
+  --scrim: rgb(24 25 31 / 0.32);
+  --elevation-modal: 0 24px 60px -20px rgb(20 21 26 / 0.28),
+                     0 4px 12px -4px rgb(20 21 26 / 0.12);
+
+  /* Row press highlight. A row inside a hairline group cannot scale on press
+     without tearing the group, so grouped rows highlight instead of shrinking. */
+  --row-press: rgb(20 21 26 / 0.05);
 }
 
 .dark {
@@ -141,26 +201,43 @@
   --app-backdrop: linear-gradient(180deg, #101117 0%, #0b0c11 100%);
   --app-frame-shadow: rgb(0 0 0 / 0.55);
 
-  /* His & Hers member accent tokens — dark: tints are low-luminance washes, not pastels */
-  --duo-coral: #f2a922;
-  --duo-coral-tint: #2c2410;
-  --duo-teal: #7b7bf0;
-  --duo-teal-tint: #20223a;
-  --duo-gold: #e0577f;
-  --duo-gold-tint: #331a22;
+  /* His & Hers member accent tokens — dark: tints are low-luminance washes, not
+     pastels. Contrast-pinned: every duo value clears 4.5:1 on --card,
+     --background AND its own tint; see app/globals.css :root comment. */
+  --duo-coral: #ff9276;
+  --duo-coral-tint: #2b1a14;   /* pinned: --primary on this tint = 4.71:1 */
+  --duo-teal: #45cfc2;
+  --duo-teal-tint: #132f2d;
+  --duo-gold: #edc158;
+  --duo-gold-tint: #2b2211;
+  --duo-ink: #12151a;
+
+  --glass-blur: 24px;
+  --glass-saturate: 160%;
+  --glass-opacity: 62%;
+  --glass-highlight: rgb(255 255 255 / 0.07);
+
+  --scrim: rgb(0 0 0 / 0.56);
+  --elevation-modal: 0 28px 70px -24px rgb(0 0 0 / 0.80),
+                     0 4px 14px -6px rgb(0 0 0 / 0.55);
+
+  --row-press: rgb(255 255 255 / 0.06);
 }
 
 @layer base {
   /*
-   * Restrained type scale: `font-display` (Bricolage Grotesque) is reserved for
-   * page titles (<h1>) and list-card names ONLY — everything else (body copy,
-   * category/meta labels, timestamps, counts) stays on `font-sans` (Inter).
-   * Do not spread the display font to other UI text.
+   * One face: Inter, loaded as a variable font (wght 100-900 + opsz 14-32).
+   * Hierarchy comes from weight + size + leading as a set, never size alone.
    *
-   * Numeric UI (item/member counts, relative timestamps) should use Tailwind's
-   * built-in `tabular-nums` utility (font-variant-numeric: tabular-nums) so
-   * digits don't jitter in width as they change — no custom utility needed,
-   * it ships with Tailwind v4 out of the box.
+   * `font-display` no longer means a different family — it means "title voice".
+   * The --text-* scale above already applies size-correct tracking at every
+   * step, so .font-display needs no rule of its own.
+   *
+   * ponytail: --font-display is repointed at Inter rather than sweeping its 26
+   * call sites across 21 files. The class stays as a semantic hook.
+   *
+   * Numeric UI (counts, timestamps, prices) uses Tailwind's built-in
+   * `tabular-nums`. Do not reach for `font-mono`.
    */
   * {
     @apply border-border outline-ring/50;
@@ -170,6 +247,7 @@
   }
   html {
     @apply font-sans;
+    font-optical-sizing: auto;
     /* iOS Safari ignores user-scalable=no; block pinch-zoom while preserving scroll/DnD gestures */
     touch-action: pan-x pan-y;
   }
@@ -218,6 +296,127 @@
     transform: scale(0.98);
   }
 
+  /*
+   * Fixed-chrome material. Glass lives ONLY here: app bar, bottom nav, sticky
+   * add bar, modal scrim. NEVER on a list card or item row — backdrop-filter on
+   * a scrolling element forces a full-viewport recomposite every frame and
+   * tanks scroll on mid-range Android.
+   *
+   * The @supports guard keeps an opaque fallback for engines without
+   * backdrop-filter, which is the same contract the old
+   * `supports-backdrop-filter:bg-background/70` class pair provided.
+   */
+  .glass-chrome {
+    background-color: var(--background);
+  }
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .glass-chrome {
+      background-color: color-mix(
+        in srgb,
+        var(--background) var(--glass-opacity),
+        transparent
+      );
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+      backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+      /* Specular top edge — light catching the material. This is what makes it
+         read as glass rather than as a dark bar in dark mode. */
+      box-shadow: inset 0 1px 0 0 var(--glass-highlight);
+    }
+  }
+
+  .glass-scrim {
+    background-color: var(--scrim);
+  }
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .glass-scrim {
+      /* ponytail: derived from --glass-blur so the reduced-transparency
+         override below needs no second rule. */
+      -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.4));
+      backdrop-filter: blur(calc(var(--glass-blur) * 0.4));
+    }
+  }
+
+  /*
+   * Grouped-inset list (Apple's inset-grouped table / Reminders.app grammar):
+   * one rounded container on --card, square rows, hairline separators inset to
+   * the content column so the rule starts where the text starts.
+   *
+   * Deliberately NOT glass. Deliberately NOT `overflow: hidden` — a dnd-kit
+   * drag lifts a row with a transform, and clipping it at the container edge
+   * would make reordering look broken. First/last rows carry the radius
+   * themselves instead.
+   */
+  .list-group {
+    --row-inset: 1rem;
+    border-radius: var(--radius);
+    background-color: var(--card);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+
+  .list-group > li {
+    position: relative;
+  }
+
+  .list-group > li:first-child {
+    border-start-start-radius: var(--radius);
+    border-start-end-radius: var(--radius);
+  }
+
+  .list-group > li:last-child {
+    border-end-start-radius: var(--radius);
+    border-end-end-radius: var(--radius);
+  }
+
+  .list-group > li + li::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto var(--row-inset);
+    height: 1px;
+    background-color: var(--border);
+    pointer-events: none;
+  }
+
+  /* Section header inside a group (aisle names). Full-bleed with its own
+     hairlines, so it suppresses both the rule above it and the rule below it. */
+  .list-group > .list-group-head::before,
+  .list-group > .list-group-head + li::before {
+    display: none;
+  }
+
+  .list-group > .list-group-head {
+    background-color: var(--muted);
+    box-shadow: inset 0 1px 0 0 var(--border), inset 0 -1px 0 0 var(--border);
+  }
+
+  /*
+   * Press feedback for a row inside a group. A row cannot scale on press
+   * without tearing the hairline group, so it highlights instead. :active fires
+   * on pointer-down, which is the point — feedback is instant, not deferred to
+   * click.
+   */
+  .row-press {
+    transition: background-color 120ms ease-out;
+  }
+
+  .row-press:active {
+    background-color: var(--row-press);
+  }
+
+  /*
+   * Expands a small control's touch target vertically without moving it or
+   * colliding with its horizontal neighbours (item rows use gap-3 = 12px, so
+   * horizontal expansion would overlap). Requires `position: relative` on the
+   * control. WCAG 2.2 SC 2.5.8 wants 24x24 CSS px; this pairs with size-6.
+   */
+  .hit-tall::after {
+    content: "";
+    position: absolute;
+    inset-block: -10px;
+    inset-inline: -2px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-check-pop,
     .animate-item-in,
@@ -226,20 +425,13 @@
       transition-duration: 0.01ms;
     }
 
-    .press {
+    .press,
+    .row-press {
       transition: none;
     }
 
     .press:active {
       transform: none;
-    }
-  }
-
-  @media (prefers-reduced-transparency: reduce) {
-    header[class*="backdrop-blur"],
-    nav[class*="backdrop-blur"] {
-      background-color: var(--background);
-      backdrop-filter: none;
     }
   }
 
@@ -347,5 +539,23 @@
     50% {
       opacity: 0.2;
     }
+  }
+}
+
+/*
+ * Reduced transparency degrades the material by SHRINKING the blur radius and
+ * raising the alpha — it does not remove the glass. Purely a token override, so
+ * it needs no knowledge of which elements are chrome. The old rule did the
+ * opposite (backdrop-filter: none) and matched on [class*="backdrop-blur"],
+ * which broke the moment the blur utility was renamed.
+ *
+ * Both selectors are listed because .dark redeclares these tokens; this rule
+ * sits later in the file, so it wins at equal specificity.
+ */
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  .dark {
+    --glass-blur: 6px;
+    --glass-opacity: 96%;
   }
 }

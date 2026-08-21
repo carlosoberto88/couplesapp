@@ -406,9 +406,11 @@ export function UsSurface() {
             </div>
 
             <div className="flex w-full flex-col gap-2.5">
+              {/* text-duo-ink, not text-white: --duo-teal is a bright aqua in dark mode and
+                  white on it is 1.7:1. */}
               <Button
                 type="button"
-                className="h-12 rounded-xl bg-duo-teal text-white hover:bg-duo-teal/90"
+                className="h-12 rounded-xl bg-duo-teal text-duo-ink hover:bg-duo-teal/90"
                 disabled={!inviteUrl}
                 onClick={() => void copyLink()}
               >
@@ -459,7 +461,7 @@ export function UsSurface() {
               <Button
                 type="submit"
                 disabled={submitting}
-                className="h-12 rounded-xl bg-duo-teal text-white hover:bg-duo-teal/90"
+                className="h-12 rounded-xl bg-duo-teal text-duo-ink hover:bg-duo-teal/90"
               >
                 {submitting ? t("sending") : t("soloCta")}
                 <Heart className="size-4" aria-hidden />

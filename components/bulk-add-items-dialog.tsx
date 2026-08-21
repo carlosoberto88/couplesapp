@@ -251,11 +251,12 @@ export function BulkAddItemsDialog({
         </Button>
 
         <DialogFooter className="shrink-0">
+          {/* text-duo-ink, not text-white: --duo-teal is a bright aqua in dark mode and white on it is 1.7:1. --duo-ink is the one on-colour that clears AA on all three duo fills in both themes. */}
           <Button
             type="button"
             onClick={handleSubmit}
             disabled={pending || validRows.length === 0}
-            className="bg-duo-teal text-white hover:bg-duo-teal/90"
+            className="bg-duo-teal text-duo-ink hover:bg-duo-teal/90"
           >
             {tBulk("submit", { count: validRows.length })}
           </Button>

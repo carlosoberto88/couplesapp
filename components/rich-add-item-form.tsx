@@ -291,7 +291,8 @@ export function RichAddItemForm({
         {sticky ? (
           <Button
             type="submit"
-            className="h-11 shrink-0 rounded-xl bg-duo-teal px-4 text-white hover:bg-duo-teal/90"
+            /* text-duo-ink, not text-white: --duo-teal is a bright aqua in dark mode and white on it is 1.7:1. --duo-ink is the one on-colour that clears AA on all three duo fills in both themes. */
+            className="h-11 shrink-0 rounded-xl bg-duo-teal px-4 text-duo-ink hover:bg-duo-teal/90"
             disabled={pending || !name.trim()}
           >
             {pending
