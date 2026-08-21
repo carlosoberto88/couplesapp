@@ -63,7 +63,9 @@ export async function AuthenticatedShell({
           {children}
         </div>
       </div>
-      <TabShell />
+      <Suspense fallback={null}>
+        <TabShell />
+      </Suspense>
     </>
   );
 }

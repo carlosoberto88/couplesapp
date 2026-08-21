@@ -17,6 +17,12 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+// ponytail: Vercel injects this automatically via "Automatically expose System
+// Environment Variables" on (the default). NEXT_PUBLIC_* gets inlined at build
+// time, exactly what a build stamp wants — no server plumbing, no prop
+// drilling from the page, no API route.
+const BUILD_SHA = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "dev";
+
 export function HelpAboutSection() {
   const t = useTranslations("settings");
   const router = useRouter();
@@ -101,6 +107,8 @@ export function HelpAboutSection() {
             <p className="text-sm text-muted-foreground">{t("installHint")}</p>
           )}
         </section>
+
+        <p className="text-xs tabular-nums text-muted-foreground">build {BUILD_SHA}</p>
       </CardContent>
     </Card>
   );
