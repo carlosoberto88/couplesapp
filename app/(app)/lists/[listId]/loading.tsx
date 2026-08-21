@@ -3,7 +3,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function ListDetailLoading() {
   return (
     <>
-      <header className="sticky top-0 z-40 h-14 border-b border-border bg-background/95" />
+      <header className="glass-chrome sticky top-0 z-40 border-b border-border pt-safe">
+        <div className="h-14 w-full" />
+      </header>
       <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-4 px-4 pb-8 pt-4">
         <Skeleton className="h-4 w-16" />
 
@@ -25,14 +27,14 @@ export default function ListDetailLoading() {
           <Skeleton className="h-3 w-14" />
         </div>
 
-        <ul className="flex flex-col gap-2">
+        <ul className="list-group [--row-inset:3.75rem]">
           {Array.from({ length: 4 }).map((_, i) => (
             <li
               key={i}
-              className="flex min-h-11 items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2.5"
+              className="flex min-h-11 items-center gap-3 px-3.5 py-2.5"
             >
               <Skeleton className="size-2 shrink-0 rounded-full" />
-              <Skeleton className="size-5 shrink-0 rounded-full" />
+              <Skeleton className="size-6 shrink-0 rounded-full" />
               <Skeleton className="h-4 flex-1" />
             </li>
           ))}

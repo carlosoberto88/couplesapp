@@ -1,6 +1,6 @@
 // PWA service worker — installability, offline shell, web push notifications.
 
-const CACHE_NAME = "couples-shell-v2";
+const CACHE_NAME = "couples-shell-v3";
 // ponytail: the shell is static and data-free, so a stale copy is
 // indistinguishable from a fresh one. No versioning beyond CACHE_NAME.
 const SHELL_URL = "/shell.html";
