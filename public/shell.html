@@ -10,13 +10,16 @@
       /* ponytail: token values duplicated from app/globals.css :root / .dark — this
          file must stay static and data-free, so it cannot import the app's
          build-hashed CSS. Re-check these against app/globals.css whenever the
-         token layer moves. */
+         token layer moves. --float-shadow duplicates --elevation-float's first
+         layer only — the shell has no live content behind it, so the second
+         contact-shadow layer buys nothing. */
       :root {
         --background: #f4f4f2;
         --card: #ffffff;
         --muted: #e9e9e6;
         --border: rgb(20 21 26 / 0.10);
         --radius: 0.875rem;
+        --float-shadow: 0 8px 24px -8px rgb(20 21 26 / 0.18);
       }
       @media (prefers-color-scheme: dark) {
         :root {
@@ -24,6 +27,7 @@
           --card: #1e2029;
           --muted: #101116;
           --border: rgb(237 238 242 / 10%);
+          --float-shadow: 0 10px 28px -10px rgb(0 0 0 / 0.60);
         }
       }
       html,
@@ -36,7 +40,8 @@
       /* ponytail: .header/.bottom-bar stay opaque — there is nothing behind a
          static shell to blur, so a backdrop-filter here would cost a compositor
          pass at the worst possible moment for zero benefit. Do not add glass
-         "for parity"; the real chrome's glass reads over live content, not this. */
+         "for parity"; the real chrome's glass reads over live content, not this.
+         .bottom-bar's rim + shadow now do the job the removed border-top used to. */
       .header {
         height: calc(3.5rem + env(safe-area-inset-top));
         border-bottom: 1px solid var(--border);
@@ -94,10 +99,17 @@
       }
       .bottom-bar {
         position: fixed;
-        inset: auto 0 0;
-        height: calc(4rem + 0.75rem + env(safe-area-inset-bottom));
-        border-top: 1px solid var(--border);
-        background: var(--background);
+        inset: auto 1rem max(0.75rem, env(safe-area-inset-bottom)) 1rem;
+        max-width: calc(640px - 2rem);
+        margin: 0 auto;
+        height: 4rem;
+        border-radius: 9999px;
+        /* --card, not --background: a floating capsule painted in the page's own
+           background colour is invisible except for its rim. The real capsule
+           reads lighter than the page because it is 76%-opaque glass over
+           content; --card is the static stand-in for that. */
+        background: var(--card);
+        box-shadow: 0 0 0 1px var(--border), var(--float-shadow);
       }
       @keyframes pulse {
         50% {

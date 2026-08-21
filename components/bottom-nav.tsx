@@ -66,12 +66,12 @@ function BottomNavTabs() {
   return (
     <nav
       // ponytail: auto-margin centring, deliberately not a CSS transform — a transform anywhere
-      // in this fixed element's ancestry stops iOS Safari from compositing backdrop-filter.
-      className="glass-chrome fixed inset-x-0 bottom-0 z-40 border-t border-border pb-safe md:mx-auto md:max-w-[var(--app-frame)] md:border-x"
+      // in this fixed, floating element's ancestry stops iOS Safari from compositing backdrop-filter.
+      className="glass-chrome glass-capsule bottom-float fixed inset-x-4 z-40 mx-auto max-w-[calc(var(--app-frame)_-_2rem)] rounded-full"
       role="navigation"
       aria-label={t("navLabel")}
     >
-      <div className="mx-auto flex h-16 w-full max-w-[640px] items-stretch px-2">
+      <div className="flex h-16 w-full items-stretch px-2">
         {tabs.map(({ href, icon: Icon, labelKey, isActive, activeText, activeBg, isUs }) => {
           const active = isActive(pathname, room);
 

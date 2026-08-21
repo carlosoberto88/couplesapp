@@ -158,6 +158,11 @@
   --elevation-modal: 0 24px 60px -20px rgb(20 21 26 / 0.28),
                      0 4px 12px -4px rgb(20 21 26 / 0.12);
 
+  /* Floating chrome. Lighter and tighter than --elevation-modal: the tab bar
+     hovers just above the page, the modal floats far above it. */
+  --elevation-float: 0 8px 24px -8px rgb(20 21 26 / 0.18),
+                     0 2px 6px -2px rgb(20 21 26 / 0.10);
+
   /* Row press highlight. A row inside a hairline group cannot scale on press
      without tearing the group, so grouped rows highlight instead of shrinking. */
   --row-press: rgb(20 21 26 / 0.05);
@@ -220,6 +225,9 @@
   --scrim: rgb(0 0 0 / 0.56);
   --elevation-modal: 0 28px 70px -24px rgb(0 0 0 / 0.80),
                      0 4px 14px -6px rgb(0 0 0 / 0.55);
+
+  --elevation-float: 0 10px 28px -10px rgb(0 0 0 / 0.60),
+                     0 2px 8px -3px rgb(0 0 0 / 0.45);
 
   --row-press: rgb(255 255 255 / 0.06);
 }
@@ -323,6 +331,32 @@
          read as glass rather than as a dark bar in dark mode. */
       box-shadow: inset 0 1px 0 0 var(--glass-highlight);
     }
+  }
+
+  /*
+   * Floating variant of .glass-chrome. Two differences from the flush bar:
+   *
+   * 1. A full-perimeter rim. .glass-chrome's `inset 0 1px 0 0` is a TOP edge,
+   *    right for a bar welded to the screen bottom. On a detached capsule
+   *    that highlight would stop dead at the curves and read as a seam. A
+   *    floating object is lit all the way round, so a uniform 1px rim
+   *    (var(--border) — the same token the old border-t used, no new token)
+   *    sits under the brighter top highlight.
+   * 2. Its own elevation, so the capsule casts a shadow rather than abuts.
+   *
+   * MUST stay after the .glass-chrome @supports block: same specificity,
+   * so source order alone decides which box-shadow wins. @supports adds none.
+   *
+   * Outside the @supports guard on purpose. Without backdrop-filter the
+   * capsule is opaque, and the rim + drop shadow are then the ONLY things
+   * saying "this is detached" — the fallback needs the glass path more, not
+   * less.
+   */
+  .glass-capsule {
+    box-shadow:
+      inset 0 1px 0 0 var(--glass-highlight),
+      inset 0 0 0 1px var(--border),
+      var(--elevation-float);
   }
 
   .glass-scrim {
@@ -461,13 +495,23 @@
     padding-top: env(safe-area-inset-top, 0px);
   }
 
-  .pb-safe {
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  .bottom-float {
+    /* max(), not calc(gap + inset): 12px of real float where there is no
+       inset (Android, desktop, Safari with the URL bar down), and on an
+       iPhone the capsule's bottom edge lands exactly on the top of the
+       home-indicator region instead of stacking a gap on top of it. */
+    bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
   }
 
-  /* Nav real height: h-16 content (4rem) + pb-safe base (0.75rem) + border-t (1px) + inset */
+  /* Floating capsule clearance:
+       4rem     capsule height (inner h-16)
+     + 0.75rem  gap between the last content and the capsule's top edge
+     + max(0.75rem, safe-area-inset-bottom)   the capsule's own offset
+     = calc(4.75rem + max(...))
+     No border term any more: the capsule's 1px rim is an inset shadow, not
+     layout. Change this and .bottom-float together — they are one geometry. */
   .pb-bottom-nav {
-    padding-bottom: calc(4.75rem + 1px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(4.75rem + max(0.75rem, env(safe-area-inset-bottom, 0px)));
   }
 
   .pb-sticky-add-bar {
