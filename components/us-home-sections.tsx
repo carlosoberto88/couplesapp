@@ -116,25 +116,23 @@ export async function UsHomeSections() {
         {upcomingOccasions.length === 0 ? (
           <EmptyState icon={<CalendarHeart className="size-6" />} title={t("occasionsEmpty")} />
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="list-group [--row-inset:0.875rem]">
             {upcomingOccasions.map((occasion) => {
               const days = daysUntilOccasion(occasion.occasion_date, occasion.recurring, today);
               return (
                 <li key={occasion.id}>
-                  <Card className="rounded-2xl">
-                    <CardContent className="flex items-center justify-between gap-3 py-1">
-                      <span className="truncate font-display text-base font-semibold text-foreground">
-                        {occasion.label}
-                      </span>
-                      <Badge variant={days < 0 ? "outline" : days === 0 ? "default" : "secondary"}>
-                        {days === 0
-                          ? tDates("countdownToday")
-                          : days < 0
-                            ? tDates("countdownPassed")
-                            : tDates("countdownDays", { days })}
-                      </Badge>
-                    </CardContent>
-                  </Card>
+                  <div className="flex min-h-11 items-center justify-between gap-3 px-3.5 py-2.5">
+                    <span className="truncate font-display text-base font-semibold text-foreground">
+                      {occasion.label}
+                    </span>
+                    <Badge variant={days < 0 ? "outline" : days === 0 ? "default" : "secondary"}>
+                      {days === 0
+                        ? tDates("countdownToday")
+                        : days < 0
+                          ? tDates("countdownPassed")
+                          : tDates("countdownDays", { days })}
+                    </Badge>
+                  </div>
                 </li>
               );
             })}
@@ -153,31 +151,29 @@ export async function UsHomeSections() {
             description={t("pendingEmptyBody")}
           />
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="list-group [--row-inset:4.625rem]">
             {pendingLists.map((list) => {
               const meta = getListTypeMeta(list.type, (key) => tListTypes(key));
               return (
                 <li key={list.id}>
-                  <Card className="rounded-2xl">
-                    <CardContent className="flex min-h-11 items-center py-1">
-                      <ListCardLink href={`/lists/${list.id}`}>
-                        <span
-                          className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"
-                          aria-hidden
-                        >
-                          <meta.Icon className="size-5" />
+                  <div className="flex min-h-11 items-center gap-4 px-3.5">
+                    <ListCardLink href={`/lists/${list.id}`}>
+                      <span
+                        className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"
+                        aria-hidden
+                      >
+                        <meta.Icon className="size-5" />
+                      </span>
+                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="truncate font-display text-base font-semibold text-foreground">
+                          {list.name}
                         </span>
-                        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                          <span className="truncate font-display text-base font-semibold text-foreground">
-                            {list.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {meta.label} · {tLists("pendingItems", { count: list.pendingCount })}
-                          </span>
-                        </div>
-                      </ListCardLink>
-                    </CardContent>
-                  </Card>
+                        <span className="text-xs text-muted-foreground">
+                          {meta.label} · {tLists("pendingItems", { count: list.pendingCount })}
+                        </span>
+                      </div>
+                    </ListCardLink>
+                  </div>
                 </li>
               );
             })}

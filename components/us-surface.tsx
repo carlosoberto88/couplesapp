@@ -283,10 +283,10 @@ export function UsSurface() {
     <>
       <div
         className={cn(
-          "flex flex-1 flex-col gap-6",
+          "flex flex-col gap-6",
           !loading && partnership
             ? "w-full"
-            : "mx-auto w-full max-w-[420px] items-center p-4 pb-bottom-nav",
+            : "flex-1 mx-auto w-full max-w-[420px] items-center p-4 pb-bottom-nav",
         )}
       >
         {loading ? (
@@ -395,7 +395,7 @@ export function UsSurface() {
               {t("waitingHeadline", { name: pendingInvite.email })}
             </h1>
 
-            <div className="flex w-full flex-col gap-2 rounded-2xl bg-duo-coral-tint px-4 py-3 text-sm text-foreground">
+            <div className="flex w-full flex-col gap-2 rounded-lg bg-duo-coral-tint px-4 py-3 text-sm text-foreground">
               <p>
                 {t("waitingStatus", {
                   name: pendingInvite.email,

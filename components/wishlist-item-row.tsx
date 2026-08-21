@@ -65,11 +65,11 @@ export function WishlistItemRow({
   return (
     <li
       className={cn(
-        "animate-item-in overflow-hidden rounded-2xl border border-border bg-card transition-opacity",
+        "animate-item-in overflow-hidden rounded-xl ring-1 ring-border bg-card transition-opacity",
         purchased && "opacity-60",
       )}
       style={{
-        borderLeftWidth: 3,
+        borderLeftWidth: 2,
         borderLeftColor: adderColor.color,
         backgroundColor: completerColor ? completerColor.tint : undefined,
       }}
@@ -93,14 +93,14 @@ export function WishlistItemRow({
           )}
 
           {showPriorityBadge && item.priority === "must_have" && (
-            <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full border border-duo-coral bg-duo-coral-tint px-2 py-0.5 text-[11px] font-semibold text-foreground shadow-sm">
+            <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full border border-duo-coral bg-duo-coral-tint px-2 py-0.5 text-[11px] font-semibold text-foreground">
               <Star className="size-3 fill-duo-coral text-duo-coral" aria-hidden />
               {t("priorityMustHave")}
             </span>
           )}
 
           {(purchased || (showReservation && reserved)) && (
-            <div className="absolute inset-x-0 bottom-0 flex justify-start bg-gradient-to-t from-foreground/60 to-transparent p-2 pt-6">
+            <div className="absolute inset-x-0 bottom-0 flex justify-start bg-gradient-to-t from-black/65 to-transparent p-2 pt-6">
               <Badge
                 variant={!purchased && !isReserver ? "secondary" : undefined}
                 className={cn(

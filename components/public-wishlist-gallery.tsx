@@ -168,7 +168,7 @@ export function PublicWishlistGallery({ token, items: initialItems }: PublicWish
               )}
 
               {item.isReserved && (
-                <div className="absolute inset-x-0 bottom-0 flex justify-start bg-gradient-to-t from-foreground/60 to-transparent p-2 pt-6">
+                <div className="absolute inset-x-0 bottom-0 flex justify-start bg-gradient-to-t from-black/65 to-transparent p-2 pt-6">
                   <Badge>{isMine ? t("reservedByYou") : t("reserved")}</Badge>
                 </div>
               )}

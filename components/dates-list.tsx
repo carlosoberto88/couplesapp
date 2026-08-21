@@ -11,7 +11,6 @@ import { daysUntilOccasion, sortOccasionsByProximity } from "@/lib/occasion-util
 import type { Occasion } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -93,7 +92,7 @@ export function DatesList({
       {sorted.length === 0 ? (
         <EmptyState icon={<CalendarHeart className="size-6" />} title={t("emptyTitle")} description={t("emptyDescription")} />
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="list-group [--row-inset:0.875rem]">
           {sorted.map((occasion) => (
             <OccasionRow
               key={occasion.id}
@@ -163,54 +162,52 @@ function OccasionRow({
 
   return (
     <li>
-      <Card className="rounded-2xl">
-        <CardContent className="flex items-center gap-3 py-1">
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <div className="flex items-center gap-2">
-              <span className="truncate font-display text-base font-semibold text-foreground">
-                {occasion.label}
-              </span>
-              <Badge variant={days < 0 ? "outline" : days === 0 ? "default" : "secondary"}>
-                {days === 0
-                  ? t("countdownToday")
-                  : days < 0
-                    ? t("countdownPassed")
-                    : t("countdownDays", { days })}
-              </Badge>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {formatOccasionDate(occasion.occasion_date)} · {t(`category.${occasion.category}`)}
-              {celebrant
-                ? ` · ${t("forCelebrant", { name: celebrant.label })}`
-                : ` · ${t("forBoth")}`}
+      <div className="flex min-h-11 items-center gap-3 px-3.5 py-2.5">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div className="flex items-center gap-2">
+            <span className="truncate font-display text-base font-semibold text-foreground">
+              {occasion.label}
             </span>
-            {linkedList ? (
-              <span className="truncate text-xs text-muted-foreground">
-                {t("linkedListHint", { name: linkedList.name })}
-              </span>
-            ) : null}
+            <Badge variant={days < 0 ? "outline" : days === 0 ? "default" : "secondary"}>
+              {days === 0
+                ? t("countdownToday")
+                : days < 0
+                  ? t("countdownPassed")
+                  : t("countdownDays", { days })}
+            </Badge>
           </div>
+          <span className="text-xs text-muted-foreground">
+            {formatOccasionDate(occasion.occasion_date)} · {t(`category.${occasion.category}`)}
+            {celebrant
+              ? ` · ${t("forCelebrant", { name: celebrant.label })}`
+              : ` · ${t("forBoth")}`}
+          </span>
+          {linkedList ? (
+            <span className="truncate text-xs text-muted-foreground">
+              {t("linkedListHint", { name: linkedList.name })}
+            </span>
+          ) : null}
+        </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<Button variant="ghost" size="icon" className="size-11 shrink-0 rounded-xl" />}
-            >
-              <MoreVertical />
-              <span className="sr-only">{t("menuLabel")}</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-xl">
-              <DropdownMenuItem onClick={onEdit}>
-                <Pencil />
-                {t("edit")}
-              </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
-                <Trash2 />
-                {t("delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CardContent>
-      </Card>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="ghost" size="icon" className="size-11 shrink-0 rounded-xl" />}
+          >
+            <MoreVertical />
+            <span className="sr-only">{t("menuLabel")}</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="rounded-xl">
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil />
+              {t("edit")}
+            </DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+              <Trash2 />
+              {t("delete")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="rounded-2xl bg-card">
