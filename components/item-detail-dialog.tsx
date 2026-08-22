@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ClipboardList, ExternalLink, Gift, ImagePlus, Pencil } from "lucide-react";
+import { Camera, ClipboardList, ExternalLink, Gift, ImagePlus, Pencil } from "lucide-react";
 import { Switch } from "@base-ui/react/switch";
 import { toast } from "sonner";
 
@@ -105,6 +105,7 @@ export function ItemDetailDialog({
   const supabase = useSupabaseClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -198,6 +199,7 @@ export function ItemDetailDialog({
     const { error } = await uploadItemImages(supabase, listId, currentItem.id, currentUserId, files);
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
 
     if (error) {
       setUploadError(error);
@@ -478,25 +480,49 @@ export function ItemDetailDialog({
 
             {canAddPhotos && (
               <div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => void handlePhotosSelected(e.target.files)}
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="rounded-xl"
-                  disabled={uploading}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <ImagePlus className="size-4" aria-hidden />
-                  {uploading ? tItems("adding") : tItems("addPhotos")}
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => void handlePhotosSelected(e.target.files)}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="rounded-xl"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ImagePlus className="size-4" aria-hidden />
+                    {uploading ? tItems("adding") : tItems("addPhotos")}
+                  </Button>
+                  {/* ponytail: separate capture-only input for the camera button —
+                      Android's Photo Picker intercepts the gallery input's accept and
+                      drops the camera tile, so a single input can never offer both there. */}
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => void handlePhotosSelected(e.target.files)}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="rounded-xl"
+                    disabled={uploading}
+                    onClick={() => cameraInputRef.current?.click()}
+                  >
+                    <Camera className="size-4" aria-hidden />
+                    {uploading ? tItems("adding") : tItems("takePhoto")}
+                  </Button>
+                </div>
                 {uploadError && (
                   <p className="mt-1 text-xs text-destructive">
                     {uploadError === "invalidType"

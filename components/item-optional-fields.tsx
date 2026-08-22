@@ -2,7 +2,7 @@
 
 import { useRef, type RefObject } from "react";
 import { useTranslations } from "next-intl";
-import { ImagePlus, Loader2 } from "lucide-react";
+import { Camera, ImagePlus, Loader2 } from "lucide-react";
 
 import { MAX_IMAGES_PER_ITEM, validateImageFile } from "@/lib/upload-item-image";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,7 @@ export function ItemOptionalFields({
   const tItems = useTranslations("items");
   const internalFileInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = externalFileInputRef ?? internalFileInputRef;
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const showUrl = !visibleFields || visibleFields.includes("url");
   const showNote = !visibleFields || visibleFields.includes("note");
@@ -73,6 +74,7 @@ export function ItemOptionalFields({
     }
     onFilesChange([...files, ...next].slice(0, MAX_IMAGES_PER_ITEM));
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
   }
 
   return (
@@ -136,17 +138,43 @@ export function ItemOptionalFields({
             />
           ) : null}
           {!compact ? (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="w-fit rounded-xl"
-              disabled={pending || files.length >= MAX_IMAGES_PER_ITEM}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <ImagePlus className="size-4" aria-hidden />
-              {tItems("addPhotos")}
-            </Button>
+            /* ponytail: separate capture-only input for the camera button — Android's
+               Photo Picker intercepts the gallery input's accept and drops the camera
+               tile, so a single input can never offer both there. */
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => handleFilesSelected(e.target.files)}
+            />
+          ) : null}
+          {!compact ? (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="rounded-xl"
+                disabled={pending || files.length >= MAX_IMAGES_PER_ITEM}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <ImagePlus className="size-4" aria-hidden />
+                {tItems("addPhotos")}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="rounded-xl"
+                disabled={pending || files.length >= MAX_IMAGES_PER_ITEM}
+                onClick={() => cameraInputRef.current?.click()}
+              >
+                <Camera className="size-4" aria-hidden />
+                {tItems("takePhoto")}
+              </Button>
+            </div>
           ) : null}
           {fileError && (
             <p className="text-xs text-destructive">
