@@ -60,8 +60,44 @@ function scrollFieldIntoDialogBody(target: HTMLElement) {
   })
 }
 
+// ponytail: back-to-close lives in this one wrapper so all ~14 modals inherit it.
+// Only dialogs with a controlled `open` participate — every call site in this app
+// passes one, and nothing uses `defaultOpen`.
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+  const { open } = props
+  const actionsRef = React.useRef<DialogPrimitive.Root.Actions | null>(null)
+  const pushedRef = React.useRef(false)
+
+  React.useEffect(() => {
+    if (!open) {
+      // Closed by X / Esc / overlay / a save action: hand the entry back so the
+      // stack doesn't grow. The listener is already gone (cleanup ran first),
+      // so the popstate this triggers cannot re-enter and close anything twice.
+      if (pushedRef.current) {
+        pushedRef.current = false
+        window.history.back()
+      }
+      return
+    }
+
+    if (!pushedRef.current) {
+      pushedRef.current = true
+      // No URL argument: the entry keeps the current URL, so Next's patched
+      // pushState skips its ACTION_RESTORE dispatch and only copies its own
+      // __NA/tree state onto the entry (required, or popping it would reload).
+      window.history.pushState(null, "")
+    }
+
+    const handlePopState = () => {
+      pushedRef.current = false
+      actionsRef.current?.close()
+    }
+
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [open])
+
+  return <DialogPrimitive.Root data-slot="dialog" {...props} actionsRef={actionsRef} />
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {

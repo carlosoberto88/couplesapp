@@ -61,16 +61,18 @@ export function CreateListDialog({
       p_type: type,
       p_recurring: recurring,
     });
-    setSubmitting(false);
 
     if (error || !data) {
+      setSubmitting(false);
       toast.error(error?.message ?? t("error"));
       return;
     }
 
-    handleOpenChange(false);
-    resetForm();
-    router.push(`/lists/${data}`);
+    // ponytail: replace, and no explicit close. The shared Dialog only returns
+    // its history entry on a close, never on unmount — so `replace` reuses that
+    // entry for the new list instead of racing history.back() against the push,
+    // and back from the new list still lands on /lists exactly once.
+    router.replace(`/lists/${data}`);
   }
 
   return (
