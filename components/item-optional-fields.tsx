@@ -124,10 +124,12 @@ export function ItemOptionalFields({
             </p>
           )}
           {!externalFileInputRef ? (
+            /* ponytail: image/* (not an explicit MIME list) so iOS Safari offers "Take Photo";
+               validateImageFile + the bucket's allowed_mime_types are the real gate. */
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/*"
               multiple
               className="hidden"
               onChange={(e) => handleFilesSelected(e.target.files)}

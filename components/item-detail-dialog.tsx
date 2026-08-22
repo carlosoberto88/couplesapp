@@ -398,7 +398,7 @@ export function ItemDetailDialog({
                 <input
                   ref={editFileInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/*"
                   multiple
                   className="hidden"
                   onChange={(e) => {
@@ -481,7 +481,7 @@ export function ItemDetailDialog({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/*"
                   multiple
                   className="hidden"
                   onChange={(e) => void handlePhotosSelected(e.target.files)}
