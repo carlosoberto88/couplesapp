@@ -74,7 +74,7 @@ export default async function RootLayout({
               <NavigationProgress />
               <PushNotificationsSetup />
               {children}
-              <Toaster richColors position="top-center" />
+              <Toaster position="top-center" />
               <ServiceWorkerRegister />
             </NextIntlClientProvider>
           </ClerkProvider>

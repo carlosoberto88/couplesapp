@@ -594,6 +594,70 @@
 }
 
 /*
+ * ponytail: sonner injects its stylesheet at runtime, unlayered, so anything
+ * in @layer utilities (like .glass-chrome) loses to it regardless of
+ * specificity. This block reuses the --glass-* tokens and the same
+ * @supports guard as .glass-chrome, but stays top-level/unlayered and wins
+ * on selector specificity instead — (0,3,0) via
+ * [data-sonner-toast][data-styled="true"].cn-toast vs sonner's (0,2,0).
+ */
+
+/* Sonner hardcodes a system font stack on the toaster; restore Inter. */
+[data-sonner-toaster].toaster { font-family: inherit; }
+
+[data-sonner-toast][data-styled="true"].cn-toast {
+  border-radius: var(--radius-xl);
+  padding: 0.875rem 1rem;
+  gap: 0.625rem;
+  font-size: 0.9375rem;
+  box-shadow: var(--elevation-float);
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  [data-sonner-toast][data-styled="true"].cn-toast {
+    background-color: color-mix(in srgb, var(--popover) var(--glass-opacity), transparent);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    /* Specular top edge only. Deliberately not .glass-capsule's full-perimeter
+       rim: sonner already paints a real border, and doubling them seams. */
+    box-shadow: inset 0 1px 0 0 var(--glass-highlight), var(--elevation-float);
+  }
+}
+
+/* Required: the (0,3,0) base rule outranks sonner's (0,2,0) focus ring and
+   would otherwise kill it. Toast is reachable via sonner's ⌥+T hotkey. */
+[data-sonner-toast][data-styled="true"].cn-toast:focus-visible {
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight), 0 0 0 2px var(--ring), var(--elevation-float);
+}
+
+/* Meaning via glyph + copy; color is a supporting channel only, never the panel. */
+[data-sonner-toast][data-styled="true"].cn-toast [data-icon] { color: var(--muted-foreground); }
+[data-sonner-toast][data-styled="true"].cn-toast[data-type="success"] [data-icon] { color: var(--duo-teal); }
+[data-sonner-toast][data-styled="true"].cn-toast[data-type="error"] [data-icon] { color: var(--duo-coral); }
+[data-sonner-toast][data-styled="true"].cn-toast[data-type="warning"] [data-icon] { color: var(--duo-gold); }
+
+/* Sonner hardcodes #3f3f3f / #e8e8e8 here, ignoring theme tokens. */
+[data-sonner-toast][data-styled="true"].cn-toast [data-description] {
+  color: color-mix(in srgb, var(--popover-foreground) 78%, transparent);
+}
+
+/* Apple renders a banner action as a plain tinted label, not a filled chip.
+   This one rule restyles Undo AND every error Retry action. */
+[data-sonner-toast][data-styled="true"].cn-toast [data-button] {
+  background: transparent;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  height: 2rem;
+  padding-inline: 0.5rem;
+  border-radius: var(--radius-sm);
+}
+/* Sonner's default is rgba(0,0,0,.4) — invisible in dark mode. */
+[data-sonner-toast][data-styled="true"].cn-toast [data-button]:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+/*
  * Reduced transparency degrades the material by SHRINKING the blur radius and
  * raising the alpha — it does not remove the glass. Purely a token override, so
  * it needs no knowledge of which elements are chrome. The old rule did the
