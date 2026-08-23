@@ -728,6 +728,13 @@ export function ShoppingItemList({
   });
 
   const refetchAll = useCallback(() => {
+    // ponytail: compare-and-swap on the array identity we started from. Any
+    // local/optimistic/realtime write during the request replaces `items`, so a
+    // snapshot that lands late drops itself instead of reviving the stale row.
+    // This also makes the 3 refetches fired on app re-entry (focus /
+    // visibilitychange / SUBSCRIBED) order-safe: the first to apply changes the
+    // identity, so the others drop. No sequence counter needed.
+    const base = items;
     void (async () => {
       const { data, error } = await supabase
         .from("items")
@@ -737,11 +744,11 @@ export function ShoppingItemList({
         .order("created_at", { ascending: true });
 
       if (!error && data) {
-        setItems(data as Item[]);
+        setItems((prev) => (prev === base ? (data as Item[]) : prev));
         await refetchImages((data as Item[]).map((row) => row.id));
       }
     })();
-  }, [listId, supabase, refetchImages]);
+  }, [items, listId, supabase, refetchImages]);
 
   const otherUserAddToastRef = useRef(
     createOtherUserAddToastDebouncer(

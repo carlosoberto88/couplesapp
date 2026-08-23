@@ -387,6 +387,10 @@ export function WishlistItemList({
   );
 
   const refetchAll = useCallback(() => {
+    // ponytail: CAS guard, same as shopping-item-list.tsx — a snapshot that
+    // resolves after a local/realtime write drops itself. Duplicated on purpose:
+    // 4 lines beats a shared hook for two call sites.
+    const base = items;
     void (async () => {
       const { data: itemRows } = await supabase
         .from("items")
@@ -396,11 +400,11 @@ export function WishlistItemList({
         .order("created_at");
 
       if (itemRows) {
-        setItems(itemRows as Item[]);
+        setItems((prev) => (prev === base ? (itemRows as Item[]) : prev));
         await refetchImages((itemRows as Item[]).map((row) => row.id));
       }
     })();
-  }, [listId, supabase, refetchImages]);
+  }, [items, listId, supabase, refetchImages]);
 
   const otherUserAddToastRef = useRef(
     createOtherUserAddToastDebouncer(
